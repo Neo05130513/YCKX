@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { getCustomerRole } from "../api/customerSession";
+import { hasCustomerPermission } from "../api/customerSession";
 
-const canViewAmount = computed(() => getCustomerRole() === "admin");
+const canViewAmount = computed(() => hasCustomerPermission("customer.bill.read"));
 </script>

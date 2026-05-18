@@ -1,10 +1,13 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { dirname, extname, join } from "node:path";
 const customerId = "customer-yancheng";
 
 const BatteryAssetStatus = {
@@ -87,6 +90,20 @@ const AlarmStatus = {
 type SystemAccountType = "INTERNAL" | "CUSTOMER";
 type SystemAccountStatus = "ENABLED" | "DISABLED";
 type SystemInterfaceStatus = "ONLINE" | "ERROR" | "DISABLED";
+type SystemInterfaceMethod = "GET" | "POST";
+
+export type MockAuthContext = {
+  accountId: string;
+  accountType: SystemAccountType;
+  username: string;
+  name: string;
+  roleId: string;
+  roleName: string;
+  customerName: string;
+  permissions: string[];
+  issuedAt: number;
+  expiresAt: number;
+};
 
 type SystemAccount = {
   id: string;
@@ -142,14 +159,19 @@ type PlatformInterface = {
   name: string;
   platform: string;
   endpoint: string;
+  requestMethod: SystemInterfaceMethod;
   syncInterval: string;
   owner: string;
   authMode: string;
+  credential: string;
+  credentialConfigured?: boolean;
+  credentialHint?: string;
   timeoutMs: number;
   enabled: boolean;
   status: SystemInterfaceStatus;
   lastSyncAt: string;
   lastResult: string;
+  lastLatencyMs?: number;
 };
 
 type ApprovalFlowConfig = {
@@ -161,6 +183,35 @@ type ApprovalFlowConfig = {
   approvers: string[];
   slaHours: number;
   updatedAt: string;
+};
+
+type ApprovalConditionOperator =
+  | "eq"
+  | "neq"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "includes"
+  | "in"
+  | "exists"
+  | "not_exists"
+  | "truthy"
+  | "falsy";
+
+type ApprovalCondition = {
+  field?: string;
+  operator?: ApprovalConditionOperator;
+  value?: string | number | boolean | Array<string | number | boolean>;
+  logic?: "all" | "any";
+  conditions?: ApprovalCondition[];
+};
+
+type ApprovalFlowNodeInput = {
+  name: string;
+  operator: string;
+  condition?: ApprovalCondition | ApprovalCondition[];
+  conditionLabel?: string;
 };
 
 type SystemOperationLog = {
@@ -207,17 +258,222 @@ function resolveMockStateFile() {
   return join(cwd, "data", "mock-state.json");
 }
 
+function resolveMockUploadDir() {
+  return join(dirname(resolveMockStateFile()), "uploads");
+}
+
+type UploadedFileMeta = {
+  id: string;
+  name: string;
+  fileName: string;
+  storedName: string;
+  storageKey: string;
+  category: string;
+  businessId: string;
+  businessType: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: string;
+  uploadedBy: string;
+  fileUrl: string;
+};
+
 @Injectable()
 export class MockService {
   private readonly stateFilePath =
     process.env.MOCK_STATE_FILE || resolveMockStateFile();
+  private readonly uploadDirPath =
+    process.env.MOCK_UPLOAD_DIR || resolveMockUploadDir();
+  private readonly authSecret =
+    process.env.MOCK_AUTH_SECRET || "yckx-local-mock-auth-secret";
+  private readonly internalDefaultPassword =
+    process.env.MOCK_INTERNAL_DEFAULT_PASSWORD || "admin123";
+  private readonly customerDefaultCode =
+    process.env.MOCK_CUSTOMER_DEFAULT_CODE || "123456";
   private readonly defaultSystemConfigState: SystemConfigState;
+  private readonly uploadedFiles: UploadedFileMeta[] = [];
+  private automationTimer?: ReturnType<typeof setInterval>;
+  private readonly automationIntervalMs = Math.max(
+    Number(process.env.MOCK_AUTOMATION_INTERVAL_MS || 300000),
+    30000,
+  );
+  private readonly automationState: Record<string, any> = {
+    enabled: process.env.MOCK_AUTOMATION_DISABLED !== "true",
+    intervalMs: 0,
+    lastRunAt: "",
+    nextRunAt: "",
+    lastResult: null,
+    runCount: 0,
+  };
+  private readonly temporaryAccountPasswords = new Map<
+    string,
+    { password: string; expiresAt: number }
+  >();
 
   constructor() {
     this.defaultSystemConfigState = this.cloneValue(
       this.getSystemConfigState(),
     );
     this.restoreMockState();
+    this.hydrateSystemInterfaceConfig();
+    this.migrateFinanceState();
+    this.ensureHistoricalAssetFinanceRecords();
+    this.scheduleAutomationTasks();
+  }
+
+  private migrateFinanceState() {
+    const ensureRolePermission = (
+      roleId: string,
+      permission: {
+        code: string;
+        name: string;
+        module: string;
+        sensitive?: boolean;
+      },
+      enabled: boolean,
+    ) => {
+      const role = this.systemRoles.find((item) => item.id === roleId);
+      if (!role) return;
+      const existing = role.permissions.find(
+        (item) => item.code === permission.code,
+      );
+      if (existing) {
+        existing.name = permission.name;
+        existing.module = permission.module;
+        existing.sensitive = Boolean(permission.sensitive);
+        existing.enabled = enabled;
+      } else {
+        role.permissions.push({
+          code: permission.code,
+          name: permission.name,
+          module: permission.module,
+          enabled,
+          sensitive: Boolean(permission.sensitive),
+        });
+      }
+      this.refreshRolePermissionSummary(role);
+    };
+
+    const financePermissions = [
+      { code: "bill.read", name: "查看财务数据", module: "财务管理" },
+      {
+        code: "bill.generate",
+        name: "生成月度账单",
+        module: "财务管理",
+        sensitive: true,
+      },
+      {
+        code: "bill.confirm",
+        name: "确认账单",
+        module: "财务管理",
+        sensitive: true,
+      },
+      {
+        code: "bill.payment",
+        name: "登记回款",
+        module: "财务管理",
+        sensitive: true,
+      },
+      {
+        code: "bill.voucher",
+        name: "维护付款凭证",
+        module: "财务管理",
+        sensitive: true,
+      },
+      {
+        code: "bill.reconcile",
+        name: "付款凭证对账",
+        module: "财务管理",
+        sensitive: true,
+      },
+      {
+        code: "bill.adjust",
+        name: "调整账单",
+        module: "财务管理",
+        sensitive: true,
+      },
+      {
+        code: "bill.follow",
+        name: "催收跟进",
+        module: "财务管理",
+        sensitive: false,
+      },
+    ];
+
+    financePermissions.forEach((permission) => {
+      ensureRolePermission("role-admin", permission, true);
+      ensureRolePermission("role-finance", permission, true);
+    });
+    ensureRolePermission(
+      "role-sales",
+      { code: "bill.read", name: "查看财务数据", module: "财务管理" },
+      true,
+    );
+    ensureRolePermission(
+      "role-sales",
+      { code: "bill.follow", name: "催收跟进", module: "财务管理" },
+      false,
+    );
+    ensureRolePermission(
+      "role-customer-admin",
+      {
+        code: "customer.bill.voucher",
+        name: "提交付款凭证",
+        module: "客户移动端",
+        sensitive: true,
+      },
+      true,
+    );
+    ensureRolePermission(
+      "role-customer-staff",
+      {
+        code: "customer.bill.voucher",
+        name: "提交付款凭证",
+        module: "客户移动端",
+        sensitive: true,
+      },
+      false,
+    );
+
+    this.bills.forEach((bill) => {
+      bill.paymentVouchers = Array.isArray(bill.paymentVouchers)
+        ? bill.paymentVouchers
+        : [];
+      (bill.payments ?? []).forEach((payment: Record<string, any>) => {
+        if (payment.voucherId) return;
+        const voucherId = `voucher-${payment.paymentNo || randomUUID()}`;
+        payment.voucherId = voucherId;
+        payment.reconciliationStatus =
+          payment.reconciliationStatus || "VERIFIED";
+        payment.reconciledAt =
+          payment.reconciledAt || payment.paidAt || this.nowText();
+        payment.reconciledBy = payment.reconciledBy || payment.operator || "财务";
+        bill.paymentVouchers.push({
+          id: voucherId,
+          voucherNo: payment.voucherNo || payment.paymentNo,
+          amount: Number(payment.amount || 0),
+          paidAt: payment.paidAt || "",
+          method: payment.method || "银行转账",
+          payerName: payment.payerName || bill.customerName,
+          payerAccount: payment.payerAccount || "",
+          bankName: payment.bankName || "",
+          attachmentName:
+            payment.attachmentName || payment.fileName || "历史回款凭证",
+          attachmentUrl: payment.attachmentUrl || payment.fileUrl || "",
+          attachmentSize: Number(payment.attachmentSize || 0),
+          remark: payment.remark || "",
+          uploadedAt: payment.paidAt || this.nowText(),
+          uploadedBy: payment.operator || "财务",
+          uploadedByType: "FINANCE",
+          status: "VERIFIED",
+          reconciliationStatus: "VERIFIED",
+          reconciledAt: payment.reconciledAt,
+          reconciledBy: payment.reconciledBy,
+          reconciliationRemark: "历史回款自动补齐凭证记录",
+          paymentNo: payment.paymentNo,
+        });
+      });
+    });
   }
 
   private replaceArray<T>(target: T[], source: unknown) {
@@ -259,9 +515,12 @@ export class MockService {
       this.replaceArray(this.disposalRecords, state.disposalRecords);
       this.replaceArray(this.inventoryRecords, state.inventoryRecords);
       this.replaceArray(this.depreciationRecords, state.depreciationRecords);
+      this.replaceArray(this.assetFinanceRecords, state.assetFinanceRecords);
+      this.replaceArray(this.uploadedFiles, state.uploadedFiles);
       if (!this.hasCorruptedMockText(state.systemOperationLogs)) {
         this.replaceArray(this.systemOperationLogs, state.systemOperationLogs);
       }
+      this.replaceRecord(this.automationState, state.automationState);
       this.replaceRecord(this.repairLogs, state.repairLogs);
       this.replaceRecord(this.assetMovements, state.assetMovements);
       this.restoreSystemConfigState(state.systemManagement);
@@ -275,7 +534,9 @@ export class MockService {
       accounts: this.systemAccounts,
       roles: this.systemRoles,
       dictionaries: this.dictionaries,
-      interfaces: this.platformInterfaces,
+      interfaces: this.platformInterfaces.map((item) =>
+        this.sanitizePlatformInterface(item),
+      ),
       approvalFlows: this.approvalFlows,
       parameters: this.systemParameters,
       operationLogs: this.systemOperationLogs,
@@ -349,6 +610,7 @@ export class MockService {
       "operationLogs",
       this.systemOperationLogs as Array<Record<string, any>>,
     );
+    this.hydrateSystemInterfaceConfig();
   }
 
   private persistMockState() {
@@ -374,6 +636,9 @@ export class MockService {
             disposalRecords: this.disposalRecords,
             inventoryRecords: this.inventoryRecords,
             depreciationRecords: this.depreciationRecords,
+            assetFinanceRecords: this.assetFinanceRecords,
+            uploadedFiles: this.uploadedFiles,
+            automationState: this.automationState,
             systemOperationLogs: this.systemOperationLogs,
             repairLogs: this.repairLogs,
             assetMovements: this.assetMovements,
@@ -2034,6 +2299,8 @@ export class MockService {
     },
   ];
 
+  private readonly assetFinanceRecords: Array<Record<string, any>> = [];
+
   private readonly systemAccounts: SystemAccount[] = [
     {
       id: "acc-admin",
@@ -2571,9 +2838,11 @@ export class MockService {
       name: "平台A设备数据",
       platform: "锂钠安",
       endpoint: "https://api.platform-a.example/devices",
+      requestMethod: "GET",
       syncInterval: "5分钟",
       owner: "设备运维组",
       authMode: "Bearer Token",
+      credential: "",
       timeoutMs: 8000,
       enabled: true,
       status: "ONLINE",
@@ -2585,9 +2854,11 @@ export class MockService {
       name: "平台B告警数据",
       platform: "第三方BMS平台",
       endpoint: "https://api.platform-b.example/alarms",
+      requestMethod: "GET",
       syncInterval: "3分钟",
       owner: "设备运维组",
       authMode: "Bearer Token",
+      credential: "",
       timeoutMs: 8000,
       enabled: true,
       status: "ERROR",
@@ -2599,9 +2870,11 @@ export class MockService {
       name: "设备定位服务",
       platform: "地图服务",
       endpoint: "https://restapi.amap.com/v3/geocode",
+      requestMethod: "GET",
       syncInterval: "按需",
       owner: "技术部",
       authMode: "API Key",
+      credential: process.env.AMAP_KEY || "",
       timeoutMs: 5000,
       enabled: true,
       status: "ONLINE",
@@ -2613,9 +2886,11 @@ export class MockService {
       name: "短信通知接口",
       platform: "短信服务商",
       endpoint: "https://sms.example/send",
+      requestMethod: "POST",
       syncInterval: "按需",
       owner: "系统管理员",
       authMode: "AccessKey",
+      credential: "",
       timeoutMs: 5000,
       enabled: false,
       status: "DISABLED",
@@ -3651,10 +3926,859 @@ export class MockService {
     return this.formatTextTime(new Date());
   }
 
+  private scheduleAutomationTasks() {
+    this.automationState.intervalMs = this.automationIntervalMs;
+    if (!this.automationState.enabled) return;
+
+    this.automationState.nextRunAt = this.addMinutesText(
+      this.nowText(),
+      Math.ceil(this.automationIntervalMs / 60000),
+    );
+    this.automationTimer = setInterval(() => {
+      try {
+        this.runAutomationTasks({
+          operator: "系统自动任务",
+          trigger: "SCHEDULED",
+        });
+      } catch (error) {
+        this.automationState.lastResult = {
+          ok: false,
+          message: error instanceof Error ? error.message : String(error),
+        };
+        this.automationState.lastRunAt = this.nowText();
+      }
+    }, this.automationIntervalMs);
+    this.automationTimer.unref?.();
+  }
+
+  private autoReceiveOutbounds(asOfDate = this.dateText(), operator = "系统自动任务") {
+    const receivedOutbounds: Record<string, any>[] = [];
+    const now = this.nowText();
+    this.outbounds
+      .filter(
+        (outbound) =>
+          outbound.status === OutboundStatus.PendingReceipt &&
+          String(outbound.autoReceiveAt || "") !== "" &&
+          String(outbound.autoReceiveAt || "") <= asOfDate,
+      )
+      .forEach((outbound) => {
+        outbound.status = OutboundStatus.AutoReceived;
+        outbound.receivedAt = now;
+        outbound.autoReceivedBy = operator;
+        outbound.autoReceivedAt = now;
+
+        outbound.btCodes?.forEach((btCode: string) => {
+          const battery = this.batteries.find((item) => item.btCode === btCode);
+          if (!battery) return;
+          battery.customStatus = "正常运营";
+          battery.updatedAt = now;
+          this.appendAssetMovement(battery.id, {
+            type: "收货",
+            title: "系统自动收货",
+            time: now,
+            operator,
+            target: outbound.customerName || outbound.orderId,
+            status: "自动收货",
+            remark: `${outbound.outboundNo} 到期自动确认收货。`,
+          });
+        });
+
+        const order = this.orders.find((item) => item.id === outbound.orderId);
+        if (order) {
+          this.appendOrderEvent(
+            order,
+            "系统自动收货",
+            `${outbound.outboundNo} 已超过自动收货日，系统按规则确认 ${outbound.btCodes?.length ?? 0} 组电池收货。`,
+          );
+          order.updatedAt = now;
+          this.syncOrderOperationalState(order);
+        }
+        receivedOutbounds.push({
+          id: outbound.id,
+          outboundNo: outbound.outboundNo,
+          orderId: outbound.orderId,
+          orderNo: order?.orderNo ?? "",
+          btCodes: outbound.btCodes ?? [],
+          receivedAt: now,
+        });
+      });
+
+    return {
+      autoReceivedCount: receivedOutbounds.length,
+      receivedOutbounds,
+    };
+  }
+
+  runAutomationTasks(body: Record<string, any> = {}) {
+    const operator =
+      String(body.operator ?? "").trim() || "系统自动任务";
+    const trigger = String(body.trigger ?? "").trim() || "MANUAL";
+    const asOfDate = String(body.asOfDate ?? "").trim() || this.dateText();
+    const receiptResult = this.autoReceiveOutbounds(asOfDate, operator);
+    const financeResult = this.runFinanceScheduler({
+      asOfDate,
+      operator,
+      trigger,
+      persist: false,
+    });
+    this.automationState.lastRunAt = this.nowText();
+    this.automationState.nextRunAt = this.addMinutesText(
+      this.nowText(),
+      Math.ceil(this.automationIntervalMs / 60000),
+    );
+    this.automationState.lastResult = {
+      ok: true,
+      trigger,
+      asOfDate,
+      receipt: receiptResult,
+      finance: financeResult,
+    };
+    this.persistMockState();
+    return this.automationState.lastResult;
+  }
+
+  getAutomationState() {
+    return {
+      ...this.automationState,
+      intervalMs: this.automationIntervalMs,
+      pendingAutoReceiptCount: this.outbounds.filter(
+        (outbound) =>
+          outbound.status === OutboundStatus.PendingReceipt &&
+          String(outbound.autoReceiveAt || "") !== "" &&
+          String(outbound.autoReceiveAt || "") <= this.dateText(),
+      ).length,
+    };
+  }
+
+  runAutoReceiveJob(body: Record<string, any> = {}) {
+    const operator =
+      String(body.operator ?? "").trim() || "系统自动任务";
+    const asOfDate = String(body.asOfDate ?? "").trim() || this.dateText();
+    const result = this.autoReceiveOutbounds(asOfDate, operator);
+    this.automationState.runCount = Number(this.automationState.runCount || 0) + 1;
+    this.automationState.lastRunAt = this.nowText();
+    this.automationState.nextRunAt = this.addMinutesText(
+      this.nowText(),
+      Math.ceil(this.automationIntervalMs / 60000),
+    );
+    this.automationState.lastResult = {
+      ok: true,
+      trigger: "AUTO_RECEIVE_MANUAL",
+      asOfDate,
+      receipt: result,
+    };
+    this.persistMockState();
+    return {
+      ...result,
+      automationState: this.getAutomationState(),
+    };
+  }
+
+  private sanitizeFileName(value: unknown) {
+    const name = String(value || "attachment")
+      .replace(/[\\/:*?"<>|]/g, "_")
+      .replace(/\s+/g, " ")
+      .trim();
+    return name || "attachment";
+  }
+
+  private attachmentDisplayName(item: unknown) {
+    if (item && typeof item === "object") {
+      const entry = item as Record<string, any>;
+      return String(entry.name ?? entry.fileName ?? entry.originalName ?? "")
+        .trim();
+    }
+    return String(item ?? "").trim();
+  }
+
+  uploadFiles(files: Array<Record<string, any>> = [], body: Record<string, any>) {
+    if (!files.length) {
+      throw new BadRequestException("请至少选择一个附件文件。");
+    }
+
+    const category = this.sanitizeFileName(body.category || "general");
+    const businessId = String(body.businessId ?? "").trim();
+    const businessType = String(body.businessType ?? "").trim();
+    const uploadedBy = String(body.operator ?? body.uploadedBy ?? "").trim() || "系统";
+    const targetDir = join(this.uploadDirPath, category);
+    mkdirSync(targetDir, { recursive: true });
+
+    const uploadedAt = this.nowText();
+    const metas = files.map((file) => {
+      const originalName = this.sanitizeFileName(file.originalname || file.name);
+      const ext = extname(originalName).slice(0, 16);
+      const id = `file-${randomUUID()}`;
+      const storedName = `${id}${ext}`;
+      const storageKey = `${category}/${storedName}`;
+      const buffer = file.buffer as Buffer | undefined;
+      if (!buffer?.length) {
+        throw new BadRequestException(`${originalName} 文件内容为空。`);
+      }
+      writeFileSync(join(targetDir, storedName), buffer);
+
+      const meta: UploadedFileMeta = {
+        id,
+        name: originalName,
+        fileName: originalName,
+        storedName,
+        storageKey,
+        category,
+        businessId,
+        businessType,
+        mimeType: String(file.mimetype || "application/octet-stream"),
+        size: Number(file.size || buffer.length),
+        uploadedAt,
+        uploadedBy,
+        fileUrl: `/api/mock/files/${id}`,
+      };
+      this.uploadedFiles.unshift(meta);
+      return meta;
+    });
+
+    this.persistMockState();
+    return {
+      uploadedCount: metas.length,
+      files: metas,
+    };
+  }
+
+  getUploadedFile(id: string) {
+    const meta = this.uploadedFiles.find((file) => file.id === id);
+    if (!meta) throw new NotFoundException("附件不存在");
+    const fullPath = join(this.uploadDirPath, meta.storageKey);
+    if (!existsSync(fullPath)) throw new NotFoundException("附件文件已丢失");
+    return {
+      meta,
+      buffer: readFileSync(fullPath),
+    };
+  }
+
+  private bindUploadedFilesToApproval(approval: Record<string, any>) {
+    const attachments = this.normalizeApprovalAttachments(approval.attachments);
+    approval.attachments = attachments;
+    attachments.forEach((item) => {
+      if (!item || typeof item !== "object") return;
+      const fileId = String((item as Record<string, any>).id ?? "").trim();
+      if (!fileId) return;
+      const meta = this.uploadedFiles.find((file) => file.id === fileId);
+      if (!meta) return;
+      meta.businessId = approval.id;
+      meta.businessType = approval.type || "APPROVAL";
+      meta.fileUrl = `/api/mock/files/${meta.id}`;
+      (item as Record<string, any>).fileUrl = meta.fileUrl;
+      (item as Record<string, any>).uploadedAt =
+        (item as Record<string, any>).uploadedAt || meta.uploadedAt;
+      (item as Record<string, any>).uploadedBy =
+        (item as Record<string, any>).uploadedBy || meta.uploadedBy;
+    });
+  }
+
+  private bindUploadedFilesToRepair(repair: Record<string, any>) {
+    const images = this.normalizeApprovalAttachments(repair.images ?? []);
+    repair.images = images;
+    images.forEach((item) => {
+      if (!item || typeof item !== "object") return;
+      const fileId = String((item as Record<string, any>).id ?? "").trim();
+      if (!fileId) return;
+      const meta = this.uploadedFiles.find((file) => file.id === fileId);
+      if (!meta) return;
+      meta.businessId = repair.id;
+      meta.businessType = "REPAIR";
+      meta.fileUrl = `/api/mock/files/${meta.id}`;
+      (item as Record<string, any>).fileUrl = meta.fileUrl;
+      (item as Record<string, any>).uploadedAt =
+        (item as Record<string, any>).uploadedAt || meta.uploadedAt;
+      (item as Record<string, any>).uploadedBy =
+        (item as Record<string, any>).uploadedBy || meta.uploadedBy;
+    });
+  }
+
+  private resolveActor(body: Record<string, any> = {}, fallbackOperator = "") {
+    const actorId = String(body.actorId ?? "").trim();
+    const actorRoleId = String(body.actorRoleId ?? "").trim();
+    const operator = String(body.operator ?? fallbackOperator ?? "").trim();
+    const account = this.systemAccounts.find(
+      (item) =>
+        item.id === actorId ||
+        item.username === actorId ||
+        item.name === operator ||
+        item.username === operator,
+    );
+    if (account && account.status !== "ENABLED") {
+      throw new BadRequestException(`账号 ${account.name} 已停用，不能执行该操作。`);
+    }
+    const role =
+      this.systemRoles.find((item) => item.id === (account?.roleId || actorRoleId)) ??
+      this.systemRoles.find((item) => item.name === body.actorRoleName);
+    const permissions = new Set(
+      role?.permissions
+        ?.filter((permission) => permission.enabled)
+        .map((permission) => permission.code) ?? [],
+    );
+    return {
+      account,
+      role,
+      name: account?.name || operator || role?.name || "未识别账号",
+      permissions,
+    };
+  }
+
+  private assertPermission(
+    body: Record<string, any> = {},
+    permissionCode: string,
+    fallbackOperator = "",
+  ) {
+    const actor = this.resolveActor(body, fallbackOperator);
+    if (actor.name === "系统自动任务") return actor;
+    if (actor.role?.id === "role-admin") return actor;
+    if (!actor.role || !actor.permissions.has(permissionCode)) {
+      const label =
+        {
+          "order.write": "租赁订单维护",
+          "asset.outbound": "资产出入库",
+          "bill.confirm": "账单确认",
+          "bill.adjust": "账单调整",
+          "bill.payment": "回款登记",
+          "customer.receipt.confirm": "客户收货确认",
+        }[permissionCode] ?? permissionCode;
+      throw new BadRequestException(
+        `${actor.name} 缺少「${label}」权限，不能执行该订单操作。`,
+      );
+    }
+    return actor;
+  }
+
   private resolveApprovalOperator(operator: unknown, applicant: string) {
     const value = String(operator ?? "").trim();
     if (!value || value === "申请人" || value === "发起人") return applicant;
     return value;
+  }
+
+  private approvalNodeOverrides(type: string): Array<Partial<ApprovalFlowNodeInput>> {
+    return (
+      {
+        PURCHASE_CONTRACT: [
+          {},
+          {
+            condition: { field: "amount", operator: "gt", value: 0 },
+            conditionLabel: "采购金额大于 0 时财务审批",
+          },
+          {
+            condition: {
+              logic: "any",
+              conditions: [
+                { field: "amount", operator: "gte", value: 30000 },
+                { field: "paymentTerm", operator: "includes", value: "预付" },
+              ],
+            },
+            conditionLabel: "采购金额达到 30000 元或存在预付款条款时法务审批",
+          },
+          {
+            condition: {
+              field: "contractType",
+              operator: "in",
+              value: ["电池采购合同", "电柜采购合同", "零部件采购合同"],
+            },
+            conditionLabel: "涉及电池、电柜或零部件采购时技术审批",
+          },
+          {
+            condition: { field: "amount", operator: "gte", value: 50000 },
+            conditionLabel: "采购金额达到 50000 元时刘少鹏审批",
+          },
+          {
+            condition: { field: "amount", operator: "gte", value: 100000 },
+            conditionLabel: "采购金额达到 100000 元时彭总审批",
+          },
+        ],
+        PAYMENT_REQUEST: [
+          {},
+          {},
+          {},
+          {
+            condition: { field: "paymentAmount", operator: "gte", value: 10000 },
+            conditionLabel: "付款金额达到 10000 元时刘少鹏审批",
+          },
+          {
+            condition: { field: "paymentAmount", operator: "gte", value: 50000 },
+            conditionLabel: "付款金额达到 50000 元时彭总审批",
+          },
+        ],
+        SALES_CONTRACT: [
+          {},
+          {},
+          {},
+          {
+            condition: {
+              logic: "any",
+              conditions: [
+                { field: "contractType", operator: "eq", value: "联营合同" },
+                { field: "amount", operator: "gte", value: 30000 },
+              ],
+            },
+            conditionLabel: "联营合同或押金金额较大时法务审批",
+          },
+          {},
+          {
+            condition: {
+              logic: "any",
+              conditions: [
+                { field: "contractType", operator: "eq", value: "联营合同" },
+                { field: "amount", operator: "gte", value: 20000 },
+              ],
+            },
+            conditionLabel: "联营合同或押金金额达到 20000 元时刘少鹏审批",
+          },
+          {
+            condition: {
+              logic: "any",
+              conditions: [
+                { field: "contractType", operator: "eq", value: "联营合同" },
+                { field: "amount", operator: "gte", value: 100000 },
+              ],
+            },
+            conditionLabel: "联营合同或押金金额达到 100000 元时彭总审批",
+          },
+        ],
+        CUSTOMER_RETURN: [
+          {},
+          {},
+          {
+            condition: {
+              logic: "any",
+              conditions: [
+                { field: "depositRefundAmount", operator: "gte", value: 5000 },
+                { field: "damageClaimAmount", operator: "gt", value: 0 },
+                { field: "returnQuantity", operator: "gte", value: 20 },
+              ],
+            },
+            conditionLabel: "存在退款/索赔金额较大或批量退租时彭总审批",
+          },
+        ],
+        CUSTOMER_BUYOUT: [
+          {},
+          {},
+          {
+            condition: {
+              logic: "any",
+              conditions: [
+                { field: "buyoutType", operator: "eq", value: "未到期买断" },
+                { field: "buyoutAmount", operator: "gte", value: 30000 },
+              ],
+            },
+            conditionLabel: "未到期买断或买断金额达到 30000 元时彭总审批",
+          },
+        ],
+        USED_BATTERY_DISPOSAL: [
+          {},
+          {},
+          {
+            condition: {
+              logic: "any",
+              conditions: [
+                { field: "buyerName", operator: "exists" },
+                { field: "saleAmount", operator: "gt", value: 0 },
+              ],
+            },
+            conditionLabel: "存在出售对象或销售金额时采购签订售卖合同",
+          },
+        ],
+        SEAL_USE: [
+          {},
+          {},
+          {},
+          {
+            condition: {
+              field: "sealType",
+              operator: "in",
+              value: ["公章", "合同章", "法人章"],
+            },
+            conditionLabel: "使用公章、合同章或法人章时刘少鹏审批",
+          },
+          {
+            condition: {
+              logic: "any",
+              conditions: [
+                { field: "sealType", operator: "eq", value: "法人章" },
+                { field: "copies", operator: "gte", value: 5 },
+              ],
+            },
+            conditionLabel: "使用法人章或份数较多时彭总审批",
+          },
+        ],
+        BUSINESS_TRIP: [
+          {},
+          {},
+          {
+            condition: { field: "budgetAmount", operator: "gte", value: 1000 },
+            conditionLabel: "出差预算达到 1000 元时刘少鹏审批",
+          },
+          {
+            condition: { field: "budgetAmount", operator: "gte", value: 5000 },
+            conditionLabel: "出差预算达到 5000 元时彭总审批",
+          },
+        ],
+        REIMBURSEMENT: [
+          {},
+          {},
+          {
+            condition: { field: "amount", operator: "gte", value: 500 },
+            conditionLabel: "报销金额达到 500 元时财务负责人复核",
+          },
+          {
+            condition: { field: "amount", operator: "gte", value: 3000 },
+            conditionLabel: "报销金额达到 3000 元时刘少鹏审批",
+          },
+          {
+            condition: { field: "amount", operator: "gte", value: 10000 },
+            conditionLabel: "报销金额达到 10000 元时彭总审批",
+          },
+        ],
+        LOAN: [
+          {},
+          {},
+          {
+            condition: { field: "loanAmount", operator: "gte", value: 3000 },
+            conditionLabel: "借款金额达到 3000 元时刘少鹏审批",
+          },
+          {
+            condition: { field: "loanAmount", operator: "gte", value: 10000 },
+            conditionLabel: "借款金额达到 10000 元时彭总审批",
+          },
+        ],
+        LEAVE_REQUEST: [
+          {},
+          {},
+          {
+            condition: { field: "days", operator: "gte", value: 3 },
+            conditionLabel: "请假天数达到 3 天时刘少鹏审批",
+          },
+          {
+            condition: { field: "days", operator: "gte", value: 7 },
+            conditionLabel: "请假天数达到 7 天时彭总审批",
+          },
+        ],
+        BILL_ADJUST: [
+          {},
+          {},
+          {
+            condition: { field: "amount", operator: "gte", value: 1000 },
+            conditionLabel: "账单调整金额达到 1000 元时总经理审批",
+          },
+        ],
+      } satisfies Record<string, Array<Partial<ApprovalFlowNodeInput>>>
+    )[type] ?? [];
+  }
+
+  private approvalConditionFieldLabel(field: string) {
+    return (
+      {
+        amount: "审批金额",
+        paymentAmount: "付款金额",
+        depositTotal: "押金金额",
+        depositRefundAmount: "退款金额",
+        damageClaimAmount: "索赔金额",
+        buyoutAmount: "买断金额",
+        budgetAmount: "预算金额",
+        loanAmount: "借款金额",
+        days: "请假天数",
+        returnQuantity: "退租数量",
+        copies: "用印份数",
+        contractType: "合同类型",
+        paymentTerm: "付款条款",
+        buyoutType: "买断类型",
+        sealType: "印章类型",
+        buyerName: "出售对象",
+        saleAmount: "出售金额",
+      }[field] ?? field
+    );
+  }
+
+  private describeApprovalCondition(
+    condition?: ApprovalCondition | ApprovalCondition[],
+  ): string {
+    if (!condition) return "";
+    if (Array.isArray(condition)) {
+      return condition
+        .map((item) => this.describeApprovalCondition(item))
+        .filter(Boolean)
+        .join(" 且 ");
+    }
+
+    if (Array.isArray(condition.conditions) && condition.conditions.length) {
+      const text = condition.conditions
+        .map((item) => this.describeApprovalCondition(item))
+        .filter(Boolean)
+        .join(condition.logic === "any" ? " 或 " : " 且 ");
+      return text;
+    }
+
+    const field = this.approvalConditionFieldLabel(
+      String(condition.field ?? "").trim(),
+    );
+    const operatorMap: Record<string, string> = {
+      eq: "=",
+      neq: "!=",
+      gt: ">",
+      gte: ">=",
+      lt: "<",
+      lte: "<=",
+      includes: "包含",
+      in: "属于",
+      exists: "已填写",
+      not_exists: "未填写",
+      truthy: "为真",
+      falsy: "为假",
+    };
+    const operator = String(condition.operator ?? "eq").trim().toLowerCase();
+    if (["exists", "not_exists", "truthy", "falsy"].includes(operator)) {
+      return `${field}${operatorMap[operator] ?? operator}`;
+    }
+    const value = Array.isArray(condition.value)
+      ? condition.value.join(" / ")
+      : String(condition.value ?? "");
+    return `${field} ${operatorMap[operator] ?? operator} ${value}`.trim();
+  }
+
+  private toApprovalNumber(value: unknown, fallback = 0) {
+    const amount = Number(value);
+    return Number.isFinite(amount) ? amount : fallback;
+  }
+
+  private buildApprovalContext(source: Record<string, any>): Record<string, any> {
+    const formValues =
+      source.formValues && typeof source.formValues === "object"
+        ? (source.formValues as Record<string, any>)
+        : {};
+    const amount = this.toApprovalNumber(
+      source.amount ??
+        formValues.amount ??
+        formValues.paymentAmount ??
+        formValues.depositTotal ??
+        formValues.buyoutAmount ??
+        formValues.loanAmount ??
+        formValues.budgetAmount,
+    );
+
+    return {
+      ...formValues,
+      formValues,
+      type: source.type,
+      businessId: source.businessId,
+      businessNo: source.businessNo,
+      customerName: source.customerName,
+      applicant: source.applicant,
+      department: source.department,
+      priority: source.priority,
+      amount,
+      paymentAmount: this.toApprovalNumber(formValues.paymentAmount, amount),
+      depositTotal: this.toApprovalNumber(formValues.depositTotal, amount),
+      depositRefundAmount: this.toApprovalNumber(formValues.depositRefundAmount),
+      damageClaimAmount: this.toApprovalNumber(
+        formValues.damageClaimAmount ?? formValues.claimAmount,
+      ),
+      claimAmount: this.toApprovalNumber(formValues.claimAmount),
+      buyoutAmount: this.toApprovalNumber(formValues.buyoutAmount, amount),
+      budgetAmount: this.toApprovalNumber(formValues.budgetAmount, amount),
+      loanAmount: this.toApprovalNumber(formValues.loanAmount, amount),
+      days: this.toApprovalNumber(formValues.days),
+      returnQuantity: this.toApprovalNumber(formValues.returnQuantity),
+      buyoutQuantity: this.toApprovalNumber(formValues.buyoutQuantity),
+      copies: this.toApprovalNumber(formValues.copies),
+      saleAmount: this.toApprovalNumber(formValues.saleAmount, amount),
+      contractType: String(formValues.contractType ?? "").trim(),
+      paymentTerm: String(formValues.paymentTerm ?? "").trim(),
+      buyoutType: String(formValues.buyoutType ?? "").trim(),
+      sealType: String(formValues.sealType ?? "").trim(),
+      buyerName: String(formValues.buyerName ?? "").trim(),
+    };
+  }
+
+  private approvalContextValue(context: Record<string, any>, field: string): unknown {
+    return field
+      .split(".")
+      .filter(Boolean)
+      .reduce<unknown>((value, key) => {
+        if (value && typeof value === "object") {
+          return (value as Record<string, any>)[key];
+        }
+        return undefined;
+      }, context);
+  }
+
+  private isEmptyApprovalValue(value: unknown): boolean {
+    return (
+      value == null ||
+      String(value).trim() === "" ||
+      (Array.isArray(value) && value.length === 0)
+    );
+  }
+
+  private compareApprovalValues(left: unknown, right: unknown): number {
+    const leftNumber = this.toApprovalNumber(left, Number.NaN);
+    const rightNumber = this.toApprovalNumber(right, Number.NaN);
+    if (
+      Number.isFinite(leftNumber) &&
+      Number.isFinite(rightNumber) &&
+      !this.isEmptyApprovalValue(left) &&
+      !this.isEmptyApprovalValue(right)
+    ) {
+      return leftNumber - rightNumber;
+    }
+    return String(left ?? "")
+      .trim()
+      .localeCompare(String(right ?? "").trim(), "zh-CN");
+  }
+
+  private evaluateApprovalCondition(
+    condition: ApprovalCondition | ApprovalCondition[] | undefined,
+    context: Record<string, any>,
+  ): boolean {
+    if (!condition) return true;
+    if (Array.isArray(condition)) {
+      return condition.every((item) =>
+        this.evaluateApprovalCondition(item, context),
+      );
+    }
+
+    if (Array.isArray(condition.conditions) && condition.conditions.length) {
+      return condition.logic === "any"
+        ? condition.conditions.some((item) =>
+            this.evaluateApprovalCondition(item, context),
+          )
+        : condition.conditions.every((item) =>
+            this.evaluateApprovalCondition(item, context),
+          );
+    }
+
+    const field = String(condition.field ?? "").trim();
+    if (!field) return true;
+    const actual = this.approvalContextValue(context, field);
+    const operator = String(condition.operator ?? "eq").trim().toLowerCase();
+    const expected = condition.value;
+
+    if (operator === "exists") return !this.isEmptyApprovalValue(actual);
+    if (operator === "not_exists") return this.isEmptyApprovalValue(actual);
+    if (operator === "truthy") return Boolean(actual);
+    if (operator === "falsy") return !Boolean(actual);
+
+    if (this.isEmptyApprovalValue(actual)) return false;
+
+    if (operator === "includes") {
+      if (Array.isArray(actual)) {
+        return actual.some((item) => this.compareApprovalValues(item, expected) === 0);
+      }
+      return String(actual).includes(String(expected ?? ""));
+    }
+
+    if (operator === "in") {
+      const expectedValues = Array.isArray(expected) ? expected : [expected];
+      return expectedValues.some(
+        (item) => this.compareApprovalValues(actual, item) === 0,
+      );
+    }
+
+    const compareResult = this.compareApprovalValues(actual, expected);
+    if (operator === "eq") {
+      if (Array.isArray(expected)) {
+        return expected.some((item) => this.compareApprovalValues(actual, item) === 0);
+      }
+      return compareResult === 0;
+    }
+    if (operator === "neq") return compareResult !== 0;
+    if (operator === "gt") return compareResult > 0;
+    if (operator === "gte") return compareResult >= 0;
+    if (operator === "lt") return compareResult < 0;
+    if (operator === "lte") return compareResult <= 0;
+    return true;
+  }
+
+  private submitApprovalFlow(approval: Record<string, any>, now: string) {
+    const nodes = Array.isArray(approval.nodes) ? approval.nodes : [];
+    nodes.forEach((node: Record<string, any>) => {
+      node.status = "PENDING";
+      node.time = "";
+      node.remark = "";
+      node.skipReason = "";
+      if (node.condition && !node.conditionLabel) {
+        node.conditionLabel = this.describeApprovalCondition(node.condition);
+      }
+    });
+    if (!nodes.length) return null;
+    nodes[0].status = "APPROVED";
+    nodes[0].time = now;
+    nodes[0].remark = "申请已提交。";
+    nodes[0].skipReason = "";
+    return this.advanceApprovalFlow(approval, 1, now);
+  }
+
+  private advanceApprovalFlow(
+    approval: Record<string, any>,
+    startIndex: number,
+    now: string,
+  ) {
+    const nodes = Array.isArray(approval.nodes) ? approval.nodes : [];
+    const context = this.buildApprovalContext(approval);
+    approval.logs = approval.logs ?? [];
+
+    for (let index = Math.max(startIndex, 0); index < nodes.length; index += 1) {
+      const node = nodes[index];
+      if (!node || node.status !== "PENDING") continue;
+
+      const conditionLabel =
+        String(node.conditionLabel ?? "").trim() ||
+        this.describeApprovalCondition(node.condition);
+      if (!this.evaluateApprovalCondition(node.condition, context)) {
+        node.status = "SKIPPED";
+        node.time = now;
+        node.conditionLabel = conditionLabel;
+        node.skipReason = conditionLabel
+          ? `未命中条件：${conditionLabel}`
+          : "未命中节点条件，系统自动跳过。";
+        node.remark = node.skipReason;
+        approval.logs.push({
+          time: now,
+          operator: "系统",
+          action: "条件跳过",
+          nodeName: node.name,
+          result: "已跳过",
+          comment: node.skipReason,
+        });
+        continue;
+      }
+
+      node.status = "CURRENT";
+      node.time = "";
+      node.conditionLabel = conditionLabel;
+      node.skipReason = "";
+      node.remark = conditionLabel ? `命中条件：${conditionLabel}` : "";
+      approval.status = ApprovalStatus.Processing;
+      approval.currentNode = node.name;
+      approval.currentOperator = node.operator;
+      approval.logs.push({
+        time: now,
+        operator: "系统",
+        action: "流转",
+        nodeName: node.name,
+        result: "等待处理",
+        comment: conditionLabel
+          ? `已流转至${node.operator}，${conditionLabel}`
+          : `已流转至${node.operator}。`,
+      });
+      return node;
+    }
+
+    approval.status = ApprovalStatus.Approved;
+    approval.currentNode = "流程完成";
+    approval.currentOperator = "";
+    approval.logs.push({
+      time: now,
+      operator: "系统",
+      action: "归档",
+      nodeName: "流程完成",
+      result: "已完成",
+      comment: "所有有效节点已处理完成。",
+    });
+    return null;
   }
 
   private buildApprovalNodes(
@@ -3662,7 +4786,7 @@ export class MockService {
     applicant: string,
     flowNodes?: Array<Record<string, any>>,
   ) {
-    const nodeMap: Record<string, Array<{ name: string; operator: string }>> = {
+    const nodeMap: Record<string, ApprovalFlowNodeInput[]> = {
       SAMPLE_DELIVERY: [
         { name: "业务员发起送样申请", operator: applicant },
         { name: "刘少鹏审批", operator: "刘少鹏" },
@@ -3832,30 +4956,64 @@ export class MockService {
         { name: "部门负责人", operator: "陈经理" },
       ],
     };
+    const defaultNodes = nodeMap[type] ?? nodeMap.GENERAL;
+    const overrides = this.approvalNodeOverrides(type);
 
     const sourceNodes =
       Array.isArray(flowNodes) && flowNodes.length
         ? flowNodes
-            .map((node) => ({
+            .map((node, index) => {
+              const fallback =
+                defaultNodes[index] ?? defaultNodes[defaultNodes.length - 1];
+              const override = overrides[index] ?? {};
+              const mergedCondition =
+                (node.condition as ApprovalCondition | ApprovalCondition[] | undefined) ??
+                override.condition ??
+                fallback?.condition;
+              const mergedLabel =
+                String(node.conditionLabel ?? "").trim() ||
+                override.conditionLabel ||
+                fallback?.conditionLabel ||
+                this.describeApprovalCondition(mergedCondition);
+              return {
               name: String(node.name ?? "").trim(),
               operator: this.resolveApprovalOperator(node.operator, applicant),
-            }))
+                condition: mergedCondition,
+                conditionLabel: mergedLabel,
+              };
+            })
             .filter((node) => node.name)
-        : (nodeMap[type] ?? nodeMap.GENERAL);
+        : defaultNodes.map((node, index) => {
+            const override = overrides[index] ?? {};
+            const condition = override.condition ?? node.condition;
+            const conditionLabel =
+              override.conditionLabel ??
+              node.conditionLabel ??
+              this.describeApprovalCondition(condition);
+            return {
+              ...node,
+              condition,
+              conditionLabel,
+            };
+          });
 
-    return sourceNodes.map((node, index) => ({
+    return sourceNodes.map((node) => ({
       ...node,
-      status: index === 0 ? "APPROVED" : index === 1 ? "CURRENT" : "PENDING",
-      time: index === 0 ? this.nowText() : "",
-      remark: index === 0 ? "申请已提交。" : "",
+      status: "PENDING",
+      time: "",
+      remark: "",
+      skipReason: "",
     }));
   }
 
-  private enrichApproval(approval: Record<string, any>, index = 0) {
+  private enrichApproval(
+    approval: Record<string, any>,
+    index = 0,
+  ): Record<string, any> {
     const nodes = approval.nodes ?? [];
     const logs = approval.logs ?? [];
-    const approvedNodeCount = nodes.filter(
-      (node: Record<string, any>) => node.status === "APPROVED",
+    const approvedNodeCount = nodes.filter((node: Record<string, any>) =>
+      ["APPROVED", "SKIPPED"].includes(String(node.status)),
     ).length;
     const currentNodeIndex = nodes.findIndex(
       (node: Record<string, any>) => node.status === "CURRENT",
@@ -3918,18 +5076,38 @@ export class MockService {
     return approval;
   }
 
-  private normalizeApprovalAttachments(source: unknown) {
+  private normalizeApprovalAttachments(source: unknown): any[] {
     const values = Array.isArray(source)
       ? source
       : String(source ?? "")
           .split(/[\n,，;；]+/)
           .map((item) => item.trim());
-    return Array.from(
-      new Set(values.map((item) => String(item).trim()).filter(Boolean)),
-    );
+    const deduped = new Map<string, unknown>();
+    values.forEach((item) => {
+      if (item && typeof item === "object") {
+        const entry = item as Record<string, any>;
+        const name = this.attachmentDisplayName(entry);
+        if (!name) return;
+        const fileId = String(entry.id ?? entry.fileId ?? "").trim();
+        deduped.set(fileId || name, {
+          id: fileId || `manual-${name}`,
+          name,
+          fileName: String(entry.fileName ?? name),
+          fileUrl: String(entry.fileUrl ?? entry.url ?? ""),
+          mimeType: String(entry.mimeType ?? ""),
+          size: Number(entry.size ?? 0),
+          uploadedAt: String(entry.uploadedAt ?? ""),
+          uploadedBy: String(entry.uploadedBy ?? ""),
+        });
+        return;
+      }
+      const name = String(item ?? "").trim();
+      if (name) deduped.set(name, name);
+    });
+    return Array.from(deduped.values());
   }
 
-  createApproval(body: Record<string, any>) {
+  createApproval(body: Record<string, any>): Record<string, any> {
     const title = String(body.title ?? "").trim();
     const applicant = String(body.applicant ?? "").trim();
     if (!title || !applicant) {
@@ -3942,14 +5120,6 @@ export class MockService {
       String(body.status ?? "").toUpperCase() === ApprovalStatus.Draft;
     const now = this.nowText();
     const nodes = this.buildApprovalNodes(type, applicant, body.flowNodes);
-    if (saveAsDraft) {
-      nodes.forEach((node: Record<string, any>) => {
-        node.status = "PENDING";
-        node.time = "";
-        node.remark = "";
-      });
-    }
-    const currentNode = nodes.find((node) => node.status === "CURRENT");
     const suffix = String(Date.now()).slice(-8);
     const formItems =
       Array.isArray(body.formItems) && body.formItems.length
@@ -3972,17 +5142,17 @@ export class MockService {
       Array.isArray(body.riskItems) && body.riskItems.length
         ? body.riskItems.map((item: unknown) => String(item)).filter(Boolean)
         : ["请审批人核对业务资料、费用和后续执行责任。"];
+    const formValues =
+      body.formValues && typeof body.formValues === "object"
+        ? body.formValues
+        : {};
     const approval: Record<string, any> = {
       id: `approval-${suffix}`,
       approvalNo: `SP${suffix}`,
       type,
       typeLabel: body.typeLabel || this.approvalTypeLabel(type),
       title,
-      status: saveAsDraft
-        ? ApprovalStatus.Draft
-        : currentNode
-          ? ApprovalStatus.Processing
-          : ApprovalStatus.Approved,
+      status: saveAsDraft ? ApprovalStatus.Draft : ApprovalStatus.Processing,
       applicant,
       department: body.department || "业务部",
       priority: body.priority || "普通",
@@ -3990,10 +5160,8 @@ export class MockService {
       businessNo: body.businessNo || "",
       customerName: body.customerName || "",
       amount: Number(body.amount || 0),
-      currentNode: saveAsDraft
-        ? "草稿未提交"
-        : (currentNode?.name ?? "流程完成"),
-      currentOperator: saveAsDraft ? applicant : (currentNode?.operator ?? ""),
+      currentNode: saveAsDraft ? "草稿未提交" : "流程初始化",
+      currentOperator: saveAsDraft ? applicant : "",
       dueAt: body.dueAt || "",
       createdAt: now,
       updatedAt: now,
@@ -4003,47 +5171,40 @@ export class MockService {
       nodes,
       assetTerminalPayload: body.assetTerminalPayload || null,
       assetTerminalAppliedAt: "",
-      logs: saveAsDraft
-        ? [
-            {
-              time: now,
-              operator: applicant,
-              action: "保存草稿",
-              nodeName: "草稿箱",
-              result: "已保存",
-              comment: body.summary || "审批草稿已保存，尚未提交流转。",
-            },
-          ]
-        : [
-            {
-              time: now,
-              operator: applicant,
-              action: "提交",
-              nodeName: nodes[0]?.name ?? "申请人提交",
-              result: "已提交",
-              comment: body.summary || "审批已提交。",
-            },
-            ...(currentNode
-              ? [
-                  {
-                    time: now,
-                    operator: "系统",
-                    action: "流转",
-                    nodeName: currentNode.name,
-                    result: "等待处理",
-                    comment: `已流转至${currentNode.operator}。`,
-                  },
-                ]
-              : []),
-          ],
+      assetInboundPayload: body.assetInboundPayload || null,
+      assetInboundAppliedAt: "",
+      logs: [],
       attachments: this.normalizeApprovalAttachments(body.attachments),
-      formValues:
-        body.formValues && typeof body.formValues === "object"
-          ? body.formValues
-          : {},
+      formValues,
       flowNodes: Array.isArray(body.flowNodes) ? body.flowNodes : [],
       sourceTemplateKey: type,
     };
+
+    if (saveAsDraft) {
+      approval.logs.push({
+        time: now,
+        operator: applicant,
+        action: "保存草稿",
+        nodeName: "草稿箱",
+        result: "已保存",
+        comment: body.summary || "审批草稿已保存，尚未提交流转。",
+      });
+    } else {
+      approval.logs.push({
+        time: now,
+        operator: applicant,
+        action: "提交",
+        nodeName: nodes[0]?.name ?? "申请人提交",
+        result: "已提交",
+        comment: body.summary || "审批已提交。",
+      });
+      this.submitApprovalFlow(approval, now);
+    }
+
+    this.bindUploadedFilesToApproval(approval);
+    if (!saveAsDraft && approval.status === ApprovalStatus.Approved) {
+      this.syncBusinessApprovalStatus(approval, now, applicant);
+    }
 
     this.approvals.unshift(approval);
     this.persistMockState();
@@ -4093,19 +5254,15 @@ export class MockService {
     if (body.formValues && typeof body.formValues === "object") {
       approval.formValues = body.formValues;
     }
-    if (Array.isArray(body.flowNodes) && body.flowNodes.length) {
-      approval.flowNodes = body.flowNodes;
-      approval.nodes = this.buildApprovalNodes(type, applicant, body.flowNodes);
-      approval.nodes.forEach((node: Record<string, any>) => {
-        node.status = "PENDING";
-        node.time = "";
-        node.remark = "";
-      });
-    }
+    approval.flowNodes = Array.isArray(body.flowNodes)
+      ? body.flowNodes
+      : (approval.flowNodes ?? []);
+    approval.nodes = this.buildApprovalNodes(type, applicant, approval.flowNodes);
     approval.attachments = this.normalizeApprovalAttachments([
       ...(approval.attachments ?? []),
       ...this.normalizeApprovalAttachments(body.attachments),
     ]);
+    this.bindUploadedFilesToApproval(approval);
     approval.currentNode = "草稿未提交";
     approval.currentOperator = applicant;
     approval.updatedAt = now;
@@ -4128,11 +5285,15 @@ export class MockService {
     if (!attachments.length) {
       throw new BadRequestException("请提供需要补充的附件名称。");
     }
+    const attachmentNames = attachments.map((item) =>
+      this.attachmentDisplayName(item),
+    );
 
     approval.attachments = this.normalizeApprovalAttachments([
       ...(approval.attachments ?? []),
       ...attachments,
     ]);
+    this.bindUploadedFilesToApproval(approval);
     const now = this.nowText();
     approval.updatedAt = now;
     approval.logs.push({
@@ -4141,7 +5302,7 @@ export class MockService {
       action: "补充附件",
       nodeName: approval.currentNode || "附件",
       result: "已上传",
-      comment: `补充附件：${attachments.join("、")}`,
+      comment: `补充附件：${attachmentNames.join("、")}`,
     });
 
     this.persistMockState();
@@ -4163,6 +5324,600 @@ export class MockService {
     this.approvals.splice(index, 1);
     this.persistMockState();
     return { id: approval.id, approvalNo: approval.approvalNo, deleted: true };
+  }
+
+  private assertApprovalActionOperator(
+    approval: Record<string, any>,
+    action: string,
+    operator: string,
+  ) {
+    if (!["APPROVE", "REJECT", "TRANSFER"].includes(action)) return;
+    const expectedOperator = String(approval.currentOperator ?? "").trim();
+    const isAdminOperator = this.systemAccounts.some(
+      (account) =>
+        account.roleId === "role-admin" &&
+        account.status === "ENABLED" &&
+        [account.username, account.name].includes(operator),
+    );
+    if (
+      expectedOperator &&
+      operator !== expectedOperator &&
+      !isAdminOperator
+    ) {
+      throw new BadRequestException(
+        `当前节点由 ${expectedOperator} 处理，${operator} 不能代办。`,
+      );
+    }
+  }
+
+  private syncOrderContractApprovalStatus(
+    approval: Record<string, any>,
+    now: string,
+    operator: string,
+  ) {
+    if (!["CONTRACT", "SALES_CONTRACT"].includes(String(approval.type))) return;
+    if (!approval.businessId) return;
+
+    const order = this.orders.find((item) => item.id === approval.businessId);
+    if (!order) return;
+
+    order.contract = {
+      name: order.contract?.name || order.contractName,
+      contractNo: order.contract?.contractNo || order.contractNo,
+      signDate: order.contract?.signDate || "",
+      startDate: order.contract?.startDate || order.leaseStart,
+      endDate: order.contract?.endDate || order.leaseEnd,
+      fileName: order.contract?.fileName || "",
+      ...order.contract,
+      approvalNo: approval.approvalNo,
+      approvalId: approval.id,
+      approvalCurrentNode: approval.currentNode,
+      approvalCurrentOperator: approval.currentOperator,
+      approvalStatus: approval.status,
+    };
+
+    const previousSyncedStatus = order.contract.approvalSyncedStatus;
+    if (approval.status === ApprovalStatus.Approved) {
+      order.status = OrderStatus.PendingOutbound;
+      order.contractStatus = "已会签";
+      order.contract.status = "已会签";
+      order.contract.signDate = order.contract.signDate || this.dateText();
+      if (previousSyncedStatus !== ApprovalStatus.Approved) {
+        order.approvals = order.approvals ?? [];
+        order.approvals.push({
+          node: "合同会签完成",
+          operator,
+          result: "通过",
+          time: now,
+          remark: `审批单 ${approval.approvalNo} 已完成全部节点。`,
+        });
+        this.appendOrderEvent(
+          order,
+          "合同会签通过",
+          "审批引擎已完成全部合同节点，订单进入待出库。",
+        );
+      }
+    } else if (approval.status === ApprovalStatus.Rejected) {
+      order.status = OrderStatus.Draft;
+      order.contractStatus = "会签驳回";
+      order.contract.status = "会签驳回";
+      if (previousSyncedStatus !== ApprovalStatus.Rejected) {
+        order.approvals = order.approvals ?? [];
+        order.approvals.push({
+          node: approval.currentNode || "合同会签",
+          operator,
+          result: "驳回",
+          time: now,
+          remark: approval.logs?.at(-1)?.comment || "合同会签被驳回。",
+        });
+        this.appendOrderEvent(
+          order,
+          "合同会签驳回",
+          "订单已退回草稿，可补充合同资料后重新发起会签。",
+        );
+      }
+    } else if (approval.status === ApprovalStatus.Cancelled) {
+      order.status = OrderStatus.Draft;
+      order.contractStatus = "待会签";
+      order.contract.status = "待会签";
+      if (previousSyncedStatus !== ApprovalStatus.Cancelled) {
+        this.appendOrderEvent(order, "合同会签撤销", "审批单已撤销，订单退回草稿。");
+      }
+    } else if (approval.status === ApprovalStatus.Processing) {
+      order.status = OrderStatus.Approving;
+      order.contractStatus = "会签中";
+      order.contract.status = "会签中";
+      const previousNode = order.contract.approvalSyncedNode;
+      if (previousNode !== approval.currentNode) {
+        this.appendOrderEvent(
+          order,
+          "合同会签流转",
+          `当前节点：${approval.currentNode} / ${approval.currentOperator || "待处理人"}`,
+        );
+      }
+    }
+
+    order.contract.approvalSyncedStatus = approval.status;
+    order.contract.approvalSyncedNode = approval.currentNode;
+    order.updatedAt = now;
+    if (approval.status === ApprovalStatus.Approved) {
+      this.syncOrderOperationalState(order);
+    }
+  }
+
+  private findOrderForApproval(approval: Record<string, any>) {
+    const formValues =
+      approval.formValues && typeof approval.formValues === "object"
+        ? (approval.formValues as Record<string, any>)
+        : {};
+    const refs = [
+      approval.businessId,
+      approval.businessNo,
+      formValues.orderId,
+      formValues.orderNo,
+    ]
+      .map((item) => String(item ?? "").trim())
+      .filter(Boolean);
+    return (
+      refs
+        .map((ref) =>
+          this.orders.find(
+            (item) => item.id === ref || item.orderNo === ref,
+          ) as Record<string, any> | undefined,
+        )
+        .find(Boolean) ?? null
+    );
+  }
+
+  private findBillForApproval(approval: Record<string, any>) {
+    const formValues =
+      approval.formValues && typeof approval.formValues === "object"
+        ? (approval.formValues as Record<string, any>)
+        : {};
+    const refs = [
+      approval.businessId,
+      approval.businessNo,
+      formValues.billId,
+      formValues.billNo,
+    ]
+      .map((item) => String(item ?? "").trim())
+      .filter(Boolean);
+    return (
+      refs
+        .map((ref) =>
+          this.bills.find(
+            (item) => item.id === ref || item.billNo === ref,
+          ) as Record<string, any> | undefined,
+        )
+        .find(Boolean) ?? null
+    );
+  }
+
+  private approvalBtCodes(approval: Record<string, any>) {
+    const formValues =
+      approval.formValues && typeof approval.formValues === "object"
+        ? (approval.formValues as Record<string, any>)
+        : {};
+    const raw = [
+      formValues.assetCodes,
+      formValues.assetCode,
+      formValues.btCodes,
+      formValues.btCode,
+      formValues.batteryScope,
+    ].find((value) => !this.isEmptyApprovalValue(value));
+    return Array.from(new Set(this.parseBtCodeList(raw)));
+  }
+
+  private syncLeaseOutboundApprovalStatus(
+    approval: Record<string, any>,
+    now: string,
+    operator: string,
+  ) {
+    if (!["LEASE_OUTBOUND", "ASSET_OUTBOUND"].includes(String(approval.type))) {
+      return;
+    }
+    const order = this.findOrderForApproval(approval);
+    if (!order) return;
+
+    if (approval.status === ApprovalStatus.Approved) {
+      if (approval.outboundAppliedAt) return;
+      const btCodes = this.approvalBtCodes(approval).filter((btCode) =>
+        this.batteries.some(
+          (battery) =>
+            battery.btCode === btCode &&
+            battery.assetStatus === BatteryAssetStatus.InStock,
+        ),
+      );
+      if (!btCodes.length) return;
+
+      this.createAssetBatchOutbound({
+        orderId: order.id,
+        btCodes,
+        outboundAt: now.slice(0, 10),
+        warehouse: order.assetWarehouse || "郑州总仓",
+        receiver: order.customerContact || approval.customerName || "客户收货人",
+        address: order.region || "客户现场",
+        operator: "系统自动任务",
+        remark: `${approval.approvalNo} 审批通过后自动生成出库单，审批处理人：${operator}。`,
+      });
+      approval.outboundAppliedAt = now;
+      this.appendOrderEvent(
+        order,
+        "审批自动出库",
+        `${approval.approvalNo} 审批通过后已自动生成出库单。`,
+      );
+      return;
+    }
+
+    if (
+      [ApprovalStatus.Rejected, ApprovalStatus.Cancelled].includes(
+        approval.status,
+      )
+    ) {
+      this.appendOrderEvent(
+        order,
+        "出库审批关闭",
+        `${approval.approvalNo} 已${approval.status === ApprovalStatus.Rejected ? "驳回" : "撤销"}，未触发自动出库。`,
+      );
+    }
+  }
+
+  private syncCustomerReturnApprovalStatus(
+    approval: Record<string, any>,
+    now: string,
+    operator: string,
+  ) {
+    if (String(approval.type) !== "CUSTOMER_RETURN") return;
+    const order = this.findOrderForApproval(approval);
+    if (!order) return;
+
+    if (approval.status === ApprovalStatus.Approved) {
+      if (approval.customerReturnAppliedAt) return;
+      const requestedBtCodes = this.approvalBtCodes(approval);
+      const activeBtCodes = this.activeBtCodesForOrder(order);
+      const btCodes = requestedBtCodes.length ? requestedBtCodes : activeBtCodes;
+      if (!btCodes.length) return;
+      this.returnOrderLease(order.id, {
+        btCodes,
+        returnAll: btCodes.length === activeBtCodes.length,
+        warehouse: "郑州总仓",
+        operator: "系统自动任务",
+        remark: `${approval.approvalNo} 审批通过后自动执行退租回收入库，审批处理人：${operator}。`,
+      });
+      approval.customerReturnAppliedAt = now;
+      this.appendOrderEvent(
+        order,
+        "审批自动退租",
+        `${approval.approvalNo} 审批通过后已自动完成退租回收入库。`,
+      );
+      return;
+    }
+
+    if (
+      [ApprovalStatus.Rejected, ApprovalStatus.Cancelled].includes(
+        approval.status,
+      )
+    ) {
+      this.appendOrderEvent(
+        order,
+        "退租审批关闭",
+        `${approval.approvalNo} 已${approval.status === ApprovalStatus.Rejected ? "驳回" : "撤销"}，未触发自动退租。`,
+      );
+    }
+  }
+
+  private syncCustomerBuyoutApprovalStatus(
+    approval: Record<string, any>,
+    now: string,
+    operator: string,
+  ) {
+    if (String(approval.type) !== "CUSTOMER_BUYOUT") return;
+    const order = this.findOrderForApproval(approval);
+    if (!order) return;
+
+    if (
+      approval.status !== ApprovalStatus.Approved ||
+      approval.customerBuyoutAppliedAt
+    ) {
+      return;
+    }
+
+    const btCodes = this.approvalBtCodes(approval);
+    const targetBtCodes = btCodes.length
+      ? btCodes
+      : this.activeBtCodesForOrder(order);
+    if (!targetBtCodes.length) return;
+
+    const formValues =
+      approval.formValues && typeof approval.formValues === "object"
+        ? (approval.formValues as Record<string, any>)
+        : {};
+    const totalAmount = this.toApprovalNumber(
+      formValues.buyoutAmount ?? approval.amount,
+    );
+    const unitPrice = this.toApprovalNumber(formValues.unitPrice);
+    const totalByUnit =
+      totalAmount > 0
+        ? totalAmount
+        : this.roundMoney(unitPrice * targetBtCodes.length);
+    const totalCount = targetBtCodes.length;
+    const perUnitAmount =
+      totalCount > 0 ? this.roundMoney(totalByUnit / totalCount) : 0;
+    const affectedOrderIds = new Set<string>();
+    const baseSuffix = String(Date.now()).slice(-8);
+
+    targetBtCodes.forEach((btCode, index) => {
+      const battery = this.batteries.find((item) => item.btCode === btCode);
+      if (!battery || battery.assetStatus === BatteryAssetStatus.BoughtOut) {
+        return;
+      }
+
+      this.closeActiveOutboundsForBt(btCode, now, "TERMINAL").forEach((orderId) =>
+        affectedOrderIds.add(orderId),
+      );
+      const profile = this.assetFinancialProfile(battery);
+      const amount =
+        index === totalCount - 1
+          ? this.roundMoney(totalByUnit - perUnitAmount * Math.max(totalCount - 1, 0))
+          : perUnitAmount;
+      const gainLossAmount = this.roundMoney(amount - profile.netValue);
+      const record: Record<string, any> = {
+        id: `dispose-${baseSuffix}${String(index + 1).padStart(2, "0")}`,
+        assetId: battery.id,
+        btCode,
+        disposalNo: `DSP${baseSuffix}${String(index + 1).padStart(2, "0")}`,
+        type: this.disposalActionLabel(BatteryAssetStatus.BoughtOut),
+        status: "已登记",
+        approvalStatus: ApprovalStatus.Approved,
+        approvalNo: approval.approvalNo,
+        approvalId: approval.id,
+        operator,
+        amount,
+        bookValue: profile.netValue,
+        accumulatedDepreciation: profile.accumulatedDepreciation,
+        gainLossAmount,
+        financeResult:
+          gainLossAmount >= 0
+            ? `买断收益 ${gainLossAmount} 元`
+            : `买断损失 ${Math.abs(gainLossAmount)} 元`,
+        reason:
+          String(formValues.buyoutType ?? "").trim() ||
+          approval.summary ||
+          "客户买断审批自动联动",
+        createdAt: now,
+        approvedAt: now,
+        finalizedAt: now,
+        remark: `${approval.approvalNo} 审批通过后自动生成买断处置记录。`,
+      };
+      this.disposalRecords.unshift(record);
+      const voucher = this.createDisposalVoucher(battery, record, operator, now);
+      record.voucherNo = voucher.voucherNo;
+
+      battery.assetStatus = BatteryAssetStatus.BoughtOut;
+      battery.lifecycle = record.type;
+      battery.warehouse = battery.warehouse || battery.location || "客户现场";
+      battery.location = battery.warehouse;
+      battery.disposalApprovalNo = approval.approvalNo;
+      battery.disposalVoucherNo = voucher.voucherNo;
+      battery.disposalBookValue = profile.netValue;
+      battery.disposalGainLossAmount = gainLossAmount;
+      battery.updatedAt = now;
+      this.appendAssetMovement(battery.id, {
+        type: record.type,
+        title: "客户买断审批自动联动",
+        time: now,
+        operator,
+        target: approval.approvalNo,
+        status: "已登记",
+        remark: record.financeResult,
+      });
+    });
+
+    affectedOrderIds.add(order.id);
+    affectedOrderIds.forEach((orderId) => {
+      const currentOrder = this.orders.find((item) => item.id === orderId);
+      if (!currentOrder) return;
+      this.appendOrderEvent(
+        currentOrder,
+        "审批自动买断",
+        `${approval.approvalNo} 审批通过后已自动完成买断出库。`,
+      );
+      this.syncOrderOutbound(currentOrder);
+      this.syncOrderOperationalState(currentOrder);
+      this.syncOrderFinance(currentOrder.orderNo, false);
+    });
+    approval.customerBuyoutAppliedAt = now;
+  }
+
+  private syncBillAdjustApprovalStatus(
+    approval: Record<string, any>,
+    now: string,
+    _operator: string,
+  ) {
+    if (String(approval.type) !== "BILL_ADJUST") return;
+    const bill = this.findBillForApproval(approval);
+    if (!bill) return;
+    if (
+      approval.status !== ApprovalStatus.Approved ||
+      approval.billAdjustmentAppliedAt
+    ) {
+      return;
+    }
+
+    const formValues =
+      approval.formValues && typeof approval.formValues === "object"
+        ? (approval.formValues as Record<string, any>)
+        : {};
+    const receivableAmount = this.toApprovalNumber(
+      formValues.receivableAmount ??
+        formValues.adjustedAmount ??
+        approval.amount ??
+        bill.receivableAmount,
+      Number(bill.receivableAmount || 0),
+    );
+    const reason =
+      String(formValues.reason ?? "").trim() ||
+      String(formValues.adjustReason ?? "").trim() ||
+      approval.summary ||
+      "账单调整审批自动联动";
+    if (receivableAmount <= 0 || !reason) return;
+    this.adjustBill(bill.id, {
+      receivableAmount,
+      reason: `${reason}（审批单 ${approval.approvalNo} 自动同步）`,
+      operator: "系统自动任务",
+    });
+    approval.billAdjustmentAppliedAt = now;
+  }
+
+  private syncBusinessApprovalStatus(
+    approval: Record<string, any>,
+    now: string,
+    operator: string,
+  ) {
+    this.syncAssetPurchaseInboundApprovalStatus(approval, now, operator);
+    this.syncAssetTerminalApprovalStatus(approval, now, operator);
+    this.syncOrderContractApprovalStatus(approval, now, operator);
+    this.syncLeaseOutboundApprovalStatus(approval, now, operator);
+    this.syncCustomerReturnApprovalStatus(approval, now, operator);
+    this.syncCustomerBuyoutApprovalStatus(approval, now, operator);
+    this.syncRepairCostApprovalStatus(approval, now, operator);
+    this.syncBillAdjustApprovalStatus(approval, now, operator);
+  }
+
+  private syncRepairCostApprovalStatus(
+    approval: Record<string, any>,
+    now: string,
+    operator: string,
+  ) {
+    if (approval.type !== "REPAIR_COST" || !approval.businessId) return;
+    const repair = this.repairs.find((item) => item.id === approval.businessId);
+    if (!repair) return;
+    const costItems = (repair.costItems ?? []) as Record<string, any>[];
+    const relatedItems = costItems.filter(
+      (item) =>
+        item.approvalId === approval.id ||
+        item.approvalNo === approval.approvalNo,
+    );
+    if (!relatedItems.length) return;
+
+    relatedItems.forEach((costItem) => {
+      const previousStatus = costItem.approvalSyncedStatus;
+      costItem.approvalStatus = approval.status;
+      costItem.approvalStatusLabel = this.approvalStatusLabel(approval.status);
+      costItem.approvalSyncedStatus = approval.status;
+      const bill = this.bills.find(
+        (item) =>
+          item.sourceType === "REPAIR_COST" &&
+          (item.costItemId === costItem.id ||
+            item.approvalNo === approval.approvalNo),
+      );
+      if (bill) {
+        bill.approvalStatus = approval.status;
+        bill.approvalStatusLabel = costItem.approvalStatusLabel;
+      }
+
+      if (approval.status === ApprovalStatus.Approved) {
+        const battery = this.batteries.find(
+          (item) => item.btCode === repair.btCode,
+        );
+        if (battery && Number(costItem.amount || 0) > 0) {
+          const customerPay =
+            String(costItem.payer || "").includes("客户") ||
+            String(repair.responsibility || costItem.responsibility || "").includes(
+              "客户",
+            );
+          const voucher = this.createAssetFinanceVoucher({
+            voucherType: "REPAIR_COST",
+            typeLabel: "维修费用",
+            sourceType: "REPAIR_COST",
+            sourceId: repair.id,
+            sourceNo: `${repair.repairNo}-${costItem.id}`,
+            assetId: battery.id,
+            btCode: repair.btCode,
+            approvalNo: approval.approvalNo,
+            operator,
+            postedAt: now,
+            amount: Number(costItem.amount || 0),
+            remark: `${repair.repairNo} 维修费用审批通过后自动生成。`,
+            entries: customerPay
+              ? [
+                  {
+                    accountTitle: "应收维修款",
+                    direction: "DEBIT",
+                    amount: Number(costItem.amount || 0),
+                    summary: "客户责任维修费用",
+                  },
+                  {
+                    accountTitle: "其他业务收入",
+                    direction: "CREDIT",
+                    amount: Number(costItem.amount || 0),
+                    summary: "客户责任维修费用",
+                  },
+                ]
+              : [
+                  {
+                    accountTitle: "维修费用",
+                    direction: "DEBIT",
+                    amount: Number(costItem.amount || 0),
+                    summary: "维修费用归集",
+                  },
+                  {
+                    accountTitle: "应付/现金",
+                    direction: "CREDIT",
+                    amount: Number(costItem.amount || 0),
+                    summary: "维修费用归集",
+                  },
+                ],
+          });
+          costItem.financeVoucherId = voucher.id;
+          costItem.financeVoucherNo = voucher.voucherNo;
+          repair.financeVoucherId = voucher.id;
+          repair.financeVoucherNo = voucher.voucherNo;
+        }
+        if (bill && bill.status === BillStatus.PendingConfirm) {
+          bill.collectionStatus = "OA已通过，待财务确认";
+        }
+      }
+
+      if (
+        [ApprovalStatus.Rejected, ApprovalStatus.Cancelled].includes(
+          approval.status as any,
+        )
+      ) {
+        costItem.financeStatus = "APPROVAL_STOPPED";
+        costItem.financeStatusLabel =
+          approval.status === ApprovalStatus.Rejected ? "OA驳回" : "OA撤销";
+        if (
+          bill &&
+          bill.status === BillStatus.PendingConfirm &&
+          Number(bill.paidAmount || 0) <= 0
+        ) {
+          bill.status = BillStatus.Voided;
+          bill.voidedAt = now;
+          this.appendBillLog(
+            bill,
+            "作废维修费用账单",
+            operator,
+            `关联OA ${approval.approvalNo} 未通过，账单自动作废。`,
+          );
+        }
+      }
+
+      if (previousStatus !== approval.status) {
+        this.appendRepairLog(repair, {
+          action: "同步维修费用审批",
+          result: `${approval.approvalNo} ${this.approvalStatusLabel(approval.status)}`,
+          remark: bill ? `关联账单 ${bill.billNo}` : "非客户应收费用归档",
+          operator,
+        });
+      }
+    });
+
+    repair.approvalId = approval.id;
+    repair.approvalNo = approval.approvalNo;
+    repair.approvalStatus = approval.status;
+    repair.approvalStatusLabel = this.approvalStatusLabel(approval.status);
+    repair.updatedAt = now;
   }
 
   actionApproval(id: string, body: Record<string, any>) {
@@ -4197,6 +5952,7 @@ export class MockService {
     );
     const currentNode =
       currentIndex >= 0 ? approval.nodes[currentIndex] : undefined;
+    this.assertApprovalActionOperator(approval, action, operator);
 
     if (action === "SUBMIT") {
       if (approval.status !== ApprovalStatus.Draft) {
@@ -4209,20 +5965,6 @@ export class MockService {
           approval.flowNodes,
         );
       }
-      approval.nodes.forEach((node: Record<string, any>, index: number) => {
-        node.status =
-          index === 0 ? "APPROVED" : index === 1 ? "CURRENT" : "PENDING";
-        node.time = index === 0 ? now : "";
-        node.remark = index === 0 ? "申请已提交。" : "";
-      });
-      const nextNode = approval.nodes.find(
-        (node: Record<string, any>) => node.status === "CURRENT",
-      );
-      approval.status = nextNode
-        ? ApprovalStatus.Processing
-        : ApprovalStatus.Approved;
-      approval.currentNode = nextNode?.name ?? "流程完成";
-      approval.currentOperator = nextNode?.operator ?? "";
       approval.logs.push({
         time: now,
         operator,
@@ -4231,25 +5973,12 @@ export class MockService {
         result: "已提交",
         comment: comment || "草稿已提交审批。",
       });
-      if (nextNode) {
-        approval.logs.push({
-          time: now,
-          operator: "系统",
-          action: "流转",
-          nodeName: nextNode.name,
-          result: "等待处理",
-          comment: `已流转至${nextNode.operator}。`,
-        });
-      }
+      this.submitApprovalFlow(approval, now);
     } else if (action === "APPROVE") {
       if (!currentNode) throw new BadRequestException("当前没有待审批节点。");
       currentNode.status = "APPROVED";
       currentNode.time = now;
       currentNode.remark = comment || "同意。";
-
-      const nextNode = approval.nodes
-        .slice(currentIndex + 1)
-        .find((node: Record<string, any>) => node.status === "PENDING");
       approval.logs.push({
         time: now,
         operator,
@@ -4258,24 +5987,7 @@ export class MockService {
         result: "通过",
         comment: comment || "同意进入下一节点。",
       });
-
-      if (nextNode) {
-        nextNode.status = "CURRENT";
-        approval.currentNode = nextNode.name;
-        approval.currentOperator = nextNode.operator;
-        approval.logs.push({
-          time: now,
-          operator: "系统",
-          action: "流转",
-          nodeName: nextNode.name,
-          result: "等待处理",
-          comment: `已流转至${nextNode.operator}。`,
-        });
-      } else {
-        approval.status = ApprovalStatus.Approved;
-        approval.currentNode = "流程完成";
-        approval.currentOperator = "";
-      }
+      this.advanceApprovalFlow(approval, currentIndex + 1, now);
     } else if (action === "REJECT") {
       if (!currentNode) throw new BadRequestException("当前没有待审批节点。");
       currentNode.status = "REJECTED";
@@ -4332,7 +6044,10 @@ export class MockService {
     }
 
     approval.updatedAt = now;
-    this.syncAssetTerminalApprovalStatus(approval, now, operator);
+    this.bindUploadedFilesToApproval(approval);
+    if (action !== "COMMENT") {
+      this.syncBusinessApprovalStatus(approval, now, operator);
+    }
     this.persistMockState();
     return this.enrichApproval(approval);
   }
@@ -4572,6 +6287,280 @@ export class MockService {
     };
   }
 
+  private financeRecordsForAsset(battery: Record<string, any>) {
+    return this.assetFinanceRecords
+      .filter((item) => item.assetId === battery.id || item.btCode === battery.btCode)
+      .sort((a, b) => String(b.postedAt ?? "").localeCompare(String(a.postedAt ?? "")));
+  }
+
+  private createAssetFinanceVoucher(input: {
+    voucherType: string;
+    typeLabel: string;
+    sourceType: string;
+    sourceId?: string;
+    sourceNo: string;
+    assetId: string;
+    btCode: string;
+    approvalNo?: string;
+    operator: string;
+    postedAt?: string;
+    amount: number;
+    remark?: string;
+    entries: Array<{
+      accountTitle: string;
+      direction: "DEBIT" | "CREDIT";
+      amount: number;
+      summary?: string;
+    }>;
+  }) {
+    const existing = this.assetFinanceRecords.find(
+      (item) =>
+        item.sourceType === input.sourceType &&
+        item.sourceNo === input.sourceNo &&
+        item.assetId === input.assetId &&
+        item.voucherType === input.voucherType,
+    );
+    if (existing) return existing;
+
+    const entries = input.entries
+      .map((entry) => ({
+        ...entry,
+        amount: this.roundMoney(Number(entry.amount || 0)),
+        summary: entry.summary || input.typeLabel,
+      }))
+      .filter((entry) => entry.amount > 0);
+    const debitTotal = this.roundMoney(
+      entries
+        .filter((entry) => entry.direction === "DEBIT")
+        .reduce((total, entry) => total + Number(entry.amount || 0), 0),
+    );
+    const creditTotal = this.roundMoney(
+      entries
+        .filter((entry) => entry.direction === "CREDIT")
+        .reduce((total, entry) => total + Number(entry.amount || 0), 0),
+    );
+    const suffix = `${String(Date.now()).slice(-8)}${randomUUID().slice(0, 6)}`;
+    const voucher = {
+      id: `afv-${suffix}`,
+      voucherNo: `VCH${suffix}`,
+      voucherType: input.voucherType,
+      typeLabel: input.typeLabel,
+      sourceType: input.sourceType,
+      sourceId: input.sourceId || "",
+      sourceNo: input.sourceNo,
+      assetId: input.assetId,
+      btCode: input.btCode,
+      approvalNo: input.approvalNo || "",
+      amount: this.roundMoney(Number(input.amount || Math.max(debitTotal, creditTotal))),
+      debitTotal,
+      creditTotal,
+      balanced: Math.abs(debitTotal - creditTotal) < 0.01,
+      entries,
+      operator: input.operator,
+      postedAt: input.postedAt || this.nowText(),
+      status: "POSTED",
+      statusLabel: "已入账",
+      remark: input.remark || "",
+    };
+
+    this.assetFinanceRecords.unshift(voucher);
+    return voucher;
+  }
+
+  private createPurchaseInboundVoucher(
+    battery: Record<string, any>,
+    record: Record<string, any>,
+    operator: string,
+    postedAt: string,
+  ) {
+    const originalValue = this.roundMoney(
+      Number(record.originalValue || battery.originalValue || this.assetDefaultOriginalValue(battery)),
+    );
+    const voucher = this.createAssetFinanceVoucher({
+      voucherType: "ASSET_PURCHASE_INBOUND",
+      typeLabel: "采购入库",
+      sourceType: "PURCHASE_INBOUND",
+      sourceId: record.id,
+      sourceNo: record.inboundNo,
+      assetId: battery.id,
+      btCode: battery.btCode,
+      approvalNo: record.approvalNo,
+      operator,
+      postedAt,
+      amount: originalValue,
+      remark: `${record.inboundNo} 采购入库形成固定资产原值。`,
+      entries: [
+        {
+          accountTitle: "固定资产-锂电池",
+          direction: "DEBIT",
+          amount: originalValue,
+          summary: `${battery.btCode} 采购验收入库`,
+        },
+        {
+          accountTitle: record.invoiceNo ? "应付账款-供应商" : "暂估应付款",
+          direction: "CREDIT",
+          amount: originalValue,
+          summary: record.supplierName || "采购入库",
+        },
+      ],
+    });
+    record.voucherNo = voucher.voucherNo;
+    return voucher;
+  }
+
+  private createDepreciationVoucher(
+    battery: Record<string, any>,
+    record: Record<string, any>,
+  ) {
+    const amount = this.roundMoney(Number(record.amount || 0));
+    if (amount <= 0) return null;
+    const voucher = this.createAssetFinanceVoucher({
+      voucherType: "ASSET_DEPRECIATION",
+      typeLabel: "折旧计提",
+      sourceType: "ASSET_DEPRECIATION",
+      sourceId: record.id,
+      sourceNo: record.depreciationNo,
+      assetId: battery.id,
+      btCode: battery.btCode,
+      operator: record.operator || "财务",
+      postedAt: record.postedAt || this.nowText(),
+      amount,
+      remark: `${record.period} 固定资产折旧计提。`,
+      entries: [
+        {
+          accountTitle: "管理费用-折旧费",
+          direction: "DEBIT",
+          amount,
+          summary: `${battery.btCode} ${record.period} 折旧`,
+        },
+        {
+          accountTitle: "累计折旧-锂电池",
+          direction: "CREDIT",
+          amount,
+          summary: record.depreciationNo,
+        },
+      ],
+    });
+    record.voucherNo = voucher.voucherNo;
+    return voucher;
+  }
+
+  private createDisposalVoucher(
+    battery: Record<string, any>,
+    record: Record<string, any>,
+    operator: string,
+    postedAt: string,
+  ) {
+    const originalValue = this.roundMoney(this.assetDefaultOriginalValue(battery));
+    const accumulatedDepreciation = this.roundMoney(
+      Number(record.accumulatedDepreciation || 0),
+    );
+    const disposalAmount = this.roundMoney(Number(record.amount || 0));
+    const bookValue = this.roundMoney(
+      Number(record.bookValue || Math.max(originalValue - accumulatedDepreciation, 0)),
+    );
+    const gainAmount = this.roundMoney(Math.max(disposalAmount - bookValue, 0));
+    const lossAmount = this.roundMoney(Math.max(bookValue - disposalAmount, 0));
+    const voucher = this.createAssetFinanceVoucher({
+      voucherType: "ASSET_DISPOSAL",
+      typeLabel: record.type || "资产处置",
+      sourceType: "ASSET_DISPOSAL",
+      sourceId: record.id,
+      sourceNo: record.disposalNo,
+      assetId: battery.id,
+      btCode: battery.btCode,
+      approvalNo: record.approvalNo,
+      operator,
+      postedAt,
+      amount: Math.max(originalValue, disposalAmount),
+      remark: `${record.disposalNo} 审批通过后自动生成处置凭证。`,
+      entries: [
+        {
+          accountTitle: "累计折旧-锂电池",
+          direction: "DEBIT",
+          amount: accumulatedDepreciation,
+          summary: `${battery.btCode} 冲销累计折旧`,
+        },
+        {
+          accountTitle: "银行存款/应收处置款",
+          direction: "DEBIT",
+          amount: disposalAmount,
+          summary: record.type || "资产处置",
+        },
+        {
+          accountTitle: "资产处置损失",
+          direction: "DEBIT",
+          amount: lossAmount,
+          summary: `${battery.btCode} 处置损失`,
+        },
+        {
+          accountTitle: "固定资产-锂电池",
+          direction: "CREDIT",
+          amount: originalValue,
+          summary: `${battery.btCode} 冲销原值`,
+        },
+        {
+          accountTitle: "资产处置收益",
+          direction: "CREDIT",
+          amount: gainAmount,
+          summary: `${battery.btCode} 处置收益`,
+        },
+      ],
+    });
+    record.voucherNo = voucher.voucherNo;
+    return voucher;
+  }
+
+  private ensureHistoricalAssetFinanceRecords() {
+    const beforeCount = this.assetFinanceRecords.length;
+    this.batteries.forEach((battery) => {
+      const sourceNo =
+        battery.initialInboundNo || `IN${String(battery.btCode || battery.id).slice(-8)}`;
+      this.createPurchaseInboundVoucher(
+        battery,
+        {
+          id: `initial-${battery.id}`,
+          inboundNo: sourceNo,
+          assetId: battery.id,
+          btCode: battery.btCode,
+          approvalNo: battery.inboundApprovalNo || "",
+          originalValue: this.assetDefaultOriginalValue(battery),
+          supplierName: battery.supplierName || "",
+          invoiceNo: battery.invoiceNo || "",
+        },
+        battery.keeper || "资产管理员",
+        battery.purchaseDate ? `${battery.purchaseDate} 09:00` : this.nowText(),
+      );
+    });
+
+    this.depreciationRecords.forEach((record) => {
+      const battery = this.batteries.find(
+        (item) => item.id === record.assetId || item.btCode === record.btCode,
+      );
+      if (battery) this.createDepreciationVoucher(battery, record);
+    });
+
+    this.disposalRecords
+      .filter((record) => record.status === "已登记")
+      .forEach((record) => {
+        const battery = this.batteries.find(
+          (item) => item.id === record.assetId || item.btCode === record.btCode,
+        );
+        if (battery) {
+          this.createDisposalVoucher(
+            battery,
+            record,
+            record.operator || "财务",
+            record.finalizedAt || record.approvedAt || this.nowText(),
+          );
+        }
+      });
+
+    if (this.assetFinanceRecords.length !== beforeCount) {
+      this.persistMockState();
+    }
+  }
+
   private normalizeDepreciationPeriod(value: unknown) {
     const period = String(value ?? this.monthText(this.dateText())).trim();
     if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(period)) {
@@ -4596,6 +6585,111 @@ export class MockService {
         (item.assetId === battery.id || item.btCode === battery.btCode) &&
         item.status === "审批中",
     );
+  }
+
+  private pendingPurchaseInboundRecordForBt(btCode: string) {
+    return this.inboundRecords.find(
+      (item) => item.btCode === btCode && item.status === "审批中",
+    );
+  }
+
+  private applyAssetPurchaseInboundApproval(
+    approval: Record<string, any>,
+    now: string,
+    operator: string,
+  ) {
+    const payload = approval.assetInboundPayload as
+      | {
+          recordIds: string[];
+          items: Array<{ recordId: string; btCode: string }>;
+        }
+      | undefined;
+    if (!payload || approval.assetInboundAppliedAt) return;
+
+    payload.recordIds.forEach((recordId) => {
+      const record = this.inboundRecords.find((item) => item.id === recordId);
+      if (!record) return;
+
+      let battery = this.batteries.find((item) => item.btCode === record.btCode);
+      if (!battery) {
+        const asset = this.createAssetInboundDirect({
+          ...record,
+          source: record.source || "采购入库",
+          remark:
+            record.remark ||
+            `${approval.approvalNo} 审批通过后自动写入固定资产台账。`,
+        });
+        battery = this.batteries.find((item) => item.id === asset.id);
+      }
+      if (!battery) return;
+
+      record.assetId = battery.id;
+      record.status = "已入库";
+      record.approvalStatus = ApprovalStatus.Approved;
+      record.approvalNo = approval.approvalNo;
+      record.approvalId = approval.id;
+      record.approvedAt = now;
+      record.finalizedAt = now;
+      record.inboundAt = record.inboundAt || now;
+      const voucher = this.createPurchaseInboundVoucher(
+        battery,
+        record,
+        operator,
+        now,
+      );
+      record.voucherNo = voucher.voucherNo;
+      battery.inboundApprovalNo = approval.approvalNo;
+      battery.purchaseVoucherNo = voucher.voucherNo;
+      battery.updatedAt = now;
+      this.appendAssetMovement(battery.id, {
+        type: "入库",
+        title: "采购入库审批通过",
+        time: now,
+        operator,
+        target: approval.approvalNo,
+        status: "已入库",
+        remark: `已生成财务凭证 ${voucher.voucherNo}。`,
+      });
+    });
+
+    approval.assetInboundAppliedAt = now;
+  }
+
+  private syncAssetPurchaseInboundApprovalStatus(
+    approval: Record<string, any>,
+    now: string,
+    operator: string,
+  ) {
+    const payload = approval.assetInboundPayload as
+      | { recordIds: string[] }
+      | undefined;
+    if (!payload) return;
+
+    if (approval.status === ApprovalStatus.Approved) {
+      this.applyAssetPurchaseInboundApproval(approval, now, operator);
+      return;
+    }
+
+    if (
+      ![ApprovalStatus.Rejected, ApprovalStatus.Cancelled].includes(
+        approval.status,
+      )
+    ) {
+      return;
+    }
+
+    const statusText =
+      approval.status === ApprovalStatus.Rejected ? "已驳回" : "已撤销";
+    payload.recordIds.forEach((recordId) => {
+      const record = this.inboundRecords.find((item) => item.id === recordId);
+      if (!record || record.status !== "审批中") return;
+      record.status = statusText;
+      record.approvalStatus = approval.status;
+      record.closedAt = now;
+      record.operator = operator || record.operator;
+      record.remark =
+        approval.logs?.at(-1)?.comment || record.remark || "采购入库审批未通过。";
+    });
   }
 
   private applyAssetTerminalApproval(
@@ -4658,6 +6752,8 @@ export class MockService {
       record.gainLossAmount = gainLossAmount;
       record.financeResult = financeResult;
       record.approvalNo = approval.approvalNo;
+      const voucher = this.createDisposalVoucher(battery, record, operator, now);
+      record.voucherNo = voucher.voucherNo;
 
       battery.assetStatus = action;
       battery.lifecycle = record.type;
@@ -4667,6 +6763,7 @@ export class MockService {
           : battery.warehouse || battery.location || "客户现场";
       battery.location = battery.warehouse;
       battery.disposalApprovalNo = approval.approvalNo;
+      battery.disposalVoucherNo = voucher.voucherNo;
       battery.disposalBookValue = profile.netValue;
       battery.disposalGainLossAmount = gainLossAmount;
       battery.updatedAt = now;
@@ -4781,11 +6878,14 @@ export class MockService {
       remark: `${battery.batchNum} 批次验收入库`,
     };
 
+    const records = this.inboundRecords.filter(
+      (item) => item.assetId === battery.id || item.btCode === battery.btCode,
+    );
     return [
-      baseRecord,
-      ...this.inboundRecords.filter(
-        (item) => item.assetId === battery.id || item.btCode === battery.btCode,
-      ),
+      ...(records.some((item) => item.inboundNo === baseRecord.inboundNo)
+        ? []
+        : [baseRecord]),
+      ...records,
     ];
   }
 
@@ -4866,6 +6966,7 @@ export class MockService {
       );
       const financial = this.assetFinancialProfile(battery);
       const pendingDisposal = this.pendingDisposalRecordForAsset(battery);
+      const financeRecords = this.financeRecordsForAsset(battery);
 
       return {
         id: battery.id,
@@ -4899,6 +7000,8 @@ export class MockService {
         inventoryResult: latestInventory?.result ?? "",
         inventoryStatus: latestInventory?.resultLabel ?? "未盘点",
         ...financial,
+        voucherCount: financeRecords.length,
+        latestVoucherNo: financeRecords[0]?.voucherNo ?? "",
         hasPendingDisposal: Boolean(pendingDisposal),
         pendingDisposalApprovalNo: pendingDisposal?.approvalNo ?? "",
         pendingDisposalStatus: pendingDisposal?.status ?? "",
@@ -4946,11 +7049,12 @@ export class MockService {
         (item) => item.assetId === battery.id || item.btCode === battery.btCode,
       ),
       depreciationRecords: this.depreciationRecordsForAsset(battery),
+      financeRecords: this.financeRecordsForAsset(battery),
       movements,
     };
   }
 
-  createAssetInbound(body: Record<string, any>) {
+  private createAssetInboundDirect(body: Record<string, any>) {
     const btCode = String(body.btCode ?? "").trim();
     const model = String(body.model ?? "").trim();
     const warehouse = String(body.warehouse ?? "").trim() || "郑州总仓";
@@ -5084,7 +7188,7 @@ export class MockService {
       location: warehouse,
       warehouse,
       initialWarehouse: warehouse,
-      initialInboundNo: `IN${suffix}`,
+      initialInboundNo: body.inboundNo || `IN${suffix}`,
       initialInboundSource: body.source || "采购入库",
       keeper,
       customerId: null,
@@ -5106,6 +7210,191 @@ export class MockService {
 
     this.persistMockState();
     return this.getAsset(battery.id);
+  }
+
+  private normalizeAssetInboundDraft(input: Record<string, any>, index: number) {
+    const btCode = String(input.btCode ?? "").trim();
+    const model = String(input.model ?? "").trim();
+    const warehouse = String(input.warehouse ?? "").trim() || "郑州总仓";
+    const batchNum =
+      String(input.batchNum ?? "").trim() ||
+      `BATCH${this.dateText().replace(/-/g, "").slice(0, 6)}`;
+    const purchaseDate =
+      String(input.purchaseDate ?? "").trim() || this.dateText();
+    const keeper = String(input.keeper ?? "").trim() || "王库管";
+    const originalValue = this.roundMoney(
+      Number(input.originalValue || this.assetDefaultOriginalValue({ model })),
+    );
+    const salvageValue = this.roundMoney(
+      Number(input.salvageValue ?? Math.round(originalValue * 0.1)),
+    );
+    const usefulLifeMonths = Math.max(Number(input.usefulLifeMonths || 36), 1);
+
+    if (!btCode) throw new BadRequestException(`第 ${index + 1} 行缺少 BT 码`);
+    if (!model) throw new BadRequestException(`第 ${index + 1} 行缺少电池型号`);
+    if (!Number.isFinite(originalValue) || originalValue <= 0) {
+      throw new BadRequestException(`第 ${index + 1} 行资产原值必须大于 0`);
+    }
+    if (
+      !Number.isFinite(salvageValue) ||
+      salvageValue < 0 ||
+      salvageValue >= originalValue
+    ) {
+      throw new BadRequestException(`第 ${index + 1} 行残值必须大于等于 0 且小于原值`);
+    }
+
+    return {
+      btCode,
+      deviceNum: String(input.deviceNum ?? "").trim(),
+      model,
+      specification:
+        String(input.specification ?? "").trim() || `${model} / 采购入库`,
+      warehouse,
+      batchNum,
+      purchaseDate,
+      keeper,
+      powerPercent: Number(input.powerPercent ?? 100),
+      originalValue,
+      salvageValue,
+      usefulLifeMonths,
+      depreciationStart:
+        String(input.depreciationStart ?? "").trim() || purchaseDate,
+      supplierName: String(input.supplierName ?? "").trim(),
+      invoiceNo: String(input.invoiceNo ?? "").trim(),
+      protectFactory: String(input.protectFactory ?? "").trim(),
+      cellType: String(input.cellType ?? "").trim(),
+      designCapacity: Number(input.designCapacity || 0),
+      nominalCapacity: Number(input.nominalCapacity || 0),
+      remark: String(input.remark ?? "").trim(),
+    };
+  }
+
+  importAssetInbounds(body: Record<string, any>) {
+    const sourceRecords =
+      Array.isArray(body.records) && body.records.length
+        ? body.records
+        : Array.isArray(body.items) && body.items.length
+          ? body.items
+          : [body];
+    const drafts = sourceRecords.map((item: Record<string, any>, index: number) =>
+      this.normalizeAssetInboundDraft(item, index),
+    );
+    const seenBtCodes = new Set<string>();
+    const duplicateDraft = drafts.find((item) => {
+      if (seenBtCodes.has(item.btCode)) return true;
+      seenBtCodes.add(item.btCode);
+      return false;
+    });
+    if (duplicateDraft) {
+      throw new BadRequestException(`导入明细中 BT 码重复：${duplicateDraft.btCode}`);
+    }
+
+    const existingAssets = drafts.filter((item) =>
+      this.batteries.some((battery) => battery.btCode === item.btCode),
+    );
+    if (existingAssets.length) {
+      throw new BadRequestException(
+        `${existingAssets.map((item) => item.btCode).join("、")} 已存在，不能重复入库`,
+      );
+    }
+
+    const pendingAssets = drafts.filter((item) =>
+      this.pendingPurchaseInboundRecordForBt(item.btCode),
+    );
+    if (pendingAssets.length) {
+      throw new BadRequestException(
+        `${pendingAssets.map((item) => item.btCode).join("、")} 已有采购入库审批在处理中`,
+      );
+    }
+
+    const now = this.nowText();
+    const operator = String(body.operator ?? "").trim() || drafts[0]?.keeper || "王库管";
+    const records = drafts.map((draft, index) => {
+      const suffix = `${String(Date.now()).slice(-8)}${String(index + 1).padStart(2, "0")}`;
+      return {
+        id: `pin-${suffix}`,
+        inboundNo: `PIN${suffix}`,
+        source: "采购入库",
+        status: "审批中",
+        approvalStatus: ApprovalStatus.Processing,
+        approvalNo: "",
+        approvalId: "",
+        assetId: "",
+        quantity: 1,
+        inboundAt: "",
+        createdAt: now,
+        operator,
+        ...draft,
+        remark:
+          draft.remark ||
+          "采购入库申请已提交审批，审批通过后自动生成资产台账和财务凭证。",
+      };
+    });
+
+    records.forEach((record) => this.inboundRecords.unshift(record));
+    const totalAmount = this.roundMoney(
+      records.reduce((total, record) => total + Number(record.originalValue || 0), 0),
+    );
+    const approval = this.createApproval({
+      type: "PURCHASE_INBOUND",
+      title:
+        records.length > 1
+          ? `固定资产批量采购入库审批（${records.length} 组）`
+          : `固定资产采购入库审批（${records[0].btCode}）`,
+      applicant: operator,
+      department: "资产管理部",
+      priority: totalAmount > 50000 || records.length >= 10 ? "高" : "普通",
+      businessId: records[0]?.id ?? "",
+      businessNo: records.map((record) => record.inboundNo).join("、"),
+      customerName:
+        Array.from(new Set(records.map((record) => record.supplierName).filter(Boolean))).join("、") ||
+        "供应商采购入库",
+      amount: totalAmount,
+      summary: `${records.length} 组电池申请采购入库，原值合计 ${totalAmount} 元，审批通过后自动入账。`,
+      formItems: [
+        { label: "入库数量", value: `${records.length} 组` },
+        { label: "BT码", value: records.map((record) => record.btCode).join("、") },
+        { label: "入库仓库", value: Array.from(new Set(records.map((record) => record.warehouse))).join("、") },
+        { label: "采购批次", value: Array.from(new Set(records.map((record) => record.batchNum))).join("、") },
+        {
+          label: "原值合计",
+          value: `¥${totalAmount.toLocaleString("zh-CN")}`,
+        },
+      ],
+      riskItems: [
+        "采购入库审批通过后才写入固定资产台账，避免未验收资产提前可出库。",
+        "财务凭证将按资产原值生成固定资产借方和应付款贷方分录。",
+        "BT 码必须唯一，审批处理中和已入库资产均不能重复导入。",
+      ],
+      assetInboundPayload: {
+        recordIds: records.map((record) => record.id),
+        items: records.map((record) => ({
+          recordId: record.id,
+          btCode: record.btCode,
+        })),
+      },
+    }) as Record<string, any>;
+
+    records.forEach((record) => {
+      record.approvalId = approval.id;
+      record.approvalNo = approval.approvalNo;
+    });
+
+    this.persistMockState();
+    return {
+      successCount: records.length,
+      failedCount: 0,
+      approval,
+      records,
+      assets: [],
+    };
+  }
+
+  createAssetInbound(body: Record<string, any>) {
+    return this.importAssetInbounds({
+      ...body,
+      records: [body],
+    });
   }
 
   createAssetOutbound(id: string, body: Record<string, any>) {
@@ -5527,7 +7816,7 @@ export class MockService {
       const actualWarehouse = actualWarehouseInput || expectedWarehouse;
       const suffix = `${String(Date.now()).slice(-8)}${String(index + 1).padStart(2, "0")}`;
       const resultLabel = this.inventoryResultLabel(result);
-      const record = {
+      const record: Record<string, any> = {
         id: `check-${suffix}`,
         assetId: battery.id,
         btCode: battery.btCode,
@@ -5729,7 +8018,7 @@ export class MockService {
         ),
       );
       const suffix = `${String(Date.now()).slice(-8)}${String(index + 1).padStart(2, "0")}`;
-      const record = {
+      const record: Record<string, any> = {
         id: `dep-${suffix}`,
         assetId: battery.id,
         btCode: battery.btCode,
@@ -5751,6 +8040,11 @@ export class MockService {
       };
 
       this.depreciationRecords.unshift(record);
+      const voucher = this.createDepreciationVoucher(battery, record);
+      if (voucher) {
+        record.voucherNo = voucher.voucherNo;
+        battery.lastDepreciationVoucherNo = voucher.voucherNo;
+      }
       battery.accumulatedDepreciation = accumulatedAfter;
       battery.netValue = netValueAfter;
       battery.lastDepreciationPeriod = period;
@@ -6206,6 +8500,11 @@ export class MockService {
     if (!Number.isFinite(billingDay) || billingDay < 1 || billingDay > 28) {
       throw new BadRequestException("账单日必须在 1 到 28 日之间。");
     }
+    this.assertPermission(
+      { ...body, operator: body.operator || body.salesOwner || "刘销售" },
+      "order.write",
+      body.salesOwner || "刘销售",
+    );
 
     const now = this.nowText();
     const suffix = String(Date.now()).slice(-8);
@@ -6286,17 +8585,41 @@ export class MockService {
     if (order.status !== OrderStatus.Draft) {
       throw new BadRequestException("只有草稿订单可以发起合同会签。");
     }
+    const operator = String(body.operator ?? "").trim() || order.salesOwner || "刘销售";
+    this.assertPermission({ ...body, operator }, "order.write", operator);
 
     const approval = this.createApproval({
-      type: "CONTRACT",
+      type: "SALES_CONTRACT",
       title: `${order.customerShortName || order.customerName}租赁合同会签`,
-      applicant: body.operator || order.salesOwner || "刘销售",
+      applicant: operator,
       department: "销售部",
       priority: body.priority || "普通",
       businessId: order.id,
       businessNo: order.orderNo,
       customerName: order.customerName,
-      amount: order.monthlyRent,
+      amount: Number(order.depositAmount || 0),
+      attachments: body.attachments,
+      formItems: [
+        { label: "合同类型", value: "租赁合同" },
+        { label: "合同名称", value: order.contractName },
+        { label: "合同编号", value: order.contractNo },
+        { label: "客户名称", value: order.customerName },
+        { label: "租赁数量", value: `${order.orderedBatteryCount} 组` },
+        { label: "月租金额", value: `${order.monthlyRent} 元` },
+        { label: "押金金额", value: `${order.depositAmount || 0} 元` },
+        { label: "租期", value: `${order.leaseStart} 至 ${order.leaseEnd}` },
+      ],
+      formValues: {
+        contractType: "租赁合同",
+        contractName: order.contractName,
+        contractNo: order.contractNo,
+        signDate: this.dateText(),
+        companyName: "延成新能源",
+        counterparty: order.customerName,
+        leaseItems: `${order.orderedBatteryCount} 组锂电池 / 月租 ${order.monthlyRent} 元 / 押金 ${order.depositAmount || 0} 元 / 租期 ${order.leaseStart} 至 ${order.leaseEnd}`,
+        depositTotal: Number(order.depositAmount || 0),
+      },
+      riskItems: ["财务审核量、价、税、费和付款条件。", "技术审核售后质保条款，法务审核合同风险。"],
       summary:
         body.remark ||
         `客户租赁 ${order.orderedBatteryCount} 组电池，月租 ${order.monthlyRent} 元。`,
@@ -6306,6 +8629,10 @@ export class MockService {
     order.contractStatus = "会签中";
     order.contract.status = "会签中";
     order.contract.approvalNo = approval.approvalNo;
+    order.contract.approvalId = approval.id;
+    order.contract.approvalCurrentNode = approval.currentNode;
+    order.contract.approvalCurrentOperator = approval.currentOperator;
+    order.contract.approvalStatus = approval.status;
     order.updatedAt = this.nowText();
     order.approvals = order.approvals ?? [];
     order.approvals.push({
@@ -6327,62 +8654,37 @@ export class MockService {
 
   approveOrderContract(id: string, body: Record<string, any>) {
     const order = this.findOrder(id);
-    if (
-      ![OrderStatus.Draft, OrderStatus.Approving].includes(order.status as any)
-    ) {
-      throw new BadRequestException("当前订单不在可会签状态。");
-    }
-
-    const now = this.nowText();
-    order.status = OrderStatus.PendingOutbound;
-    order.contractStatus = "已会签";
-    order.contract.status = "已会签";
-    order.contract.signDate = this.dateText();
-    order.updatedAt = now;
-    order.approvals = order.approvals ?? [];
-    order.approvals.push({
-      node: "合同会签完成",
-      operator: body.operator || "赵财务",
-      result: "通过",
-      time: now,
-      remark: body.remark || "合同、押金和账单日已确认，允许资产部门出库。",
-    });
-
     const approval = this.approvals.find(
       (item) =>
         item.businessId === order.id &&
-        item.type === "CONTRACT" &&
+        ["CONTRACT", "SALES_CONTRACT"].includes(item.type) &&
         item.status === ApprovalStatus.Processing,
     ) as Record<string, any> | undefined;
-    if (approval) {
-      approval.status = ApprovalStatus.Approved;
-      approval.currentNode = "流程完成";
-      approval.currentOperator = "";
-      approval.updatedAt = now;
-      approval.nodes?.forEach((node: Record<string, any>) => {
-        if (node.status !== "APPROVED") {
-          node.status = "APPROVED";
-          node.time = now;
-          node.remark = body.remark || "通过。";
-        }
-      });
-      approval.logs?.push({
-        time: now,
-        operator: body.operator || "赵财务",
-        action: "通过",
-        nodeName: "合同会签",
-        result: "通过",
-        comment: body.remark || "合同会签通过。",
-      });
+
+    if (!approval) {
+      const approved = this.approvals.find(
+        (item) =>
+          item.businessId === order.id &&
+          ["CONTRACT", "SALES_CONTRACT"].includes(item.type) &&
+          item.status === ApprovalStatus.Approved,
+      ) as Record<string, any> | undefined;
+      if (approved) {
+        this.syncOrderContractApprovalStatus(
+          approved,
+          this.nowText(),
+          String(body.operator || approved.applicant || "系统"),
+        );
+        this.persistMockState();
+        return this.getOrder(order.id);
+      }
+      throw new BadRequestException("当前订单没有审批中的合同会签单。");
     }
 
-    this.appendOrderEvent(
-      order,
-      "合同会签通过",
-      "订单进入待出库，资产部门可按批次绑定 BT 码。",
-    );
-    this.syncOrderOperationalState(order);
-    this.persistMockState();
+    this.actionApproval(approval.id, {
+      action: "APPROVE",
+      operator: String(body.operator ?? "").trim() || approval.currentOperator,
+      comment: body.remark || "同意。",
+    });
     return this.getOrder(order.id);
   }
 
@@ -6402,10 +8704,17 @@ export class MockService {
     const now = this.nowText();
     const operator =
       String(body.operator ?? "").trim() || order.salesOwner || "刘销售";
+    this.assertPermission({ ...body, operator }, "order.write", operator);
     const fileName =
       String(body.fileName ?? "").trim() ||
       `${order.contractNo || order.orderNo}-签署版.pdf`;
     const fileUrl = String(body.fileUrl ?? "").trim();
+    const attachments = this.normalizeApprovalAttachments([
+      ...(order.contract?.attachments ?? []),
+      ...(Array.isArray(body.attachments) ? body.attachments : []),
+      body.attachment,
+      fileName,
+    ]);
     const remark =
       String(body.remark ?? "").trim() || "签署版合同附件已完成归档。";
 
@@ -6419,6 +8728,7 @@ export class MockService {
       ...order.contract,
       fileName,
       fileUrl,
+      attachments,
       archivedAt: now,
       archivedBy: operator,
       status: "已归档",
@@ -6468,6 +8778,7 @@ export class MockService {
     const now = this.nowText();
     const operator =
       String(body.operator ?? "").trim() || order.salesOwner || "刘销售";
+    this.assertPermission({ ...body, operator }, "order.write", operator);
     const remark =
       String(body.remark ?? "").trim() || "业务终止，取消租赁订单。";
     order.status = OrderStatus.Cancelled;
@@ -6489,7 +8800,7 @@ export class MockService {
       .filter(
         (approval) =>
           approval.businessId === order.id &&
-          approval.type === "CONTRACT" &&
+          ["CONTRACT", "SALES_CONTRACT"].includes(approval.type) &&
           approval.status === ApprovalStatus.Processing,
       )
       .forEach((approval) => {
@@ -6576,6 +8887,7 @@ export class MockService {
     const now = this.nowText();
     const operator =
       String(body.operator ?? "").trim() || order.salesOwner || "刘销售";
+    this.assertPermission({ ...body, operator }, "order.write", operator);
     const oldLeaseEnd = order.leaseEnd;
     const oldMonthlyRent = order.monthlyRent;
     const oldDepositAmount = order.depositAmount;
@@ -6694,6 +9006,7 @@ export class MockService {
     const now = this.nowText();
     const operator =
       String(body.operator ?? "").trim() || order.assetOwner || "王库管";
+    this.assertPermission({ ...body, operator }, "asset.outbound", operator);
     const warehouse = String(body.warehouse ?? "").trim() || "郑州总仓";
     const remark =
       String(body.remark ?? "").trim() ||
@@ -6794,6 +9107,7 @@ export class MockService {
     const now = this.nowText();
     const operator =
       String(body.operator ?? "").trim() || order.financeOwner || "赵财务";
+    this.assertPermission({ ...body, operator }, "bill.payment", operator);
     const method = String(body.method ?? "").trim() || "银行转账";
     const paidAt = String(body.paidAt ?? "").trim() || now;
     const remark =
@@ -6926,6 +9240,7 @@ export class MockService {
     const activeBtCodes = this.activeBtCodesForOrder(order);
     const operator =
       String(body.operator ?? "").trim() || order.assetOwner || "王库管";
+    this.assertPermission({ ...body, operator }, "asset.outbound", operator);
     const warehouse = String(body.warehouse ?? "").trim() || "郑州总仓";
     const remark =
       String(body.remark ?? "").trim() || "租赁到期结清，资产退回入库。";
@@ -6971,6 +9286,8 @@ export class MockService {
 
   createOrderOutbound(id: string, body: Record<string, any>) {
     const order = this.findOrder(id);
+    const operator = String(body.operator ?? "").trim() || order.assetOwner || "王库管";
+    this.assertPermission({ ...body, operator }, "asset.outbound", operator);
     if (
       [OrderStatus.Draft, OrderStatus.Approving].includes(order.status as any)
     ) {
@@ -7039,7 +9356,7 @@ export class MockService {
       autoReceiveAt: this.addDaysText(outboundAt, 7),
       receivedAt: "",
       warehouse: body.warehouse || "郑州总仓",
-      operator: body.operator || order.assetOwner || "王库管",
+      operator,
       receiver: body.receiver || order.customerContact || "客户联系人",
       address: body.address || order.region || "",
       btCodes: uniqueBtCodes,
@@ -7082,6 +9399,8 @@ export class MockService {
 
   generateOrderBill(id: string, body: Record<string, any>) {
     const order = this.findOrder(id);
+    const operator = String(body.operator ?? "").trim() || order.financeOwner || "赵财务";
+    this.assertPermission({ ...body, operator }, "bill.confirm", operator);
     if (
       [OrderStatus.Draft, OrderStatus.Approving].includes(order.status as any)
     ) {
@@ -7127,7 +9446,7 @@ export class MockService {
       operationLogs: [
         {
           time: this.nowText(),
-          operator: body.operator || order.financeOwner || "赵财务",
+          operator,
           action: "生成账单",
           remark: "按订单账单日生成月度应收账单。",
         },
@@ -8134,21 +10453,184 @@ export class MockService {
     return this.getRepair(repair.id);
   }
 
-  addRepairImage(id: string, body: { name: string }) {
+  addRepairImage(
+    id: string,
+    body: {
+      name?: string;
+      files?: unknown[];
+      images?: unknown[];
+      operator?: string;
+    },
+  ) {
     const repair = this.findRepairTicket(id);
-    const name = body.name?.trim();
-    if (!name) throw new BadRequestException("请填写附件名称。");
-    repair.images = repair.images ?? [];
-    repair.images.push(name);
+    const refs = this.normalizeApprovalAttachments([
+      ...(Array.isArray(body.files) ? body.files : []),
+      ...(Array.isArray(body.images) ? body.images : []),
+      ...(body.name?.trim() ? [body.name.trim()] : []),
+    ]);
+    if (!refs.length) {
+      throw new BadRequestException("请填写附件名称或上传文件。");
+    }
+    repair.images = this.normalizeApprovalAttachments([
+      ...(repair.images ?? []),
+      ...refs,
+    ]);
+    this.bindUploadedFilesToRepair(repair);
+    const names = refs.map((item) => this.attachmentDisplayName(item));
     this.appendRepairLog(repair, {
       action: "上传维修附件",
-      result: name,
+      result: names.join("、"),
       remark: "已补充现场图片或维修凭证",
-      operator: repair.technician || repair.handler || "售后人员",
+      operator:
+        body.operator || repair.technician || repair.handler || "售后人员",
     });
     repair.updatedAt = this.nowText();
     this.persistMockState();
     return this.getRepair(repair.id);
+  }
+
+  private createRepairCostApproval(
+    repair: Record<string, any>,
+    costItem: Record<string, any>,
+    operator: string,
+  ) {
+    if (Number(costItem.amount || 0) <= 0) return null;
+    const approval = this.createApproval({
+      type: "REPAIR_COST",
+      typeLabel: "维修费用",
+      title: `${repair.repairNo} 维修费用审批`,
+      applicant: operator,
+      department: "售后服务部",
+      priority: repair.priority || "普通",
+      businessId: repair.id,
+      businessNo: repair.repairNo,
+      customerName: repair.customerName,
+      amount: costItem.amount,
+      dueAt: this.addMinutesText(this.nowText(), 48 * 60),
+      summary: `${repair.repairNo} ${costItem.item} ${costItem.amount} 元，承担方：${costItem.payer}，责任：${repair.responsibility || costItem.responsibility || "待判定"}。`,
+      formItems: [
+        { label: "维修单号", value: repair.repairNo },
+        { label: "BT码", value: repair.btCode },
+        { label: "客户/仓库", value: repair.customerName },
+        { label: "费用项目", value: costItem.item },
+        {
+          label: "费用金额",
+          value: `¥${Number(costItem.amount || 0).toLocaleString("zh-CN")}`,
+        },
+        { label: "承担方", value: costItem.payer },
+        {
+          label: "责任归属",
+          value: repair.responsibility || costItem.responsibility || "待判定",
+        },
+      ],
+      riskItems: [
+        "核对维修凭证、现场图片和责任判定。",
+        "客户责任费用审批通过后需进入财务账单确认与回款。",
+        "厂商质保或公司承担费用审批通过后需留存资产/财务凭证。",
+      ],
+      attachments: repair.images ?? [],
+      formValues: {
+        repairNo: repair.repairNo,
+        btCode: repair.btCode,
+        costItem: costItem.item,
+        payer: costItem.payer,
+        responsibility: repair.responsibility || costItem.responsibility || "",
+      },
+    });
+
+    costItem.approvalId = approval.id;
+    costItem.approvalNo = approval.approvalNo;
+    costItem.approvalStatus = approval.status;
+    costItem.approvalStatusLabel = approval.statusLabel;
+    repair.approvalId = approval.id;
+    repair.approvalNo = approval.approvalNo;
+    repair.approvalStatus = approval.status;
+    repair.approvalStatusLabel = approval.statusLabel;
+    return approval;
+  }
+
+  private createRepairCostBill(
+    repair: Record<string, any>,
+    costItem: Record<string, any>,
+    operator: string,
+  ) {
+    const amount = this.roundMoney(Number(costItem.amount || 0));
+    const payer = String(costItem.payer || "");
+    const responsibility = String(
+      repair.responsibility || costItem.responsibility || "",
+    );
+    const shouldBillCustomer =
+      amount > 0 && (payer.includes("客户") || responsibility.includes("客户"));
+    if (!shouldBillCustomer) {
+      costItem.financeStatus = "NON_CUSTOMER";
+      costItem.financeStatusLabel = "非客户应收";
+      repair.financeStatus = "NON_CUSTOMER";
+      repair.financeStatusLabel = "非客户应收，等待OA审批归档";
+      return null;
+    }
+
+    const order = repair.orderId
+      ? this.orders.find((item) => item.id === repair.orderId)
+      : undefined;
+    const now = this.nowText();
+    const suffix = `${this.dateText().replace(/-/g, "")}${String(Date.now()).slice(-5)}`;
+    const bill: Record<string, any> = {
+      id: `bill-repair-${costItem.id}`,
+      billNo: `BILLRC${suffix}`,
+      orderNo: order?.orderNo || repair.repairNo,
+      customerName: repair.customerName,
+      period: "维修费用",
+      receivableAmount: amount,
+      paidAmount: 0,
+      debtAmount: amount,
+      status: BillStatus.PendingConfirm,
+      dueDate: this.addDaysText(this.dateText(), 7),
+      generatedAt: now,
+      confirmedAt: "",
+      payments: [],
+      followUpLogs: [],
+      operationLogs: [],
+      collectionStatus: "待财务确认",
+      nextFollowUpAt: "",
+      sourceType: "REPAIR_COST",
+      sourceId: repair.id,
+      sourceNo: repair.repairNo,
+      repairNo: repair.repairNo,
+      btCode: repair.btCode,
+      approvalId: costItem.approvalId || "",
+      approvalNo: costItem.approvalNo || "",
+      approvalStatus: costItem.approvalStatus || "",
+      approvalStatusLabel: costItem.approvalStatusLabel || "",
+      costItemId: costItem.id,
+      costItem: costItem.item,
+      financeOwner: order?.financeOwner || "赵财务",
+    };
+
+    this.appendBillLog(
+      bill,
+      "生成维修费用账单",
+      operator,
+      `${repair.repairNo} 客户责任维修费用已进入财务确认。`,
+      { repairNo: repair.repairNo, costItemId: costItem.id },
+    );
+    this.bills.unshift(bill);
+    costItem.financeBillId = bill.id;
+    costItem.financeBillNo = bill.billNo;
+    costItem.financeStatus = bill.status;
+    costItem.financeStatusLabel = "待财务确认";
+    repair.financeBillId = bill.id;
+    repair.financeBillNo = bill.billNo;
+    repair.financeStatus = bill.status;
+    repair.financeStatusLabel = "待财务确认";
+    if (order?.orderNo) this.syncOrderFinance(order.orderNo);
+    this.appendSystemOperationLog({
+      module: "财务管理",
+      action: "生成维修费用账单",
+      operator,
+      target: bill.billNo,
+      detail: `${repair.repairNo} 客户责任维修费用 ${amount} 元已生成账单。`,
+    });
+    return bill;
   }
 
   updateRepairCost(
@@ -8169,13 +10651,19 @@ export class MockService {
       throw new BadRequestException("费用项目和金额必须填写。");
     }
 
+    const operator = body.operator || repair.handler || "售后人员";
     repair.costItems = repair.costItems ?? [];
-    repair.costItems.push({
+    const costItem: Record<string, any> = {
+      id: `repair-cost-${String(Date.now()).slice(-8)}-${randomUUID().slice(0, 6)}`,
       item: body.item.trim(),
-      amount,
+      amount: this.roundMoney(amount),
       payer: body.payer || "公司",
+      responsibility: body.responsibility || repair.responsibility || "待判定",
       remark: body.remark || "",
-    });
+      createdAt: this.nowText(),
+      operator,
+    };
+    repair.costItems.push(costItem);
     repair.costAmount = repair.costItems.reduce(
       (total: number, item: Record<string, any>) =>
         total + Number(item.amount || 0),
@@ -8187,11 +10675,21 @@ export class MockService {
     repair.customerConfirmedAt = repair.customerConfirmed
       ? repair.customerConfirmedAt || this.nowText()
       : "";
+    const approval = this.createRepairCostApproval(repair, costItem, operator);
+    const bill = this.createRepairCostBill(repair, costItem, operator);
     this.appendRepairLog(repair, {
       action: "更新维修费用",
-      result: `${body.item.trim()} ${amount} 元`,
-      remark: body.remark || "",
-      operator: body.operator || repair.handler || "售后人员",
+      result: `${body.item.trim()} ${this.roundMoney(amount)} 元`,
+      remark:
+        body.remark ||
+        [
+          approval ? `OA ${approval.approvalNo}` : "",
+          bill ? `账单 ${bill.billNo}` : "",
+        ]
+          .filter(Boolean)
+          .join("，") ||
+        "维修费用已登记并进入责任闭环。",
+      operator,
     });
     repair.updatedAt = this.nowText();
     this.persistMockState();
@@ -8248,6 +10746,7 @@ export class MockService {
       materials: [],
       costItems: [],
     };
+    this.bindUploadedFilesToRepair(repair);
     this.repairs.unshift(repair);
     this.repairLogs[repair.id] = [
       {
@@ -8394,11 +10893,19 @@ export class MockService {
     const latestPayment = bill.payments?.at(-1);
     const ageingBucket = this.billAgeingBucket(bill);
     const followUpLogs = bill.followUpLogs ?? [];
+    const paymentVouchers = bill.paymentVouchers ?? [];
     const lastFollowUp = followUpLogs[0];
+    const pendingVoucherCount = paymentVouchers.filter(
+      (voucher: Record<string, any>) => voucher.status === "PENDING",
+    ).length;
     const daysOverdue =
       bill.debtAmount > 0 && bill.status === BillStatus.Overdue
         ? this.daysPastDue(bill.dueDate)
         : 0;
+    const approvalBlocked =
+      bill.sourceType === "REPAIR_COST" &&
+      bill.approvalStatus &&
+      bill.approvalStatus !== ApprovalStatus.Approved;
 
     return {
       index: index + 1,
@@ -8415,19 +10922,28 @@ export class MockService {
       isAdjusted: Boolean(bill.adjustedAt || bill.adjustReason),
       paymentCount: bill.payments?.length ?? 0,
       latestPaymentAt: latestPayment?.paidAt ?? "",
+      paymentVouchers,
+      voucherCount: paymentVouchers.length,
+      pendingVoucherCount,
+      reconciledVoucherCount: paymentVouchers.filter(
+        (voucher: Record<string, any>) => voucher.status === "VERIFIED",
+      ).length,
       daysOverdue,
       daysUntilDue: bill.debtAmount > 0 ? this.daysUntilDue(bill.dueDate) : 0,
       ageingBucket: ageingBucket.key,
       ageingBucketLabel: ageingBucket.label,
       ageingTone: ageingBucket.tone,
-      collectionAction: this.billCollectionAction(bill),
+      collectionAction: approvalBlocked
+        ? "待维修费用OA审批通过"
+        : this.billCollectionAction(bill),
       collectionStatus:
-        bill.collectionStatus ?? (daysOverdue > 0 ? "待催收" : "正常"),
+        bill.collectionStatus ??
+        (approvalBlocked ? "待OA审批" : daysOverdue > 0 ? "待催收" : "正常"),
       followUpCount: followUpLogs.length,
       lastFollowUpAt: lastFollowUp?.createdAt ?? "",
       nextFollowUpAt: bill.nextFollowUpAt ?? "",
       promisedPayAt: bill.promisedPayAt ?? "",
-      canConfirm: bill.status === BillStatus.PendingConfirm,
+      canConfirm: bill.status === BillStatus.PendingConfirm && !approvalBlocked,
       canRegisterPayment:
         bill.status !== BillStatus.PendingConfirm &&
         bill.status !== BillStatus.Settled &&
@@ -8438,6 +10954,12 @@ export class MockService {
         bill.status !== BillStatus.Settled &&
         bill.status !== BillStatus.Voided &&
         bill.debtAmount > 0,
+      canSubmitVoucher:
+        bill.status !== BillStatus.PendingConfirm &&
+        bill.status !== BillStatus.Settled &&
+        bill.status !== BillStatus.Voided &&
+        bill.debtAmount > 0,
+      canReconcile: pendingVoucherCount > 0,
     };
   }
 
@@ -8466,6 +10988,94 @@ export class MockService {
       .reduce((total, bill) => total + Number(bill.debtAmount || 0), 0);
     order.currentPeriod = bills.at(-1)?.period ?? order.currentPeriod;
     if (touch) order.updatedAt = this.nowText();
+  }
+
+  private markOverdueBills(asOfDate = this.dateText(), operator = "系统自动任务") {
+    const markedBills: Record<string, any>[] = [];
+    this.bills.forEach((bill) => {
+      const previousStatus = bill.status;
+      this.normalizeBillStatus(bill as Record<string, any>);
+      if (
+        previousStatus !== BillStatus.Overdue &&
+        bill.status !== BillStatus.PendingConfirm &&
+        bill.status !== BillStatus.Settled &&
+        bill.status !== BillStatus.Voided &&
+        Number(bill.debtAmount || 0) > 0 &&
+        String(bill.dueDate || "") < asOfDate
+      ) {
+        bill.status = BillStatus.Overdue;
+        bill.overdueMarkedAt = this.nowText();
+        bill.overdueMarkedBy = operator;
+        this.appendBillLog(
+          bill as Record<string, any>,
+          "标记逾期",
+          operator,
+          `${bill.dueDate} 已超过最晚付款日，后台任务标记为逾期。`,
+        );
+        markedBills.push(this.enrichBill(bill as Record<string, any>));
+      }
+      this.syncOrderFinance(bill.orderNo, false);
+    });
+    return {
+      markedCount: markedBills.length,
+      markedBills,
+    };
+  }
+
+  runFinanceScheduler(
+    body: {
+      asOfDate?: string;
+      operator?: string;
+      trigger?: string;
+      persist?: boolean;
+    } = {},
+  ) {
+    const asOfDate = body.asOfDate || this.dateText();
+    const operator = body.operator || "系统自动任务";
+    const trigger = body.trigger || "MANUAL";
+    const generated = this.generateDueBills(
+      { asOfDate, operator },
+      { skipPermission: true, skipOverdueMark: true, skipPersist: true },
+    );
+    const overdue = this.markOverdueBills(asOfDate, operator);
+    const result = {
+      ok: true,
+      trigger,
+      asOfDate,
+      generatedCount: generated.generatedCount,
+      skippedCount: generated.skippedCount,
+      markedOverdueCount: overdue.markedCount,
+      generatedBills: generated.generatedBills,
+      skippedOrders: generated.skippedOrders,
+      markedOverdueBills: overdue.markedBills,
+      ranAt: this.nowText(),
+    };
+    if (body.persist !== false) {
+      this.automationState.runCount =
+        Number(this.automationState.runCount || 0) + 1;
+      this.automationState.lastRunAt = result.ranAt;
+      this.automationState.nextRunAt = this.addMinutesText(
+        result.ranAt,
+        Math.ceil(this.automationIntervalMs / 60000),
+      );
+      this.automationState.lastResult = result;
+      this.persistMockState();
+    }
+    return result;
+  }
+
+  getFinanceScheduler() {
+    return {
+      ...this.automationState,
+      jobName: "finance-monthly-billing-and-overdue-marking",
+      cronText: "后台每隔数分钟自动检查：到达账单日则生成月度账单，超过最晚付款日则标记逾期。",
+      nextRunAt:
+        this.automationState.nextRunAt ||
+        this.addMinutesText(
+          this.nowText(),
+          Math.ceil(this.automationIntervalMs / 60000),
+        ),
+    };
   }
 
   getFinanceOverview() {
@@ -8596,6 +11206,66 @@ export class MockService {
         a.period.localeCompare(b.period),
       ),
       collectionTasks,
+    };
+  }
+
+  getFinanceReconciliation() {
+    const records = this.getBills()
+      .flatMap((bill) =>
+        (bill.paymentVouchers ?? []).map((voucher: Record<string, any>) => ({
+          id: voucher.id,
+          voucherId: voucher.id,
+          billId: bill.id,
+          billNo: bill.billNo,
+          orderNo: bill.orderNo,
+          customerName: bill.customerName,
+          period: bill.period,
+          amount: Number(voucher.amount || 0),
+          paidAt: voucher.paidAt,
+          method: voucher.method,
+          payerName: voucher.payerName,
+          bankName: voucher.bankName,
+          voucherNo: voucher.voucherNo,
+          attachmentName: voucher.attachmentName,
+          attachmentUrl: voucher.attachmentUrl,
+          uploadedAt: voucher.uploadedAt,
+          uploadedBy: voucher.uploadedBy,
+          uploadedByType: voucher.uploadedByType,
+          status: voucher.status,
+          statusLabel:
+            voucher.status === "VERIFIED"
+              ? "已对账"
+              : voucher.status === "REJECTED"
+                ? "已驳回"
+                : "待对账",
+          reconciledAt: voucher.reconciledAt,
+          reconciledBy: voucher.reconciledBy,
+          reconciliationRemark: voucher.reconciliationRemark,
+          paymentNo: voucher.paymentNo,
+          billDebtAmount: bill.debtAmount,
+          billStatus: bill.status,
+          billStatusLabel: bill.statusLabel,
+          canReconcile: voucher.status === "PENDING",
+        })),
+      )
+      .sort((a, b) =>
+        String(b.uploadedAt || "").localeCompare(String(a.uploadedAt || "")),
+      );
+
+    return {
+      summary: {
+        totalCount: records.length,
+        pendingCount: records.filter((item) => item.status === "PENDING").length,
+        verifiedCount: records.filter((item) => item.status === "VERIFIED").length,
+        rejectedCount: records.filter((item) => item.status === "REJECTED").length,
+        pendingAmount: records
+          .filter((item) => item.status === "PENDING")
+          .reduce((total, item) => total + Number(item.amount || 0), 0),
+        verifiedAmount: records
+          .filter((item) => item.status === "VERIFIED")
+          .reduce((total, item) => total + Number(item.amount || 0), 0),
+      },
+      records,
     };
   }
 
@@ -8763,6 +11433,20 @@ export class MockService {
           .sort((a, b) =>
             String(b.paidAt || "").localeCompare(String(a.paidAt || "")),
           );
+        const paymentVouchers = customerBills
+          .flatMap((bill) =>
+            (bill.paymentVouchers ?? []).map((voucher: Record<string, any>) => ({
+              ...voucher,
+              billId: bill.id,
+              billNo: bill.billNo,
+              period: bill.period,
+              billStatus: bill.status,
+              billDebtAmount: bill.debtAmount,
+            })),
+          )
+          .sort((a, b) =>
+            String(b.uploadedAt || "").localeCompare(String(a.uploadedAt || "")),
+          );
         const followUpLogs = customerBills
           .flatMap((bill) =>
             (bill.followUpLogs ?? []).map((log: Record<string, any>) => ({
@@ -8819,6 +11503,10 @@ export class MockService {
           riskLabel: risk.label,
           riskSort: risk.sort,
           payments,
+          paymentVouchers,
+          pendingVoucherCount: paymentVouchers.filter(
+            (voucher: Record<string, any>) => voucher.status === "PENDING",
+          ).length,
           followUpLogs,
         };
       })
@@ -8835,6 +11523,7 @@ export class MockService {
         bills: _bills,
         orders: _orders,
         payments: _payments,
+        paymentVouchers: _paymentVouchers,
         followUpLogs: _logs,
         ...row
       } = customer;
@@ -8867,8 +11556,16 @@ export class MockService {
   confirmBill(id: string, body?: { operator?: string }) {
     const bill = this.findBill(id);
     const operator = body?.operator || "赵财务";
+    this.assertPermission({ ...(body ?? {}), operator }, "bill.confirm", operator);
     if (bill.status === BillStatus.Voided) {
       throw new BadRequestException("已作废账单不能确认");
+    }
+    if (
+      bill.sourceType === "REPAIR_COST" &&
+      bill.approvalStatus &&
+      bill.approvalStatus !== ApprovalStatus.Approved
+    ) {
+      throw new BadRequestException("维修费用OA审批通过后才能确认账单");
     }
     if (!bill.confirmedAt) {
       bill.confirmedAt = this.nowText();
@@ -8888,6 +11585,7 @@ export class MockService {
     const receivableAmount = Number(body.receivableAmount);
     const reason = body.reason?.trim();
     const operator = body.operator || "赵财务";
+    this.assertPermission({ ...body, operator }, "bill.adjust", operator);
 
     if (bill.status === BillStatus.Voided) {
       throw new BadRequestException("已作废账单不能调整");
@@ -8937,11 +11635,19 @@ export class MockService {
       method?: string;
       remark?: string;
       operator?: string;
+      voucherNo?: string;
+      payerName?: string;
+      payerAccount?: string;
+      bankName?: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      attachmentSize?: number;
     },
   ) {
     const bill = this.findBill(id);
     const amount = Number(body.amount);
     const operator = body.operator || "赵财务";
+    this.assertPermission({ ...body, operator }, "bill.payment", operator);
 
     if (bill.status === BillStatus.PendingConfirm) {
       throw new BadRequestException("待确认账单不能登记回款");
@@ -8956,16 +11662,52 @@ export class MockService {
       throw new BadRequestException("回款金额不能大于当前欠款");
     }
 
-    const payment = {
+    const payment: Record<string, any> = {
       paymentNo: `PAY${Date.now()}`,
       amount,
       paidAt: body.paidAt || this.nowText(),
       method: body.method || "银行转账",
       remark: body.remark || "财务登记回款",
       operator,
+      voucherNo: body.voucherNo || "",
+      payerName: body.payerName || bill.customerName,
+      payerAccount: body.payerAccount || "",
+      bankName: body.bankName || "",
+      attachmentName: body.attachmentName || "",
+      attachmentUrl: body.attachmentUrl || "",
+      attachmentSize: Number(body.attachmentSize || 0),
+      reconciliationStatus: "VERIFIED",
+      reconciledAt: this.nowText(),
+      reconciledBy: operator,
     };
+    const voucher = {
+      id: `voucher-${Date.now()}`,
+      voucherNo: payment.voucherNo || payment.paymentNo,
+      amount,
+      paidAt: payment.paidAt,
+      method: payment.method,
+      payerName: payment.payerName,
+      payerAccount: payment.payerAccount,
+      bankName: payment.bankName,
+      attachmentName: payment.attachmentName || "财务登记付款凭证",
+      attachmentUrl: payment.attachmentUrl,
+      attachmentSize: payment.attachmentSize,
+      remark: payment.remark,
+      uploadedAt: this.nowText(),
+      uploadedBy: operator,
+      uploadedByType: "FINANCE",
+      status: "VERIFIED",
+      reconciliationStatus: "VERIFIED",
+      reconciledAt: payment.reconciledAt,
+      reconciledBy: operator,
+      reconciliationRemark: "财务登记回款时同步对账入账",
+      paymentNo: payment.paymentNo,
+    };
+    payment.voucherId = voucher.id;
     bill.payments = bill.payments ?? [];
+    bill.paymentVouchers = bill.paymentVouchers ?? [];
     bill.payments.push(payment);
+    bill.paymentVouchers.unshift(voucher);
     bill.paidAmount = Number(bill.paidAmount || 0) + amount;
     bill.debtAmount = Math.max(
       Number(bill.receivableAmount || 0) - Number(bill.paidAmount || 0),
@@ -8978,6 +11720,191 @@ export class MockService {
       operator,
       `${payment.method}回款 ${amount} 元`,
       payment,
+    );
+    this.syncOrderFinance(bill.orderNo);
+    this.persistMockState();
+    return this.enrichBill(bill);
+  }
+
+  submitPaymentVoucher(
+    id: string,
+    body: {
+      amount: number;
+      paidAt?: string;
+      method?: string;
+      voucherNo?: string;
+      payerName?: string;
+      payerAccount?: string;
+      bankName?: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      attachmentSize?: number;
+      remark?: string;
+      operator?: string;
+    },
+    auth?: MockAuthContext,
+  ) {
+    const bill = this.findBill(id);
+    const order = this.orders.find((item) => item.orderNo === bill.orderNo);
+    const amount = Number(body.amount);
+    const operator = auth?.name || body.operator || "客户";
+
+    if (auth?.accountType === "CUSTOMER") {
+      if (order?.customerName !== auth.customerName) {
+        throw new ForbiddenException("只能提交本公司账单的付款凭证");
+      }
+    } else {
+      this.assertPermission(
+        { ...body, actorId: auth?.accountId, operator },
+        "bill.voucher",
+        operator,
+      );
+    }
+
+    if (bill.status === BillStatus.PendingConfirm) {
+      throw new BadRequestException("待确认账单不能提交付款凭证");
+    }
+    if (bill.status === BillStatus.Settled || Number(bill.debtAmount || 0) <= 0) {
+      throw new BadRequestException("已结清账单不需要提交付款凭证");
+    }
+    if (bill.status === BillStatus.Voided) {
+      throw new BadRequestException("已作废账单不能提交付款凭证");
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new BadRequestException("凭证金额必须大于 0");
+    }
+    if (amount > Number(bill.debtAmount || 0)) {
+      throw new BadRequestException("凭证金额不能大于当前欠款");
+    }
+
+    const voucher = {
+      id: `voucher-${Date.now()}`,
+      voucherNo: body.voucherNo || `VOU${Date.now()}`,
+      amount,
+      paidAt: body.paidAt || this.nowText(),
+      method: body.method || "银行转账",
+      payerName: body.payerName || order?.customerName || bill.customerName,
+      payerAccount: body.payerAccount || "",
+      bankName: body.bankName || "",
+      attachmentName: body.attachmentName || "",
+      attachmentUrl: body.attachmentUrl || "",
+      attachmentSize: Number(body.attachmentSize || 0),
+      remark: body.remark || "",
+      uploadedAt: this.nowText(),
+      uploadedBy: operator,
+      uploadedByType: auth?.accountType === "CUSTOMER" ? "CUSTOMER" : "FINANCE",
+      status: "PENDING",
+      reconciliationStatus: "PENDING",
+      reconciledAt: "",
+      reconciledBy: "",
+      reconciliationRemark: "",
+      paymentNo: "",
+    };
+
+    bill.paymentVouchers = bill.paymentVouchers ?? [];
+    bill.paymentVouchers.unshift(voucher);
+    bill.collectionStatus = "待对账";
+    this.appendBillLog(
+      bill,
+      "提交付款凭证",
+      operator,
+      `${voucher.voucherNo} 金额 ${amount} 元，待财务对账。`,
+      voucher,
+    );
+    this.persistMockState();
+    return this.enrichBill(bill);
+  }
+
+  reconcilePaymentVoucher(
+    id: string,
+    voucherId: string,
+    body: {
+      action?: "APPROVE" | "REJECT";
+      remark?: string;
+      operator?: string;
+    } = {},
+    auth?: MockAuthContext,
+  ) {
+    const bill = this.findBill(id);
+    const operator = auth?.name || body.operator || "财务";
+    this.assertPermission(
+      { ...body, actorId: auth?.accountId, operator },
+      "bill.reconcile",
+      operator,
+    );
+    const voucher = (bill.paymentVouchers ?? []).find(
+      (item: Record<string, any>) => item.id === voucherId,
+    );
+    if (!voucher) throw new NotFoundException("付款凭证不存在");
+    if (voucher.status === "VERIFIED" && voucher.paymentNo) {
+      return this.enrichBill(bill);
+    }
+
+    if (body.action === "REJECT") {
+      voucher.status = "REJECTED";
+      voucher.reconciliationStatus = "REJECTED";
+      voucher.reconciledAt = this.nowText();
+      voucher.reconciledBy = operator;
+      voucher.reconciliationRemark = body.remark || "凭证未通过对账";
+      this.appendBillLog(
+        bill,
+        "驳回付款凭证",
+        operator,
+        voucher.reconciliationRemark,
+        voucher,
+      );
+      this.persistMockState();
+      return this.enrichBill(bill);
+    }
+
+    const amount = Number(voucher.amount || 0);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new BadRequestException("凭证金额无效，不能入账");
+    }
+    if (amount > Number(bill.debtAmount || 0)) {
+      throw new BadRequestException("凭证金额不能大于当前欠款");
+    }
+
+    const payment: Record<string, any> = {
+      paymentNo: `PAY${Date.now()}`,
+      amount,
+      paidAt: voucher.paidAt || this.nowText(),
+      method: voucher.method || "银行转账",
+      remark: body.remark || voucher.remark || "付款凭证对账入账",
+      operator,
+      voucherId: voucher.id,
+      voucherNo: voucher.voucherNo,
+      payerName: voucher.payerName,
+      payerAccount: voucher.payerAccount,
+      bankName: voucher.bankName,
+      attachmentName: voucher.attachmentName,
+      attachmentUrl: voucher.attachmentUrl,
+      attachmentSize: Number(voucher.attachmentSize || 0),
+      reconciliationStatus: "VERIFIED",
+      reconciledAt: this.nowText(),
+      reconciledBy: operator,
+    };
+    voucher.status = "VERIFIED";
+    voucher.reconciliationStatus = "VERIFIED";
+    voucher.reconciledAt = payment.reconciledAt;
+    voucher.reconciledBy = operator;
+    voucher.reconciliationRemark = payment.remark;
+    voucher.paymentNo = payment.paymentNo;
+
+    bill.payments = bill.payments ?? [];
+    bill.payments.push(payment);
+    bill.paidAmount = Number(bill.paidAmount || 0) + amount;
+    bill.debtAmount = Math.max(
+      Number(bill.receivableAmount || 0) - Number(bill.paidAmount || 0),
+      0,
+    );
+    this.normalizeBillStatus(bill);
+    this.appendBillLog(
+      bill,
+      "付款凭证对账入账",
+      operator,
+      `${voucher.voucherNo} 已对账，通过后入账 ${amount} 元。`,
+      { voucher, payment },
     );
     this.syncOrderFinance(bill.orderNo);
     this.persistMockState();
@@ -8997,6 +11924,7 @@ export class MockService {
   ) {
     const bill = this.findBill(id);
     const operator = body.operator || "赵财务";
+    this.assertPermission({ ...body, operator }, "bill.payment", operator);
 
     if (bill.status === BillStatus.PendingConfirm) {
       throw new BadRequestException("待确认账单不能登记催收跟进");
@@ -9040,9 +11968,23 @@ export class MockService {
     return this.enrichBill(bill);
   }
 
-  generateDueBills(body: { asOfDate?: string; operator?: string } = {}) {
+  generateDueBills(
+    body: { asOfDate?: string; operator?: string } = {},
+    options: {
+      skipPermission?: boolean;
+      skipOverdueMark?: boolean;
+      skipPersist?: boolean;
+    } = {},
+  ) {
     const asOfDate = body.asOfDate || this.dateText();
     const operator = body.operator || "赵财务";
+    if (!options.skipPermission) {
+      this.assertPermission(
+        { ...(body as Record<string, any>), operator },
+        "bill.confirm",
+        operator,
+      );
+    }
     const activeStatuses = [
       OrderStatus.Leasing,
       OrderStatus.PendingOutbound,
@@ -9125,14 +12067,22 @@ export class MockService {
         generatedBills.push(this.enrichBill(bill));
       });
 
-    if (generatedBills.length) this.persistMockState();
+    const overdue = options.skipOverdueMark
+      ? { markedCount: 0, markedBills: [] as Record<string, any>[] }
+      : this.markOverdueBills(asOfDate, operator);
+
+    if ((generatedBills.length || overdue.markedCount) && !options.skipPersist) {
+      this.persistMockState();
+    }
 
     return {
       asOfDate,
       generatedCount: generatedBills.length,
       skippedCount: skippedOrders.length,
+      markedOverdueCount: overdue.markedCount,
       generatedBills,
       skippedOrders,
+      markedOverdueBills: overdue.markedBills,
     };
   }
 
@@ -9157,6 +12107,351 @@ export class MockService {
       this.systemOperationLogs.splice(300);
     }
     this.persistMockState();
+  }
+
+  private encodeBase64Url(value: string) {
+    return Buffer.from(value, "utf8").toString("base64url");
+  }
+
+  private decodeBase64Url(value: string) {
+    return Buffer.from(value, "base64url").toString("utf8");
+  }
+
+  private signAuthPayload(encodedPayload: string) {
+    return createHmac("sha256", this.authSecret)
+      .update(encodedPayload)
+      .digest("base64url");
+  }
+
+  private assertAuthSignature(encodedPayload: string, signature: string) {
+    const expected = Buffer.from(this.signAuthPayload(encodedPayload));
+    const actual = Buffer.from(signature);
+    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
+      throw new UnauthorizedException("登录已失效，请重新登录");
+    }
+  }
+
+  private findSystemRole(id: string) {
+    const role = this.systemRoles.find((item) => item.id === id);
+    if (!role) throw new UnauthorizedException("账号角色不存在");
+    return role;
+  }
+
+  private buildAuthContext(account: SystemAccount, tokenPayload?: any) {
+    const role = this.findSystemRole(account.roleId);
+    const permissions = role.permissions
+      .filter((permission) => permission.enabled)
+      .map((permission) => permission.code);
+    const now = Math.floor(Date.now() / 1000);
+    return {
+      accountId: account.id,
+      accountType: account.type,
+      username: account.username,
+      name: account.name,
+      roleId: account.roleId,
+      roleName: role.name,
+      customerName: account.customerName,
+      permissions,
+      issuedAt: Number(tokenPayload?.iat ?? now),
+      expiresAt: Number(tokenPayload?.exp ?? now + 8 * 60 * 60),
+    } satisfies MockAuthContext;
+  }
+
+  private publicAuthProfile(auth: MockAuthContext) {
+    return {
+      accountId: auth.accountId,
+      type: auth.accountType,
+      username: auth.username,
+      name: auth.name,
+      roleId: auth.roleId,
+      roleName: auth.roleName,
+      customerName: auth.customerName,
+      permissions: auth.permissions,
+      isSystemAdmin: auth.accountType === "INTERNAL" && auth.roleId === "role-admin",
+      expiresAt: auth.expiresAt * 1000,
+    };
+  }
+
+  private issueAuthToken(account: SystemAccount) {
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const expiresAt = issuedAt + 8 * 60 * 60;
+    const payload = {
+      sub: account.id,
+      type: account.type,
+      iat: issuedAt,
+      exp: expiresAt,
+    };
+    const encodedPayload = this.encodeBase64Url(JSON.stringify(payload));
+    const token = `${encodedPayload}.${this.signAuthPayload(encodedPayload)}`;
+    const auth = this.buildAuthContext(account, payload);
+    return {
+      token,
+      tokenType: "Bearer",
+      expiresAt: expiresAt * 1000,
+      profile: this.publicAuthProfile(auth),
+    };
+  }
+
+  private isInternalPasswordValid(account: SystemAccount, password: string) {
+    if (password === this.internalDefaultPassword) return true;
+    const temporary = this.temporaryAccountPasswords.get(account.id);
+    if (!temporary) return false;
+    if (temporary.expiresAt < Date.now()) {
+      this.temporaryAccountPasswords.delete(account.id);
+      return false;
+    }
+    return temporary.password === password;
+  }
+
+  loginInternalAccount(body: { username?: string; password?: string }) {
+    const username = String(body.username ?? "").trim();
+    const password = String(body.password ?? "");
+    const account = this.systemAccounts.find(
+      (item) => item.type === "INTERNAL" && item.username === username,
+    );
+
+    if (
+      !account ||
+      account.status !== "ENABLED" ||
+      !this.isInternalPasswordValid(account, password)
+    ) {
+      this.appendSystemOperationLog({
+        module: "登录鉴权",
+        action: "后台登录",
+        operator: username || "未知账号",
+        target: username || "内部后台",
+        result: "失败",
+        detail: "账号不存在、已停用或密码错误",
+      });
+      throw new UnauthorizedException("账号或密码不正确");
+    }
+
+    account.lastLoginAt = this.nowText();
+    this.appendSystemOperationLog({
+      module: "登录鉴权",
+      action: "后台登录",
+      operator: account.name,
+      target: account.username,
+      detail: `${account.roleName}登录后台成功`,
+    });
+    this.persistMockState();
+    return this.issueAuthToken(account);
+  }
+
+  loginCustomerAccount(body: {
+    phone?: string;
+    username?: string;
+    code?: string;
+    role?: "admin" | "staff";
+  }) {
+    const accountKey = String(body.phone || body.username || "").trim();
+    const code = String(body.code ?? "");
+    const roleId =
+      body.role === "staff" ? "role-customer-staff" : "role-customer-admin";
+    const account = this.systemAccounts.find(
+      (item) =>
+        item.type === "CUSTOMER" &&
+        item.roleId === roleId &&
+        (item.phone === accountKey || item.username === accountKey),
+    );
+
+    if (!account || account.status !== "ENABLED" || code !== this.customerDefaultCode) {
+      this.appendSystemOperationLog({
+        module: "登录鉴权",
+        action: "客户登录",
+        operator: accountKey || "未知客户",
+        target: accountKey || "客户移动端",
+        result: "失败",
+        detail: "客户账号不存在、已停用或验证码错误",
+      });
+      throw new UnauthorizedException("手机号或验证码不正确");
+    }
+
+    account.lastLoginAt = this.nowText();
+    this.appendSystemOperationLog({
+      module: "登录鉴权",
+      action: "客户登录",
+      operator: account.name,
+      target: account.customerName || account.username,
+      detail: `${account.roleName}登录客户移动端成功`,
+    });
+    this.persistMockState();
+    return this.issueAuthToken(account);
+  }
+
+  verifyAuthToken(token?: string) {
+    if (!token) throw new UnauthorizedException("请先登录");
+    const [encodedPayload, signature] = token.split(".");
+    if (!encodedPayload || !signature) {
+      throw new UnauthorizedException("登录已失效，请重新登录");
+    }
+    this.assertAuthSignature(encodedPayload, signature);
+
+    let payload: any;
+    try {
+      payload = JSON.parse(this.decodeBase64Url(encodedPayload));
+    } catch {
+      throw new UnauthorizedException("登录已失效，请重新登录");
+    }
+    if (Number(payload.exp) <= Math.floor(Date.now() / 1000)) {
+      throw new UnauthorizedException("登录已过期，请重新登录");
+    }
+
+    const account = this.systemAccounts.find((item) => item.id === payload.sub);
+    if (!account || account.status !== "ENABLED") {
+      throw new UnauthorizedException("账号已停用或不存在");
+    }
+    if (payload.type !== account.type) {
+      throw new UnauthorizedException("登录上下文不匹配");
+    }
+    return this.buildAuthContext(account, payload);
+  }
+
+  getAuthMe(auth: MockAuthContext) {
+    return { profile: this.publicAuthProfile(auth) };
+  }
+
+  logoutAuth(auth: MockAuthContext) {
+    this.appendSystemOperationLog({
+      module: "登录鉴权",
+      action: "退出登录",
+      operator: auth.name,
+      target: auth.username,
+      detail: `${auth.roleName}退出系统`,
+    });
+    return { success: true };
+  }
+
+  private hasAnyPermission(auth: MockAuthContext, permissions: string[]) {
+    return permissions.some((permission) => auth.permissions.includes(permission));
+  }
+
+  private normaliseMockRequestPath(path: string) {
+    const withoutQuery = path.split("?")[0] || "/";
+    return withoutQuery.replace(/^\/api\/mock/, "") || "/";
+  }
+
+  private resolveMockPermission(method: string, requestPath: string) {
+    const path = this.normaliseMockRequestPath(requestPath);
+    if (path.startsWith("/auth/")) return [];
+    if (path === "/dashboard" || path === "/batteries") return [];
+
+    if (path.startsWith("/customer")) {
+      if (path === "/customer/home") return ["customer.order.read"];
+      if (path.includes("/bills/") && path.includes("/payment-vouchers")) {
+        return ["customer.bill.voucher"];
+      }
+      if (path.includes("/outbounds/") && method !== "GET") {
+        return ["customer.receipt.confirm"];
+      }
+      if (path.includes("/repairs") || path === "/customer/repair") {
+        return method === "GET"
+          ? ["customer.order.read", "customer.repair.write"]
+          : ["customer.repair.write"];
+      }
+      return ["customer.order.read"];
+    }
+
+    if (path.startsWith("/system/accounts")) return ["system.account.write"];
+    if (path.startsWith("/system/roles")) return ["system.role.write"];
+    if (path.startsWith("/system/interfaces")) return ["system.interface.write"];
+    if (
+      path.startsWith("/system/dictionaries") ||
+      path.startsWith("/system/approval-flows") ||
+      path.startsWith("/system/parameters") ||
+      path.startsWith("/system/snapshot")
+    ) {
+      return ["system.role.write", "system.account.write"];
+    }
+    if (path === "/system") {
+      return [
+        "system.account.write",
+        "system.role.write",
+        "system.interface.write",
+        "audit.read",
+      ];
+    }
+
+    if (path.startsWith("/assets")) {
+      if (path.includes("/outbound")) return ["asset.outbound"];
+      if (path.includes("/dispose")) return ["asset.dispose"];
+      if (path.includes("/repair-inbound")) return ["asset.repair_inbound"];
+      return ["asset.write", "asset.outbound", "asset.repair_inbound", "asset.dispose"];
+    }
+    if (path.startsWith("/alarms")) return ["alarm.write"];
+    if (path.startsWith("/repairs")) return ["repair.write"];
+    if (path.startsWith("/orders")) {
+      if (path.includes("/outbounds")) return ["asset.outbound"];
+      if (path.includes("/bills")) return ["bill.confirm"];
+      if (path.includes("/return-lease") || path.includes("/complete")) {
+        return ["asset.outbound"];
+      }
+      if (path.includes("/settle-return")) return ["bill.payment"];
+      if (path.includes("/approve-contract")) {
+        return ["order.write", "bill.confirm", "asset.write", "system.role.write"];
+      }
+      return ["order.write", "contract.read"];
+    }
+    if (path.startsWith("/outbounds")) return ["asset.outbound", "customer.receipt.confirm"];
+    if (path.startsWith("/files")) {
+      return ["order.write", "bill.confirm", "asset.write", "repair.write"];
+    }
+    if (path.startsWith("/automation")) {
+      return method === "GET" ? ["bill.read"] : ["bill.generate"];
+    }
+    if (path.startsWith("/finance") || path.startsWith("/bills")) {
+      if (path.includes("/scheduler/run") || path.includes("/generate-due-bills")) {
+        return ["bill.generate"];
+      }
+      if (path.includes("/reconciliation") || path.includes("/reconcile")) {
+        return ["bill.reconcile"];
+      }
+      if (path.includes("/payment-vouchers") || path.includes("/vouchers")) {
+        return method === "GET" ? ["bill.read", "bill.reconcile"] : ["bill.voucher", "bill.reconcile"];
+      }
+      if (path.includes("/confirm")) return ["bill.confirm"];
+      if (path.includes("/payments")) {
+        return ["bill.payment"];
+      }
+      if (path.includes("/follow-ups")) return ["bill.follow"];
+      if (path.includes("/adjust")) return ["bill.adjust"];
+      return ["bill.read"];
+    }
+    if (path.startsWith("/approvals")) {
+      return [
+        "order.write",
+        "asset.write",
+        "repair.write",
+        "bill.confirm",
+        "system.role.write",
+      ];
+    }
+    return [];
+  }
+
+  assertMockAccess(auth: MockAuthContext, method: string, requestPath: string) {
+    const path = this.normaliseMockRequestPath(requestPath);
+    const isCustomerPath = path.startsWith("/customer");
+    const isFilePath = path.startsWith("/files");
+    if (isCustomerPath && auth.accountType !== "CUSTOMER") {
+      throw new ForbiddenException("内部账号不能访问客户移动端 API");
+    }
+    if (
+      !isCustomerPath &&
+      !isFilePath &&
+      !path.startsWith("/auth/") &&
+      auth.accountType !== "INTERNAL"
+    ) {
+      throw new ForbiddenException("客户账号不能访问内部后台 API");
+    }
+
+    if (auth.accountType === "CUSTOMER" && isFilePath) return;
+    if (auth.accountType === "INTERNAL" && auth.roleId === "role-admin") return;
+    const requiredPermissions = this.resolveMockPermission(method, path);
+    if (!requiredPermissions.length) return;
+    if (!this.hasAnyPermission(auth, requiredPermissions)) {
+      throw new ForbiddenException("当前角色没有访问该功能的权限");
+    }
   }
 
   private findSystemAccount(id: string) {
@@ -9493,6 +12788,10 @@ export class MockService {
   resetSystemAccountPassword(id: string) {
     const account = this.findSystemAccount(id);
     const temporaryPassword = `YCKX@${String(Date.now()).slice(-6)}`;
+    this.temporaryAccountPasswords.set(account.id, {
+      password: temporaryPassword,
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    });
     this.appendSystemOperationLog({
       module: "系统管理",
       action: "重置密码",
@@ -9701,13 +13000,97 @@ export class MockService {
     return item;
   }
 
+  private hydrateSystemInterfaceConfig() {
+    const defaults = new Map(
+      this.defaultSystemConfigState.interfaces.map((item) => [item.id, item]),
+    );
+    this.platformInterfaces.forEach((item) => {
+      const fallback = defaults.get(item.id);
+      item.requestMethod =
+        item.requestMethod === "POST" || fallback?.requestMethod === "POST"
+          ? "POST"
+          : "GET";
+      item.credential =
+        typeof item.credential === "string"
+          ? item.credential
+          : fallback?.credential || "";
+      item.authMode = item.authMode || fallback?.authMode || "无鉴权";
+      item.timeoutMs = Math.max(Number(item.timeoutMs || fallback?.timeoutMs), 1000);
+      item.lastLatencyMs =
+        Number.isFinite(Number(item.lastLatencyMs)) && Number(item.lastLatencyMs) > 0
+          ? Number(item.lastLatencyMs)
+          : undefined;
+    });
+  }
+
+  private maskCredential(value: string) {
+    if (!value) return "";
+    if (value.length <= 8) return `${value.slice(0, 2)}***`;
+    return `${value.slice(0, 4)}***${value.slice(-4)}`;
+  }
+
+  private sanitizePlatformInterface(item: PlatformInterface): PlatformInterface {
+    return {
+      ...item,
+      credential: "",
+      credentialConfigured: Boolean(item.credential),
+      credentialHint: this.maskCredential(item.credential),
+    };
+  }
+
+  private isExampleEndpoint(endpoint: string) {
+    try {
+      const url = new URL(endpoint);
+      return url.hostname.endsWith(".example") || url.hostname === "example.com";
+    } catch {
+      return false;
+    }
+  }
+
+  private buildInterfaceRequest(item: PlatformInterface) {
+    let url: URL;
+    try {
+      url = new URL(item.endpoint);
+    } catch {
+      throw new BadRequestException("接口地址格式不正确");
+    }
+
+    const headers: Record<string, string> = {
+      Accept: "application/json, text/plain;q=0.9, */*;q=0.8",
+    };
+    const credential = item.credential.trim();
+    if (item.authMode !== "无鉴权" && !credential) {
+      throw new BadRequestException("接口未配置鉴权凭据，不能发起真实请求");
+    }
+    if (item.authMode === "Bearer Token") {
+      headers.Authorization = `Bearer ${credential}`;
+    } else if (item.authMode === "API Key") {
+      headers["X-API-Key"] = credential;
+      if (!url.searchParams.has("key")) url.searchParams.set("key", credential);
+    } else if (item.authMode === "AccessKey") {
+      headers["X-Access-Key"] = credential;
+    }
+
+    const init: RequestInit = {
+      method: item.requestMethod,
+      headers,
+    };
+    if (item.requestMethod === "POST") {
+      headers["Content-Type"] = "application/json";
+      init.body = "{}";
+    }
+    return { url, init };
+  }
+
   updateSystemInterface(
     id: string,
     body: {
       endpoint?: string;
+      requestMethod?: SystemInterfaceMethod;
       syncInterval?: string;
       owner?: string;
       authMode?: string;
+      credential?: string;
       timeoutMs?: number;
       enabled?: boolean;
     },
@@ -9720,6 +13103,12 @@ export class MockService {
       if (!endpoint) throw new BadRequestException("接口地址不能为空");
       item.endpoint = endpoint;
     }
+    if (body.requestMethod !== undefined) {
+      if (body.requestMethod !== "GET" && body.requestMethod !== "POST") {
+        throw new BadRequestException("请求方式仅支持 GET 或 POST");
+      }
+      item.requestMethod = body.requestMethod;
+    }
     if (body.syncInterval !== undefined) {
       item.syncInterval = body.syncInterval.trim() || item.syncInterval;
     }
@@ -9728,6 +13117,9 @@ export class MockService {
     }
     if (body.authMode !== undefined) {
       item.authMode = body.authMode.trim() || item.authMode;
+    }
+    if (body.credential !== undefined) {
+      item.credential = body.credential.trim();
     }
     if (body.timeoutMs !== undefined) {
       const timeoutMs = Number(body.timeoutMs);
@@ -9751,14 +13143,15 @@ export class MockService {
       target: item.name,
       detail: `${item.name}接口配置已保存`,
     });
-    return item;
+    return this.sanitizePlatformInterface(item);
   }
 
-  testSystemInterface(id: string) {
+  async testSystemInterface(id: string) {
     const item = this.platformInterfaces.find((entry) => entry.id === id);
     if (!item) throw new NotFoundException("接口配置不存在");
 
     item.lastSyncAt = this.nowText();
+    item.lastLatencyMs = 0;
     if (!item.enabled) {
       item.status = "DISABLED";
       item.lastResult = "接口未启用，未发起连接测试";
@@ -9770,19 +13163,56 @@ export class MockService {
         result: "失败",
         detail: "接口未启用",
       });
-      return item;
+      return this.sanitizePlatformInterface(item);
     }
 
-    item.status = "ONLINE";
-    item.lastResult = "连接成功，响应时间 128ms";
+    if (this.isExampleEndpoint(item.endpoint)) {
+      item.status = "ERROR";
+      item.lastResult = "示例地址不能发起真实测试，请配置第三方真实地址";
+      this.appendSystemOperationLog({
+        module: "系统管理",
+        action: "测试接口",
+        operator: "系统管理员",
+        target: item.name,
+        result: "失败",
+        detail: item.lastResult,
+      });
+      return this.sanitizePlatformInterface(item);
+    }
+
+    const startedAt = Date.now();
+    let result: "成功" | "失败" = "失败";
+    try {
+      const { url, init } = this.buildInterfaceRequest(item);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), item.timeoutMs);
+      const response = await fetch(url, { ...init, signal: controller.signal });
+      clearTimeout(timer);
+      item.lastLatencyMs = Date.now() - startedAt;
+      const responseText = await response.text();
+      if (response.ok) {
+        item.status = "ONLINE";
+        item.lastResult = `真实请求成功，HTTP ${response.status}，响应 ${item.lastLatencyMs}ms`;
+        result = "成功";
+      } else {
+        item.status = "ERROR";
+        item.lastResult = `真实请求失败，HTTP ${response.status}，${responseText.slice(0, 80) || "无响应正文"}`;
+      }
+    } catch (error) {
+      item.lastLatencyMs = Date.now() - startedAt;
+      item.status = "ERROR";
+      item.lastResult = `真实请求失败：${error instanceof Error ? error.message : String(error)}`;
+    }
+
     this.appendSystemOperationLog({
       module: "系统管理",
       action: "测试接口",
       operator: "系统管理员",
       target: item.name,
+      result,
       detail: item.lastResult,
     });
-    return item;
+    return this.sanitizePlatformInterface(item);
   }
 
   createApprovalFlow(body: {
@@ -9936,12 +13366,10 @@ export class MockService {
     return parameter;
   }
 
-  getCustomerHome(query: { role?: string } = {}) {
-    const role =
-      String(query.role || "").toLowerCase() === "staff"
-        ? "CUSTOMER_STAFF"
-        : "CUSTOMER_ADMIN";
-    const canViewAmount = role === "CUSTOMER_ADMIN";
+  getCustomerHome(_query: { role?: string } = {}, auth?: MockAuthContext) {
+    const canViewAmount = Boolean(
+      auth?.permissions.includes("customer.bill.read"),
+    );
     const customerOrders = this.orders.filter(
       (order) => order.customerId === customerId,
     );
@@ -9978,8 +13406,8 @@ export class MockService {
     });
 
     return {
-      customerName: "河南示例物流有限公司",
-      role,
+      customerName: auth?.customerName || "河南示例物流有限公司",
+      role: auth?.roleName || "客户移动端",
       canViewAmount,
       orderCount: customerOrders.length,
       batteryCount: this.batteries.filter(
@@ -10027,7 +13455,7 @@ export class MockService {
     id: string,
     body: {
       message?: string;
-      images?: string[];
+      images?: unknown[];
     },
   ) {
     const repair = this.findCustomerRepairTicket(id);
@@ -10036,19 +13464,21 @@ export class MockService {
     }
 
     const message = String(body.message ?? "").trim();
-    const images = Array.isArray(body.images)
-      ? body.images.map((item) => String(item).trim()).filter(Boolean)
-      : [];
+    const images = this.normalizeApprovalAttachments(body.images ?? []);
     if (!message && !images.length) {
       throw new BadRequestException("请填写补充说明或上传图片。");
     }
 
-    repair.images = repair.images ?? [];
-    repair.images.push(...images);
+    repair.images = this.normalizeApprovalAttachments([
+      ...(repair.images ?? []),
+      ...images,
+    ]);
+    this.bindUploadedFilesToRepair(repair);
+    const imageNames = images.map((item) => this.attachmentDisplayName(item));
     this.appendRepairLog(repair, {
       action: "客户补充说明",
       result: message || `客户补充 ${images.length} 张图片`,
-      remark: images.length ? `补充附件：${images.join("、")}` : "",
+      remark: images.length ? `补充附件：${imageNames.join("、")}` : "",
       operator: "客户移动端",
     });
     repair.updatedAt = this.nowText();
@@ -10082,7 +13512,7 @@ export class MockService {
     btCode: string;
     description: string;
     address: string;
-    images?: string[];
+    images?: unknown[];
   }) {
     const battery = this.batteries.find((item) => item.btCode === body.btCode);
     if (!battery || battery.customerId !== customerId) {
@@ -10091,7 +13521,8 @@ export class MockService {
     if (!body.description?.trim() || !body.address?.trim()) {
       throw new BadRequestException("客户报修必须填写故障描述和地址。");
     }
-    if (!body.images?.length) {
+    const images = this.normalizeApprovalAttachments(body.images ?? []);
+    if (!images.length) {
       throw new BadRequestException("客户报修必须上传故障图片。");
     }
     this.ensureNoActiveRepair(body.btCode);
@@ -10136,7 +13567,7 @@ export class MockService {
       customerConfirmed: false,
       customerConfirmedAt: "",
       sourceAlarmNo: "",
-      images: body.images,
+      images,
       materials: [],
       costItems: [],
     };
@@ -10148,7 +13579,7 @@ export class MockService {
         action: "提交报修",
         status: "待受理",
         result: "已生成报修单",
-        remark: `客户上传 ${body.images.length} 张故障图片。`,
+        remark: `客户上传 ${images.length} 张故障图片。`,
       },
     ];
     this.syncRepairAsset(

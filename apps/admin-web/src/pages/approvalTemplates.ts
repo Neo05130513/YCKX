@@ -1,4 +1,32 @@
 export type ApprovalFieldType = "text" | "textarea" | "number" | "select" | "date" | "datetime";
+export type ApprovalConditionOperator =
+  | "eq"
+  | "neq"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "includes"
+  | "in"
+  | "exists"
+  | "not_exists"
+  | "truthy"
+  | "falsy";
+
+export interface ApprovalTemplateCondition {
+  field?: string;
+  operator?: ApprovalConditionOperator;
+  value?: string | number | boolean | Array<string | number | boolean>;
+  logic?: "all" | "any";
+  conditions?: ApprovalTemplateCondition[];
+}
+
+export interface ApprovalTemplateNode {
+  name: string;
+  operator?: string;
+  condition?: ApprovalTemplateCondition | ApprovalTemplateCondition[];
+  conditionLabel?: string;
+}
 
 export interface ApprovalTemplateField {
   key: string;
@@ -24,7 +52,7 @@ export interface ApprovalTemplate {
   businessNoField?: string;
   amountField?: string;
   fields: ApprovalTemplateField[];
-  nodes: Array<{ name: string; operator?: string }>;
+  nodes: ApprovalTemplateNode[];
   riskItems: string[];
   requiredAttachments?: string[];
 }

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "savedAt": "2026-05-18 15:26",
+  "savedAt": "2026-05-18 18:51",
   "batteries": [
     {
       "id": "bat-44840294",
@@ -12,7 +12,7 @@
       "orgName": "延成科讯 / 内部仓储",
       "sourcePlatform": "内部入库",
       "runningStatus": "OFFLINE",
-      "assetStatus": "IN_STOCK",
+      "assetStatus": "LEASING",
       "powerPercent": 100,
       "voltage": 0,
       "current": 0,
@@ -24,9 +24,9 @@
       "imei": "",
       "iccid": "",
       "signal": 0,
-      "lifecycle": "库存",
-      "customStatus": "新增入库",
-      "inboundState": "在库",
+      "lifecycle": "运营",
+      "customStatus": "待客户收货",
+      "inboundState": "已出库",
       "cardState": "未激活",
       "batchNum": "BATCH202605",
       "groupName": "郑州总仓",
@@ -40,7 +40,7 @@
       "offlineTime": "2026-5-18 03:07:20",
       "gpsUpdateTime": "",
       "qrCode": "BTCHK030720B",
-      "userName": "郑州总仓",
+      "userName": "郑州测试配送",
       "abnormal": "无",
       "movementStatus": "静止",
       "offlineDays": 0,
@@ -90,15 +90,15 @@
       "remainingCapacity": 0,
       "serialNumber": 0,
       "satelliteNum": 0,
-      "location": "郑州总仓",
-      "warehouse": "郑州总仓",
+      "location": "郑州经开区",
+      "warehouse": "郑州测试配送现场",
       "initialWarehouse": "郑州总仓",
       "initialInboundNo": "IN44840294",
       "initialInboundSource": "采购入库",
       "keeper": "王库管",
-      "customerId": null,
-      "orderId": null,
-      "updatedAt": "2026-5-18 03:07:20"
+      "customerId": "customer-demo-2",
+      "orderId": "order-002",
+      "updatedAt": "2026-05-18 18:13"
     },
     {
       "id": "bat-44840288",
@@ -110,7 +110,7 @@
       "orgName": "延成科讯 / 内部仓储",
       "sourcePlatform": "内部入库",
       "runningStatus": "OFFLINE",
-      "assetStatus": "IN_STOCK",
+      "assetStatus": "LEASING",
       "powerPercent": 100,
       "voltage": 0,
       "current": 0,
@@ -122,9 +122,9 @@
       "imei": "",
       "iccid": "",
       "signal": 0,
-      "lifecycle": "库存",
-      "customStatus": "新增入库",
-      "inboundState": "在库",
+      "lifecycle": "运营",
+      "customStatus": "待客户收货",
+      "inboundState": "已出库",
       "cardState": "未激活",
       "batchNum": "BATCH202605",
       "groupName": "郑州总仓",
@@ -138,7 +138,7 @@
       "offlineTime": "2026-5-18 03:07:20",
       "gpsUpdateTime": "",
       "qrCode": "BTCHK030720A",
-      "userName": "郑州总仓",
+      "userName": "郑州测试配送",
       "abnormal": "无",
       "movementStatus": "静止",
       "offlineDays": 0,
@@ -188,15 +188,15 @@
       "remainingCapacity": 0,
       "serialNumber": 0,
       "satelliteNum": 0,
-      "location": "郑州总仓",
-      "warehouse": "郑州总仓",
+      "location": "郑州经开区",
+      "warehouse": "郑州测试配送现场",
       "initialWarehouse": "郑州总仓",
       "initialInboundNo": "IN44840288",
       "initialInboundSource": "采购入库",
       "keeper": "王库管",
-      "customerId": null,
-      "orderId": null,
-      "updatedAt": "2026-5-18 03:07:20"
+      "customerId": "customer-demo-2",
+      "orderId": "order-002",
+      "updatedAt": "2026-05-18 18:13"
     },
     {
       "id": "bat-41208628",
@@ -417,7 +417,7 @@
       "iccid": "8986042026051700012",
       "signal": 28,
       "lifecycle": "库存",
-      "customStatus": "租赁退回",
+      "customStatus": "正常运营",
       "inboundState": "退回入库",
       "cardState": "正常",
       "batchNum": "BATCH202605",
@@ -485,7 +485,7 @@
       "location": "郑州总仓",
       "customerId": null,
       "orderId": null,
-      "updatedAt": "2026-5-18 02:06:48",
+      "updatedAt": "2026-05-18 18:09",
       "warehouse": "郑州总仓"
     },
     {
@@ -498,7 +498,7 @@
       "orgName": "延成科讯 / 河南示例物流",
       "sourcePlatform": "平台B",
       "runningStatus": "ABNORMAL",
-      "assetStatus": "LEASING",
+      "assetStatus": "BOUGHT_OUT",
       "powerPercent": 23,
       "voltage": 66.8,
       "current": -18.9,
@@ -510,8 +510,8 @@
       "imei": "867202605170002",
       "iccid": "8986042026051700020",
       "signal": 16,
-      "lifecycle": "运营",
-      "customStatus": "低电量告警",
+      "lifecycle": "买断",
+      "customStatus": "正常运营",
       "inboundState": "已出库",
       "cardState": "正常",
       "batchNum": "BATCH202605",
@@ -579,7 +579,12 @@
       "location": "郑州经开区",
       "customerId": "customer-yancheng",
       "orderId": "order-001",
-      "updatedAt": "2026-05-17 09:18"
+      "updatedAt": "2026-05-18 18:13",
+      "warehouse": "郑州经开区",
+      "disposalApprovalNo": "SP99197942",
+      "disposalVoucherNo": "VCH99197973b4c4a7",
+      "disposalBookValue": 4680,
+      "disposalGainLossAmount": 1820
     },
     {
       "id": "bat-003",
@@ -686,22 +691,22 @@
       "customerContact": "张经理",
       "contactPhone": "13800138001",
       "region": "郑州高新区",
-      "status": "PENDING_RECEIPT",
+      "status": "PENDING_OUTBOUND",
       "leaseStart": "2026-05-01",
       "leaseEnd": "2027-04-30",
       "billingDay": 5,
       "monthlyRent": 8000,
       "depositAmount": 12000,
       "orderedBatteryCount": 5,
-      "batteryCount": 1,
-      "outboundProgress": "1/5",
-      "outboundCount": 1,
+      "batteryCount": 0,
+      "outboundProgress": "0/5",
+      "outboundCount": 0,
       "receivedCount": 0,
-      "pendingReceiptCount": 1,
-      "receivableAmount": 16000,
+      "pendingReceiptCount": 0,
+      "receivableAmount": 15800,
       "paidAmount": 1600,
-      "debtAmount": 14400,
-      "overdueAmount": 6400,
+      "debtAmount": 14200,
+      "overdueAmount": 6200,
       "currentPeriod": "2026-06",
       "nextBillingDate": "2026-06-05",
       "salesOwner": "刘销售",
@@ -711,7 +716,7 @@
       "contractNo": "HT20260501001",
       "contractStatus": "已会签",
       "createdAt": "2026-05-01 09:30",
-      "updatedAt": "2026-5-18 02:06:48",
+      "updatedAt": "2026-05-18 18:13",
       "remark": "首批 2 组已出库，剩余 3 组等待客户排车。",
       "contract": {
         "name": "锂电池租赁合同-河南示例物流",
@@ -771,6 +776,16 @@
           "time": "2026-5-18 02:06:48",
           "title": "资产退回入库",
           "content": "1 组电池已从客户现场退回仓库。"
+        },
+        {
+          "time": "2026-05-18 18:09",
+          "title": "客户确认收货",
+          "content": "OUT202605170001 已确认收货，包含 2 组电池。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "title": "审批自动买断",
+          "content": "SP99197942 审批通过后已自动完成买断出库。"
         }
       ]
     },
@@ -783,18 +798,18 @@
       "customerContact": "李主管",
       "contactPhone": "13800138002",
       "region": "郑州经开区",
-      "status": "PENDING_OUTBOUND",
+      "status": "PENDING_RECEIPT",
       "leaseStart": "2026-06-01",
       "leaseEnd": "2027-05-31",
       "billingDay": 10,
       "monthlyRent": 15600,
       "depositAmount": 30000,
       "orderedBatteryCount": 10,
-      "batteryCount": 0,
-      "outboundProgress": "0/10",
-      "outboundCount": 0,
+      "batteryCount": 2,
+      "outboundProgress": "2/10",
+      "outboundCount": 2,
       "receivedCount": 0,
-      "pendingReceiptCount": 0,
+      "pendingReceiptCount": 2,
       "receivableAmount": 0,
       "paidAmount": 0,
       "debtAmount": 0,
@@ -808,7 +823,7 @@
       "contractNo": "HT20260517002",
       "contractStatus": "已会签",
       "createdAt": "2026-05-17 14:40",
-      "updatedAt": "2026-5-18 02:06:48",
+      "updatedAt": "2026-05-18 18:13",
       "remark": "合同通过，等待资产部创建首批出库单。",
       "contract": {
         "name": "锂电池租赁合同-郑州测试配送",
@@ -856,6 +871,16 @@
           "time": "2026-5-18 02:06:48",
           "title": "资产退回入库",
           "content": "2 组电池已从客户现场退回仓库。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "title": "批量创建出库单",
+          "content": "OUT99197901 出库 2 组电池，等待客户确认收货。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "title": "审批自动出库",
+          "content": "SP99197868 审批通过后已自动生成出库单。"
         }
       ]
     },
@@ -942,6 +967,25 @@
   ],
   "outbounds": [
     {
+      "id": "out-99197901",
+      "outboundNo": "OUT99197901",
+      "orderId": "order-002",
+      "customerName": "郑州测试配送有限公司",
+      "status": "PENDING_RECEIPT",
+      "outboundAt": "2026-05-18",
+      "autoReceiveAt": "2026-05-24",
+      "receivedAt": "",
+      "warehouse": "郑州总仓",
+      "operator": "系统自动任务",
+      "receiver": "李主管",
+      "address": "郑州经开区",
+      "btCodes": [
+        "BTCHK030720A",
+        "BTCHK030720B"
+      ],
+      "remark": "SP99197868 审批通过后自动生成出库单，审批处理人：admin。"
+    },
+    {
       "id": "out-41208640",
       "outboundNo": "OUT41208640",
       "orderId": "order-002",
@@ -970,10 +1014,10 @@
       "outboundNo": "OUT202605170001",
       "orderId": "order-001",
       "customerName": "河南示例物流有限公司",
-      "status": "PENDING_RECEIPT",
+      "status": "RECEIVED",
       "outboundAt": "2026-05-10",
       "autoReceiveAt": "2026-05-17",
-      "receivedAt": "",
+      "receivedAt": "2026-05-18 18:09",
       "warehouse": "郑州总仓",
       "operator": "王库管",
       "receiver": "张经理",
@@ -985,7 +1029,11 @@
       "returnedBtCodes": [
         "BT202605170001"
       ],
-      "returnedAt": "2026-5-18 02:06:48"
+      "returnedAt": "2026-5-18 02:06:48",
+      "closedBtCodes": [
+        "BT202605170002"
+      ],
+      "closedAt": "2026-05-18 18:13"
     },
     {
       "id": "out-002",
@@ -1014,25 +1062,97 @@
       "customerName": "河南示例物流有限公司",
       "orderNo": "ORD202605170001",
       "period": "2026-05",
-      "receivableAmount": 8000,
+      "receivableAmount": 7800,
       "paidAmount": 1600,
-      "debtAmount": 6400,
+      "debtAmount": 6200,
       "status": "OVERDUE",
       "generatedAt": "2026-05-05",
       "dueDate": "2026-05-12",
       "confirmedAt": "2026-05-05 10:00",
-      "adjustReason": "",
+      "adjustReason": "smoke adjust（审批单 SP99197822 自动同步）",
       "payments": [
         {
           "paymentNo": "PAY20260509001",
           "amount": 1600,
           "paidAt": "2026-05-09 16:20",
           "method": "银行转账",
-          "remark": "首期部分回款"
+          "remark": "首期部分回款",
+          "voucherId": "voucher-PAY20260509001",
+          "reconciliationStatus": "VERIFIED",
+          "reconciledAt": "2026-05-09 16:20",
+          "reconciledBy": "财务"
         }
       ],
-      "collectionStatus": "已跟进",
+      "collectionStatus": "待对账",
       "operationLogs": [
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统自动任务",
+          "action": "调整账单",
+          "remark": "smoke adjust（审批单 SP99197822 自动同步）",
+          "detail": {
+            "beforeAmount": 8000,
+            "afterAmount": 7800
+          }
+        },
+        {
+          "time": "2026-05-18 18:06",
+          "operator": "赵财务",
+          "action": "驳回付款凭证",
+          "remark": "smoke test cleanup",
+          "detail": {
+            "id": "voucher-1779098770315",
+            "voucherNo": "SMOKE20260518180610",
+            "amount": 1,
+            "paidAt": "2026-05-18 18:12",
+            "method": "????",
+            "payerName": "河南示例物流有限公司",
+            "payerAccount": "",
+            "bankName": "",
+            "attachmentName": "smoke-payment-proof.png",
+            "attachmentUrl": "",
+            "attachmentSize": 0,
+            "remark": "smoke test",
+            "uploadedAt": "2026-05-18 18:06",
+            "uploadedBy": "张经理",
+            "uploadedByType": "CUSTOMER",
+            "status": "REJECTED",
+            "reconciliationStatus": "REJECTED",
+            "reconciledAt": "2026-05-18 18:06",
+            "reconciledBy": "赵财务",
+            "reconciliationRemark": "smoke test cleanup",
+            "paymentNo": ""
+          }
+        },
+        {
+          "time": "2026-05-18 18:06",
+          "operator": "张经理",
+          "action": "提交付款凭证",
+          "remark": "SMOKE20260518180610 金额 1 元，待财务对账。",
+          "detail": {
+            "id": "voucher-1779098770315",
+            "voucherNo": "SMOKE20260518180610",
+            "amount": 1,
+            "paidAt": "2026-05-18 18:12",
+            "method": "????",
+            "payerName": "河南示例物流有限公司",
+            "payerAccount": "",
+            "bankName": "",
+            "attachmentName": "smoke-payment-proof.png",
+            "attachmentUrl": "",
+            "attachmentSize": 0,
+            "remark": "smoke test",
+            "uploadedAt": "2026-05-18 18:06",
+            "uploadedBy": "张经理",
+            "uploadedByType": "CUSTOMER",
+            "status": "REJECTED",
+            "reconciliationStatus": "REJECTED",
+            "reconciledAt": "2026-05-18 18:06",
+            "reconciledBy": "赵财务",
+            "reconciliationRemark": "smoke test cleanup",
+            "paymentNo": ""
+          }
+        },
         {
           "time": "2026-5-18 03:09:18",
           "operator": "???",
@@ -1048,6 +1168,65 @@
             "remark": "",
             "operator": "???"
           }
+        }
+      ],
+      "paymentVouchers": [
+        {
+          "id": "voucher-1779098770315",
+          "voucherNo": "SMOKE20260518180610",
+          "amount": 1,
+          "paidAt": "2026-05-18 18:12",
+          "method": "????",
+          "payerName": "河南示例物流有限公司",
+          "payerAccount": "",
+          "bankName": "",
+          "attachmentName": "smoke-payment-proof.png",
+          "attachmentUrl": "",
+          "attachmentSize": 0,
+          "remark": "smoke test",
+          "uploadedAt": "2026-05-18 18:06",
+          "uploadedBy": "张经理",
+          "uploadedByType": "CUSTOMER",
+          "status": "REJECTED",
+          "reconciliationStatus": "REJECTED",
+          "reconciledAt": "2026-05-18 18:06",
+          "reconciledBy": "赵财务",
+          "reconciliationRemark": "smoke test cleanup",
+          "paymentNo": ""
+        },
+        {
+          "id": "voucher-PAY20260509001",
+          "voucherNo": "PAY20260509001",
+          "amount": 1600,
+          "paidAt": "2026-05-09 16:20",
+          "method": "银行转账",
+          "payerName": "河南示例物流有限公司",
+          "payerAccount": "",
+          "bankName": "",
+          "attachmentName": "历史回款凭证",
+          "attachmentUrl": "",
+          "attachmentSize": 0,
+          "remark": "首期部分回款",
+          "uploadedAt": "2026-05-09 16:20",
+          "uploadedBy": "财务",
+          "uploadedByType": "FINANCE",
+          "status": "VERIFIED",
+          "reconciliationStatus": "VERIFIED",
+          "reconciledAt": "2026-05-09 16:20",
+          "reconciledBy": "财务",
+          "reconciliationRemark": "历史回款自动补齐凭证记录",
+          "paymentNo": "PAY20260509001"
+        }
+      ],
+      "adjustedAt": "2026-05-18 18:13",
+      "adjustedBy": "系统自动任务",
+      "adjustmentLogs": [
+        {
+          "beforeAmount": 8000,
+          "afterAmount": 7800,
+          "reason": "smoke adjust（审批单 SP99197822 自动同步）",
+          "operator": "系统自动任务",
+          "adjustedAt": "2026-05-18 18:13"
         }
       ]
     },
@@ -1066,7 +1245,8 @@
       "confirmedAt": "",
       "adjustReason": "",
       "payments": [],
-      "operationLogs": []
+      "operationLogs": [],
+      "paymentVouchers": []
     },
     {
       "id": "bill-003",
@@ -1088,13 +1268,1894 @@
           "amount": 9600,
           "paidAt": "2026-05-15 17:30",
           "method": "银行转账",
-          "remark": "月租已结清"
+          "remark": "月租已结清",
+          "voucherId": "voucher-PAY20260515003",
+          "reconciliationStatus": "VERIFIED",
+          "reconciledAt": "2026-05-15 17:30",
+          "reconciledBy": "财务"
         }
       ],
-      "operationLogs": []
+      "operationLogs": [],
+      "paymentVouchers": [
+        {
+          "id": "voucher-PAY20260515003",
+          "voucherNo": "PAY20260515003",
+          "amount": 9600,
+          "paidAt": "2026-05-15 17:30",
+          "method": "银行转账",
+          "payerName": "开封城配新能源有限公司",
+          "payerAccount": "",
+          "bankName": "",
+          "attachmentName": "历史回款凭证",
+          "attachmentUrl": "",
+          "attachmentSize": 0,
+          "remark": "月租已结清",
+          "uploadedAt": "2026-05-15 17:30",
+          "uploadedBy": "财务",
+          "uploadedByType": "FINANCE",
+          "status": "VERIFIED",
+          "reconciliationStatus": "VERIFIED",
+          "reconciledAt": "2026-05-15 17:30",
+          "reconciledBy": "财务",
+          "reconciliationRemark": "历史回款自动补齐凭证记录",
+          "paymentNo": "PAY20260515003"
+        }
+      ]
     }
   ],
   "approvals": [
+    {
+      "id": "approval-99197942",
+      "approvalNo": "SP99197942",
+      "type": "CUSTOMER_BUYOUT",
+      "typeLabel": "customer buyout",
+      "title": "buyout-smoke-1779099197",
+      "status": "APPROVED",
+      "applicant": "admin",
+      "department": "sales",
+      "priority": "normal",
+      "businessId": "order-001",
+      "businessNo": "ORD202605170001",
+      "customerName": "??????????",
+      "amount": 6500,
+      "currentNode": "流程完成",
+      "currentOperator": "",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:13",
+      "updatedAt": "2026-05-18 18:13",
+      "summary": "buyout smoke",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "order",
+          "value": "ORD202605170001"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "业务发起",
+          "operator": "admin",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "财务审批",
+          "operator": "赵财务",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "buyout finance pass",
+          "skipReason": ""
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "condition": {
+            "logic": "any",
+            "conditions": [
+              {
+                "field": "buyoutType",
+                "operator": "eq",
+                "value": "未到期买断"
+              },
+              {
+                "field": "buyoutAmount",
+                "operator": "gte",
+                "value": 30000
+              }
+            ]
+          },
+          "conditionLabel": "未到期买断或买断金额达到 30000 元时彭总审批",
+          "status": "SKIPPED",
+          "time": "2026-05-18 18:13",
+          "remark": "未命中条件：未到期买断或买断金额达到 30000 元时彭总审批",
+          "skipReason": "未命中条件：未到期买断或买断金额达到 30000 元时彭总审批"
+        },
+        {
+          "name": "固定资产管理员出库",
+          "operator": "资产管理员",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "buyout pass",
+          "skipReason": ""
+        },
+        {
+          "name": "财务协同对账记账",
+          "operator": "财务",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "buyout pass",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "提交",
+          "nodeName": "业务发起",
+          "result": "已提交",
+          "comment": "buyout smoke"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "财务审批",
+          "result": "通过",
+          "comment": "buyout finance pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "条件跳过",
+          "nodeName": "彭总审批",
+          "result": "已跳过",
+          "comment": "未命中条件：未到期买断或买断金额达到 30000 元时彭总审批"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "固定资产管理员出库",
+          "result": "等待处理",
+          "comment": "已流转至资产管理员。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "固定资产管理员出库",
+          "result": "通过",
+          "comment": "buyout pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务协同对账记账",
+          "result": "等待处理",
+          "comment": "已流转至财务。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "财务协同对账记账",
+          "result": "通过",
+          "comment": "buyout pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "归档",
+          "nodeName": "流程完成",
+          "result": "已完成",
+          "comment": "所有有效节点已处理完成。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "orderId": "order-001",
+        "buyoutAmount": 6500,
+        "assetCodes": "BT202605170002",
+        "orderNo": "ORD202605170001",
+        "buyoutType": "????",
+        "unitPrice": 6500
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "CUSTOMER_BUYOUT",
+      "customerBuyoutAppliedAt": "2026-05-18 18:13"
+    },
+    {
+      "id": "approval-99197868",
+      "approvalNo": "SP99197868",
+      "type": "LEASE_OUTBOUND",
+      "typeLabel": "lease outbound",
+      "title": "lease-outbound-smoke-1779099197",
+      "status": "APPROVED",
+      "applicant": "admin",
+      "department": "sales",
+      "priority": "normal",
+      "businessId": "order-002",
+      "businessNo": "ORD202605170002",
+      "customerName": "??????????",
+      "amount": 0,
+      "currentNode": "流程完成",
+      "currentOperator": "",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:13",
+      "updatedAt": "2026-05-18 18:13",
+      "summary": "lease outbound smoke",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "order",
+          "value": "ORD202605170002"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "业务员发起",
+          "operator": "admin",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "资产管理员核对出库",
+          "operator": "资产管理员",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "outbound pass",
+          "skipReason": ""
+        },
+        {
+          "name": "技术部电池管理系统划拨",
+          "operator": "技术部",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "outbound pass",
+          "skipReason": ""
+        },
+        {
+          "name": "财务部依据发货单入账",
+          "operator": "财务",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "outbound pass",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "提交",
+          "nodeName": "业务员发起",
+          "result": "已提交",
+          "comment": "lease outbound smoke"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "资产管理员核对出库",
+          "result": "等待处理",
+          "comment": "已流转至资产管理员。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "资产管理员核对出库",
+          "result": "通过",
+          "comment": "outbound pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "技术部电池管理系统划拨",
+          "result": "等待处理",
+          "comment": "已流转至技术部。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "技术部电池管理系统划拨",
+          "result": "通过",
+          "comment": "outbound pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务部依据发货单入账",
+          "result": "等待处理",
+          "comment": "已流转至财务。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "财务部依据发货单入账",
+          "result": "通过",
+          "comment": "outbound pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "归档",
+          "nodeName": "流程完成",
+          "result": "已完成",
+          "comment": "所有有效节点已处理完成。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "orderId": "order-002",
+        "quantity": 2,
+        "contractNo": "HT20260517002",
+        "orderNo": "ORD202605170002",
+        "assetCodes": "BTCHK030720A\nBTCHK030720B",
+        "receiverInfo": "test receiver",
+        "customerName": "??????????"
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "LEASE_OUTBOUND",
+      "outboundAppliedAt": "2026-05-18 18:13"
+    },
+    {
+      "id": "approval-99197822",
+      "approvalNo": "SP99197822",
+      "type": "BILL_ADJUST",
+      "typeLabel": "bill adjust",
+      "title": "bill-adjust-smoke-1779099197",
+      "status": "APPROVED",
+      "applicant": "admin",
+      "department": "finance",
+      "priority": "normal",
+      "businessId": "bill-001",
+      "businessNo": "BILL202605001",
+      "customerName": "??????????",
+      "amount": 7800,
+      "currentNode": "流程完成",
+      "currentOperator": "",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:13",
+      "updatedAt": "2026-05-18 18:13",
+      "summary": "bill adjust smoke",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "bill",
+          "value": "BILL202605001"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "财务发起",
+          "operator": "admin",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "业务确认",
+          "operator": "孙销售",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "bill pass",
+          "skipReason": ""
+        },
+        {
+          "name": "总经理审批",
+          "operator": "周总",
+          "condition": {
+            "field": "amount",
+            "operator": "gte",
+            "value": 1000
+          },
+          "conditionLabel": "账单调整金额达到 1000 元时总经理审批",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "bill pass",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "提交",
+          "nodeName": "财务发起",
+          "result": "已提交",
+          "comment": "bill adjust smoke"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "业务确认",
+          "result": "等待处理",
+          "comment": "已流转至孙销售。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "业务确认",
+          "result": "通过",
+          "comment": "bill pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "总经理审批",
+          "result": "等待处理",
+          "comment": "已流转至周总，账单调整金额达到 1000 元时总经理审批"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "总经理审批",
+          "result": "通过",
+          "comment": "bill pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "归档",
+          "nodeName": "流程完成",
+          "result": "已完成",
+          "comment": "所有有效节点已处理完成。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "reason": "smoke adjust",
+        "billNo": "BILL202605001",
+        "billId": "bill-001",
+        "receivableAmount": 7800
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "BILL_ADJUST",
+      "billAdjustmentAppliedAt": "2026-05-18 18:13"
+    },
+    {
+      "id": "approval-99197756",
+      "approvalNo": "SP99197756",
+      "type": "LOAN",
+      "typeLabel": "loan",
+      "title": "loan-smoke-1779099197",
+      "status": "APPROVED",
+      "applicant": "admin",
+      "department": "finance",
+      "priority": "normal",
+      "businessId": "",
+      "businessNo": "",
+      "customerName": "",
+      "amount": 2000,
+      "currentNode": "流程完成",
+      "currentOperator": "",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:13",
+      "updatedAt": "2026-05-18 18:13",
+      "summary": "loan skip smoke",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "loan",
+          "value": "2000"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "发起人",
+          "operator": "admin",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "财务审批",
+          "operator": "赵财务",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "finance pass",
+          "skipReason": ""
+        },
+        {
+          "name": "刘少鹏审批",
+          "operator": "刘少鹏",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 3000
+          },
+          "conditionLabel": "借款金额达到 3000 元时刘少鹏审批",
+          "status": "SKIPPED",
+          "time": "2026-05-18 18:13",
+          "remark": "未命中条件：借款金额达到 3000 元时刘少鹏审批",
+          "skipReason": "未命中条件：借款金额达到 3000 元时刘少鹏审批"
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 10000
+          },
+          "conditionLabel": "借款金额达到 10000 元时彭总审批",
+          "status": "SKIPPED",
+          "time": "2026-05-18 18:13",
+          "remark": "未命中条件：借款金额达到 10000 元时彭总审批",
+          "skipReason": "未命中条件：借款金额达到 10000 元时彭总审批"
+        },
+        {
+          "name": "出纳付款",
+          "operator": "出纳",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:13",
+          "remark": "done",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "提交",
+          "nodeName": "发起人",
+          "result": "已提交",
+          "comment": "loan skip smoke"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "财务审批",
+          "result": "通过",
+          "comment": "finance pass"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "条件跳过",
+          "nodeName": "刘少鹏审批",
+          "result": "已跳过",
+          "comment": "未命中条件：借款金额达到 3000 元时刘少鹏审批"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "条件跳过",
+          "nodeName": "彭总审批",
+          "result": "已跳过",
+          "comment": "未命中条件：借款金额达到 10000 元时彭总审批"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "出纳付款",
+          "result": "等待处理",
+          "comment": "已流转至出纳。"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "出纳付款",
+          "result": "通过",
+          "comment": "done"
+        },
+        {
+          "time": "2026-05-18 18:13",
+          "operator": "系统",
+          "action": "归档",
+          "nodeName": "流程完成",
+          "result": "已完成",
+          "comment": "所有有效节点已处理完成。"
+        }
+      ],
+      "attachments": [
+        {
+          "id": "file-805d0496-daaa-4be6-9739-32784e11551d",
+          "name": "yckx-approval-smoke-1779099197.txt",
+          "fileName": "yckx-approval-smoke-1779099197.txt",
+          "fileUrl": "/api/mock/files/file-805d0496-daaa-4be6-9739-32784e11551d",
+          "mimeType": "text/plain",
+          "size": 21,
+          "uploadedAt": "2026-05-18 18:13",
+          "uploadedBy": "admin"
+        }
+      ],
+      "formValues": {
+        "loanAmount": 2000,
+        "reason": "skip-test"
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "LOAN"
+    },
+    {
+      "id": "approval-99164882",
+      "approvalNo": "SP99164882",
+      "type": "LOAN",
+      "typeLabel": "借款申请",
+      "title": "loan-operator-test-3",
+      "status": "PROCESSING",
+      "applicant": "admin",
+      "department": "finance",
+      "priority": "普通",
+      "businessId": "",
+      "businessNo": "",
+      "customerName": "",
+      "amount": 2000,
+      "currentNode": "出纳付款",
+      "currentOperator": "出纳",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:12",
+      "updatedAt": "2026-05-18 18:12",
+      "summary": "业务人员发起的通用审批。",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "业务单号",
+          "value": "未关联"
+        },
+        {
+          "label": "客户/对象",
+          "value": "未填写"
+        },
+        {
+          "label": "金额",
+          "value": "¥2,000"
+        },
+        {
+          "label": "优先级",
+          "value": "普通"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "发起人",
+          "operator": "admin",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:12",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "财务审批",
+          "operator": "赵财务",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:12",
+          "remark": "ok",
+          "skipReason": ""
+        },
+        {
+          "name": "刘少鹏审批",
+          "operator": "刘少鹏",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 3000
+          },
+          "conditionLabel": "借款金额达到 3000 元时刘少鹏审批",
+          "status": "SKIPPED",
+          "time": "2026-05-18 18:12",
+          "remark": "未命中条件：借款金额达到 3000 元时刘少鹏审批",
+          "skipReason": "未命中条件：借款金额达到 3000 元时刘少鹏审批"
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 10000
+          },
+          "conditionLabel": "借款金额达到 10000 元时彭总审批",
+          "status": "SKIPPED",
+          "time": "2026-05-18 18:12",
+          "remark": "未命中条件：借款金额达到 10000 元时彭总审批",
+          "skipReason": "未命中条件：借款金额达到 10000 元时彭总审批"
+        },
+        {
+          "name": "出纳付款",
+          "operator": "出纳",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:12",
+          "operator": "admin",
+          "action": "提交",
+          "nodeName": "发起人",
+          "result": "已提交",
+          "comment": "审批已提交。"
+        },
+        {
+          "time": "2026-05-18 18:12",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        },
+        {
+          "time": "2026-05-18 18:12",
+          "operator": "admin",
+          "action": "通过",
+          "nodeName": "财务审批",
+          "result": "通过",
+          "comment": "ok"
+        },
+        {
+          "time": "2026-05-18 18:12",
+          "operator": "系统",
+          "action": "条件跳过",
+          "nodeName": "刘少鹏审批",
+          "result": "已跳过",
+          "comment": "未命中条件：借款金额达到 3000 元时刘少鹏审批"
+        },
+        {
+          "time": "2026-05-18 18:12",
+          "operator": "系统",
+          "action": "条件跳过",
+          "nodeName": "彭总审批",
+          "result": "已跳过",
+          "comment": "未命中条件：借款金额达到 10000 元时彭总审批"
+        },
+        {
+          "time": "2026-05-18 18:12",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "出纳付款",
+          "result": "等待处理",
+          "comment": "已流转至出纳。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "loanAmount": 2000
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "LOAN"
+    },
+    {
+      "id": "approval-99066611",
+      "approvalNo": "SP99066611",
+      "type": "LOAN",
+      "typeLabel": "借款申请",
+      "title": "loan-operator-test-2",
+      "status": "PROCESSING",
+      "applicant": "admin",
+      "department": "finance",
+      "priority": "普通",
+      "businessId": "",
+      "businessNo": "",
+      "customerName": "",
+      "amount": 2000,
+      "currentNode": "财务审批",
+      "currentOperator": "赵财务",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:11",
+      "updatedAt": "2026-05-18 18:11",
+      "summary": "业务人员发起的通用审批。",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "业务单号",
+          "value": "未关联"
+        },
+        {
+          "label": "客户/对象",
+          "value": "未填写"
+        },
+        {
+          "label": "金额",
+          "value": "¥2,000"
+        },
+        {
+          "label": "优先级",
+          "value": "普通"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "发起人",
+          "operator": "admin",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:11",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "财务审批",
+          "operator": "赵财务",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "刘少鹏审批",
+          "operator": "刘少鹏",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 3000
+          },
+          "conditionLabel": "借款金额达到 3000 元时刘少鹏审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 10000
+          },
+          "conditionLabel": "借款金额达到 10000 元时彭总审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "出纳付款",
+          "operator": "出纳",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:11",
+          "operator": "admin",
+          "action": "提交",
+          "nodeName": "发起人",
+          "result": "已提交",
+          "comment": "审批已提交。"
+        },
+        {
+          "time": "2026-05-18 18:11",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "loanAmount": 2000
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "LOAN"
+    },
+    {
+      "id": "approval-99021222",
+      "approvalNo": "SP99021222",
+      "type": "CUSTOMER_BUYOUT",
+      "typeLabel": "??????",
+      "title": "??????????-1779099020",
+      "status": "PROCESSING",
+      "applicant": "?????",
+      "department": "???",
+      "priority": "??",
+      "businessId": "order-001",
+      "businessNo": "ORD202605170001",
+      "customerName": "??????????",
+      "amount": 6500,
+      "currentNode": "财务审批",
+      "currentOperator": "赵财务",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:10",
+      "updatedAt": "2026-05-18 18:10",
+      "summary": "????????????????",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "???",
+          "value": "ORD202605170001"
+        },
+        {
+          "label": "????",
+          "value": "BT202605170002"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "业务发起",
+          "operator": "?????",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:10",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "财务审批",
+          "operator": "赵财务",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "condition": {
+            "logic": "any",
+            "conditions": [
+              {
+                "field": "buyoutType",
+                "operator": "eq",
+                "value": "未到期买断"
+              },
+              {
+                "field": "buyoutAmount",
+                "operator": "gte",
+                "value": 30000
+              }
+            ]
+          },
+          "conditionLabel": "未到期买断或买断金额达到 30000 元时彭总审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "固定资产管理员出库",
+          "operator": "资产管理员",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "财务协同对账记账",
+          "operator": "财务",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:10",
+          "operator": "?????",
+          "action": "提交",
+          "nodeName": "业务发起",
+          "result": "已提交",
+          "comment": "????????????????"
+        },
+        {
+          "time": "2026-05-18 18:10",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "orderId": "order-001",
+        "buyoutAmount": 6500,
+        "assetCodes": "BT202605170002",
+        "orderNo": "ORD202605170001",
+        "buyoutType": "????",
+        "unitPrice": 6500
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "CUSTOMER_BUYOUT"
+    },
+    {
+      "id": "approval-99021149",
+      "approvalNo": "SP99021149",
+      "type": "LEASE_OUTBOUND",
+      "typeLabel": "??????",
+      "title": "??????????-1779099020",
+      "status": "PROCESSING",
+      "applicant": "?????",
+      "department": "???",
+      "priority": "??",
+      "businessId": "order-002",
+      "businessNo": "ORD202605170002",
+      "customerName": "??????????",
+      "amount": 0,
+      "currentNode": "资产管理员核对出库",
+      "currentOperator": "资产管理员",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:10",
+      "updatedAt": "2026-05-18 18:10",
+      "summary": "??????????????????/???",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "???",
+          "value": "ORD202605170002"
+        },
+        {
+          "label": "????",
+          "value": "BTCHK030720A, BTCHK030720B"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "业务员发起",
+          "operator": "?????",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:10",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "资产管理员核对出库",
+          "operator": "资产管理员",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "技术部电池管理系统划拨",
+          "operator": "技术部",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "财务部依据发货单入账",
+          "operator": "财务",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:10",
+          "operator": "?????",
+          "action": "提交",
+          "nodeName": "业务员发起",
+          "result": "已提交",
+          "comment": "??????????????????/???"
+        },
+        {
+          "time": "2026-05-18 18:10",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "资产管理员核对出库",
+          "result": "等待处理",
+          "comment": "已流转至资产管理员。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "orderId": "order-002",
+        "quantity": 2,
+        "contractNo": "HT20260517002",
+        "orderNo": "ORD202605170002",
+        "assetCodes": "BTCHK030720A\nBTCHK030720B",
+        "receiverInfo": "??????????",
+        "customerName": "??????????"
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "LEASE_OUTBOUND"
+    },
+    {
+      "id": "approval-99021068",
+      "approvalNo": "SP99021068",
+      "type": "BILL_ADJUST",
+      "typeLabel": "????",
+      "title": "??????????-1779099020",
+      "status": "PROCESSING",
+      "applicant": "?????",
+      "department": "???",
+      "priority": "??",
+      "businessId": "bill-001",
+      "businessNo": "BILL202605001",
+      "customerName": "??????????",
+      "amount": 7800,
+      "currentNode": "业务确认",
+      "currentOperator": "孙销售",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:10",
+      "updatedAt": "2026-05-18 18:10",
+      "summary": "??????????????????",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "???",
+          "value": "BILL202605001"
+        },
+        {
+          "label": "?????",
+          "value": "7800"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "财务发起",
+          "operator": "?????",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:10",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "业务确认",
+          "operator": "孙销售",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "总经理审批",
+          "operator": "周总",
+          "condition": {
+            "field": "amount",
+            "operator": "gte",
+            "value": 1000
+          },
+          "conditionLabel": "账单调整金额达到 1000 元时总经理审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:10",
+          "operator": "?????",
+          "action": "提交",
+          "nodeName": "财务发起",
+          "result": "已提交",
+          "comment": "??????????????????"
+        },
+        {
+          "time": "2026-05-18 18:10",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "业务确认",
+          "result": "等待处理",
+          "comment": "已流转至孙销售。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "reason": "??????",
+        "billNo": "BILL202605001",
+        "billId": "bill-001",
+        "receivableAmount": 7800
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "BILL_ADJUST"
+    },
+    {
+      "id": "approval-99020909",
+      "approvalNo": "SP99020909",
+      "type": "LOAN",
+      "typeLabel": "????",
+      "title": "??????-??-1779099020",
+      "status": "PROCESSING",
+      "applicant": "?????",
+      "department": "???",
+      "priority": "??",
+      "businessId": "",
+      "businessNo": "",
+      "customerName": "",
+      "amount": 2000,
+      "currentNode": "财务审批",
+      "currentOperator": "赵财务",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:10",
+      "updatedAt": "2026-05-18 18:10",
+      "summary": "?????????????????????",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "????",
+          "value": "2000"
+        },
+        {
+          "label": "????",
+          "value": "??????"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "发起人",
+          "operator": "?????",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:10",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "财务审批",
+          "operator": "赵财务",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "刘少鹏审批",
+          "operator": "刘少鹏",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 3000
+          },
+          "conditionLabel": "借款金额达到 3000 元时刘少鹏审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 10000
+          },
+          "conditionLabel": "借款金额达到 10000 元时彭总审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "出纳付款",
+          "operator": "出纳",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:10",
+          "operator": "?????",
+          "action": "提交",
+          "nodeName": "发起人",
+          "result": "已提交",
+          "comment": "?????????????????????"
+        },
+        {
+          "time": "2026-05-18 18:10",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        }
+      ],
+      "attachments": [
+        {
+          "id": "file-fc304d31-19f3-453c-bbcc-09e54d970614",
+          "name": "yckx-approval-smoke-1779099020.txt",
+          "fileName": "yckx-approval-smoke-1779099020.txt",
+          "fileUrl": "/api/mock/files/file-fc304d31-19f3-453c-bbcc-09e54d970614",
+          "mimeType": "text/plain",
+          "size": 21,
+          "uploadedAt": "2026-05-18 18:10",
+          "uploadedBy": "?????"
+        }
+      ],
+      "formValues": {
+        "loanAmount": 2000,
+        "reason": "??????"
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "LOAN"
+    },
+    {
+      "id": "approval-98974370",
+      "approvalNo": "SP98974370",
+      "type": "CUSTOMER_BUYOUT",
+      "typeLabel": "??????",
+      "title": "??????????",
+      "status": "PROCESSING",
+      "applicant": "?????",
+      "department": "???",
+      "priority": "??",
+      "businessId": "order-001",
+      "businessNo": "ORD202605170001",
+      "customerName": "??????????",
+      "amount": 6500,
+      "currentNode": "财务审批",
+      "currentOperator": "赵财务",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:09",
+      "updatedAt": "2026-05-18 18:09",
+      "summary": "????????????????",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "???",
+          "value": "ORD202605170001"
+        },
+        {
+          "label": "????",
+          "value": "BT202605170002"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "业务发起",
+          "operator": "?????",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:09",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "财务审批",
+          "operator": "赵财务",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "condition": {
+            "logic": "any",
+            "conditions": [
+              {
+                "field": "buyoutType",
+                "operator": "eq",
+                "value": "未到期买断"
+              },
+              {
+                "field": "buyoutAmount",
+                "operator": "gte",
+                "value": 30000
+              }
+            ]
+          },
+          "conditionLabel": "未到期买断或买断金额达到 30000 元时彭总审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "固定资产管理员出库",
+          "operator": "资产管理员",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "财务协同对账记账",
+          "operator": "财务",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:09",
+          "operator": "?????",
+          "action": "提交",
+          "nodeName": "业务发起",
+          "result": "已提交",
+          "comment": "????????????????"
+        },
+        {
+          "time": "2026-05-18 18:09",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "orderId": "order-001",
+        "buyoutAmount": 6500,
+        "assetCodes": "BT202605170002",
+        "orderNo": "ORD202605170001",
+        "buyoutType": "????",
+        "unitPrice": 6500
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "CUSTOMER_BUYOUT"
+    },
+    {
+      "id": "approval-98974289",
+      "approvalNo": "SP98974289",
+      "type": "LEASE_OUTBOUND",
+      "typeLabel": "??????",
+      "title": "??????????",
+      "status": "PROCESSING",
+      "applicant": "?????",
+      "department": "???",
+      "priority": "??",
+      "businessId": "order-002",
+      "businessNo": "ORD202605170002",
+      "customerName": "??????????",
+      "amount": 0,
+      "currentNode": "资产管理员核对出库",
+      "currentOperator": "资产管理员",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:09",
+      "updatedAt": "2026-05-18 18:09",
+      "summary": "??????????????????/???",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "???",
+          "value": "ORD202605170002"
+        },
+        {
+          "label": "????",
+          "value": "BTCHK030720A, BTCHK030720B"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "业务员发起",
+          "operator": "?????",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:09",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "资产管理员核对出库",
+          "operator": "资产管理员",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "技术部电池管理系统划拨",
+          "operator": "技术部",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "财务部依据发货单入账",
+          "operator": "财务",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:09",
+          "operator": "?????",
+          "action": "提交",
+          "nodeName": "业务员发起",
+          "result": "已提交",
+          "comment": "??????????????????/???"
+        },
+        {
+          "time": "2026-05-18 18:09",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "资产管理员核对出库",
+          "result": "等待处理",
+          "comment": "已流转至资产管理员。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "orderId": "order-002",
+        "quantity": 2,
+        "contractNo": "HT20260517002",
+        "orderNo": "ORD202605170002",
+        "assetCodes": "BTCHK030720A\nBTCHK030720B",
+        "receiverInfo": "??????????",
+        "customerName": "??????????"
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "LEASE_OUTBOUND"
+    },
+    {
+      "id": "approval-98974218",
+      "approvalNo": "SP98974218",
+      "type": "BILL_ADJUST",
+      "typeLabel": "????",
+      "title": "??????????",
+      "status": "PROCESSING",
+      "applicant": "?????",
+      "department": "???",
+      "priority": "??",
+      "businessId": "bill-001",
+      "businessNo": "BILL202605001",
+      "customerName": "??????????",
+      "amount": 7800,
+      "currentNode": "业务确认",
+      "currentOperator": "孙销售",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:09",
+      "updatedAt": "2026-05-18 18:09",
+      "summary": "??????????????????",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "???",
+          "value": "BILL202605001"
+        },
+        {
+          "label": "?????",
+          "value": "7800"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "财务发起",
+          "operator": "?????",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:09",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "业务确认",
+          "operator": "孙销售",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "总经理审批",
+          "operator": "周总",
+          "condition": {
+            "field": "amount",
+            "operator": "gte",
+            "value": 1000
+          },
+          "conditionLabel": "账单调整金额达到 1000 元时总经理审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:09",
+          "operator": "?????",
+          "action": "提交",
+          "nodeName": "财务发起",
+          "result": "已提交",
+          "comment": "??????????????????"
+        },
+        {
+          "time": "2026-05-18 18:09",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "业务确认",
+          "result": "等待处理",
+          "comment": "已流转至孙销售。"
+        }
+      ],
+      "attachments": [],
+      "formValues": {
+        "reason": "??????",
+        "billNo": "BILL202605001",
+        "billId": "bill-001",
+        "receivableAmount": 7800
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "BILL_ADJUST"
+    },
+    {
+      "id": "approval-98974078",
+      "approvalNo": "SP98974078",
+      "type": "LOAN",
+      "typeLabel": "????",
+      "title": "??????-??",
+      "status": "PROCESSING",
+      "applicant": "?????",
+      "department": "???",
+      "priority": "??",
+      "businessId": "",
+      "businessNo": "",
+      "customerName": "",
+      "amount": 2000,
+      "currentNode": "财务审批",
+      "currentOperator": "赵财务",
+      "dueAt": "",
+      "createdAt": "2026-05-18 18:09",
+      "updatedAt": "2026-05-18 18:09",
+      "summary": "?????????????????????",
+      "riskItems": [
+        "请审批人核对业务资料、费用和后续执行责任。"
+      ],
+      "formItems": [
+        {
+          "label": "????",
+          "value": "2000"
+        },
+        {
+          "label": "????",
+          "value": "??????"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "发起人",
+          "operator": "?????",
+          "conditionLabel": "",
+          "status": "APPROVED",
+          "time": "2026-05-18 18:09",
+          "remark": "申请已提交。",
+          "skipReason": ""
+        },
+        {
+          "name": "财务审批",
+          "operator": "赵财务",
+          "conditionLabel": "",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "刘少鹏审批",
+          "operator": "刘少鹏",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 3000
+          },
+          "conditionLabel": "借款金额达到 3000 元时刘少鹏审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "condition": {
+            "field": "loanAmount",
+            "operator": "gte",
+            "value": 10000
+          },
+          "conditionLabel": "借款金额达到 10000 元时彭总审批",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        },
+        {
+          "name": "出纳付款",
+          "operator": "出纳",
+          "conditionLabel": "",
+          "status": "PENDING",
+          "time": "",
+          "remark": "",
+          "skipReason": ""
+        }
+      ],
+      "assetTerminalPayload": null,
+      "assetTerminalAppliedAt": "",
+      "assetInboundPayload": null,
+      "assetInboundAppliedAt": "",
+      "logs": [
+        {
+          "time": "2026-05-18 18:09",
+          "operator": "?????",
+          "action": "提交",
+          "nodeName": "发起人",
+          "result": "已提交",
+          "comment": "?????????????????????"
+        },
+        {
+          "time": "2026-05-18 18:09",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        }
+      ],
+      "attachments": [
+        {
+          "id": "file-ab96274a-6eb3-4402-871c-3dd125ef01ca",
+          "name": "yckx-approval-smoke.txt",
+          "fileName": "yckx-approval-smoke.txt",
+          "fileUrl": "/api/mock/files/file-ab96274a-6eb3-4402-871c-3dd125ef01ca",
+          "mimeType": "text/plain",
+          "size": 21,
+          "uploadedAt": "2026-05-18 18:09",
+          "uploadedBy": "?????"
+        }
+      ],
+      "formValues": {
+        "loanAmount": 2000,
+        "reason": "??????"
+      },
+      "flowNodes": [],
+      "sourceTemplateKey": "LOAN"
+    },
     {
       "id": "approval-88142970",
       "approvalNo": "SP88142970",
@@ -2565,6 +4626,29 @@
   ],
   "disposalRecords": [
     {
+      "id": "dispose-9919797301",
+      "assetId": "bat-002",
+      "btCode": "BT202605170002",
+      "disposalNo": "DSP9919797301",
+      "type": "买断",
+      "status": "已登记",
+      "approvalStatus": "APPROVED",
+      "approvalNo": "SP99197942",
+      "approvalId": "approval-99197942",
+      "operator": "admin",
+      "amount": 6500,
+      "bookValue": 4680,
+      "accumulatedDepreciation": 120,
+      "gainLossAmount": 1820,
+      "financeResult": "买断收益 1820 元",
+      "reason": "????",
+      "createdAt": "2026-05-18 18:13",
+      "approvedAt": "2026-05-18 18:13",
+      "finalizedAt": "2026-05-18 18:13",
+      "remark": "SP99197942 审批通过后自动生成买断处置记录。",
+      "voucherNo": "VCH99197973b4c4a7"
+    },
+    {
       "id": "dispose-4120865602",
       "assetId": "bat-41208628",
       "btCode": "BTTEST020648B",
@@ -2575,7 +4659,8 @@
       "amount": 0,
       "reason": "烟测批量报废",
       "createdAt": "2026-5-18 02:06:48",
-      "remark": "批量登记资产终态。"
+      "remark": "批量登记资产终态。",
+      "voucherNo": "VCH9869481987e4d5"
     },
     {
       "id": "dispose-4120865601",
@@ -2588,7 +4673,8 @@
       "amount": 0,
       "reason": "烟测批量报废",
       "createdAt": "2026-5-18 02:06:48",
-      "remark": "批量登记资产终态。"
+      "remark": "批量登记资产终态。",
+      "voucherNo": "VCH98694819aaaca2"
     }
   ],
   "inventoryRecords": [
@@ -2628,7 +4714,8 @@
       "netValueAfter": 4680,
       "operator": "赵财务",
       "postedAt": "2026-05-18 09:20",
-      "remark": "首月租赁运营资产折旧计提。"
+      "remark": "首月租赁运营资产折旧计提。",
+      "voucherNo": "VCH98694818deb745"
     },
     {
       "id": "dep-bat-002-2026-05",
@@ -2648,10 +4735,808 @@
       "netValueAfter": 4680,
       "operator": "赵财务",
       "postedAt": "2026-05-18 09:22",
-      "remark": "异常运营资产仍按账面规则计提折旧。"
+      "remark": "异常运营资产仍按账面规则计提折旧。",
+      "voucherNo": "VCH986948182550f0"
     }
   ],
+  "assetFinanceRecords": [
+    {
+      "id": "afv-99197973b4c4a7",
+      "voucherNo": "VCH99197973b4c4a7",
+      "voucherType": "ASSET_DISPOSAL",
+      "typeLabel": "买断",
+      "sourceType": "ASSET_DISPOSAL",
+      "sourceId": "dispose-9919797301",
+      "sourceNo": "DSP9919797301",
+      "assetId": "bat-002",
+      "btCode": "BT202605170002",
+      "approvalNo": "SP99197942",
+      "amount": 6500,
+      "debitTotal": 6620,
+      "creditTotal": 6620,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "累计折旧-锂电池",
+          "direction": "DEBIT",
+          "amount": 120,
+          "summary": "BT202605170002 冲销累计折旧"
+        },
+        {
+          "accountTitle": "银行存款/应收处置款",
+          "direction": "DEBIT",
+          "amount": 6500,
+          "summary": "买断"
+        },
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "BT202605170002 冲销原值"
+        },
+        {
+          "accountTitle": "资产处置收益",
+          "direction": "CREDIT",
+          "amount": 1820,
+          "summary": "BT202605170002 处置收益"
+        }
+      ],
+      "operator": "admin",
+      "postedAt": "2026-05-18 18:13",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "DSP9919797301 审批通过后自动生成处置凭证。"
+    },
+    {
+      "id": "afv-98694819aaaca2",
+      "voucherNo": "VCH98694819aaaca2",
+      "voucherType": "ASSET_DISPOSAL",
+      "typeLabel": "报废",
+      "sourceType": "ASSET_DISPOSAL",
+      "sourceId": "dispose-4120865601",
+      "sourceNo": "DSP4120865601",
+      "assetId": "bat-41208621",
+      "btCode": "BTTEST020648A",
+      "approvalNo": "",
+      "amount": 4800,
+      "debitTotal": 4800,
+      "creditTotal": 4800,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "资产处置损失",
+          "direction": "DEBIT",
+          "amount": 4800,
+          "summary": "BTTEST020648A 处置损失"
+        },
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "BTTEST020648A 冲销原值"
+        }
+      ],
+      "operator": "王库管",
+      "postedAt": "2026-05-18 18:04",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "DSP4120865601 审批通过后自动生成处置凭证。"
+    },
+    {
+      "id": "afv-9869481987e4d5",
+      "voucherNo": "VCH9869481987e4d5",
+      "voucherType": "ASSET_DISPOSAL",
+      "typeLabel": "报废",
+      "sourceType": "ASSET_DISPOSAL",
+      "sourceId": "dispose-4120865602",
+      "sourceNo": "DSP4120865602",
+      "assetId": "bat-41208628",
+      "btCode": "BTTEST020648B",
+      "approvalNo": "",
+      "amount": 4800,
+      "debitTotal": 4800,
+      "creditTotal": 4800,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "资产处置损失",
+          "direction": "DEBIT",
+          "amount": 4800,
+          "summary": "BTTEST020648B 处置损失"
+        },
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "BTTEST020648B 冲销原值"
+        }
+      ],
+      "operator": "王库管",
+      "postedAt": "2026-05-18 18:04",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "DSP4120865602 审批通过后自动生成处置凭证。"
+    },
+    {
+      "id": "afv-986948182550f0",
+      "voucherNo": "VCH986948182550f0",
+      "voucherType": "ASSET_DEPRECIATION",
+      "typeLabel": "折旧计提",
+      "sourceType": "ASSET_DEPRECIATION",
+      "sourceId": "dep-bat-002-2026-05",
+      "sourceNo": "DEP202605170002",
+      "assetId": "bat-002",
+      "btCode": "BT202605170002",
+      "approvalNo": "",
+      "amount": 120,
+      "debitTotal": 120,
+      "creditTotal": 120,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "管理费用-折旧费",
+          "direction": "DEBIT",
+          "amount": 120,
+          "summary": "BT202605170002 2026-05 折旧"
+        },
+        {
+          "accountTitle": "累计折旧-锂电池",
+          "direction": "CREDIT",
+          "amount": 120,
+          "summary": "DEP202605170002"
+        }
+      ],
+      "operator": "赵财务",
+      "postedAt": "2026-05-18 09:22",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "2026-05 固定资产折旧计提。"
+    },
+    {
+      "id": "afv-98694818deb745",
+      "voucherNo": "VCH98694818deb745",
+      "voucherType": "ASSET_DEPRECIATION",
+      "typeLabel": "折旧计提",
+      "sourceType": "ASSET_DEPRECIATION",
+      "sourceId": "dep-bat-001-2026-05",
+      "sourceNo": "DEP202605170001",
+      "assetId": "bat-001",
+      "btCode": "BT202605170001",
+      "approvalNo": "",
+      "amount": 120,
+      "debitTotal": 120,
+      "creditTotal": 120,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "管理费用-折旧费",
+          "direction": "DEBIT",
+          "amount": 120,
+          "summary": "BT202605170001 2026-05 折旧"
+        },
+        {
+          "accountTitle": "累计折旧-锂电池",
+          "direction": "CREDIT",
+          "amount": 120,
+          "summary": "DEP202605170001"
+        }
+      ],
+      "operator": "赵财务",
+      "postedAt": "2026-05-18 09:20",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "2026-05 固定资产折旧计提。"
+    },
+    {
+      "id": "afv-98694818df18c6",
+      "voucherNo": "VCH98694818df18c6",
+      "voucherType": "ASSET_PURCHASE_INBOUND",
+      "typeLabel": "采购入库",
+      "sourceType": "PURCHASE_INBOUND",
+      "sourceId": "initial-bat-003",
+      "sourceNo": "IN05170003",
+      "assetId": "bat-003",
+      "btCode": "BT202605170003",
+      "approvalNo": "",
+      "amount": 5200,
+      "debitTotal": 5200,
+      "creditTotal": 5200,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "DEBIT",
+          "amount": 5200,
+          "summary": "BT202605170003 采购验收入库"
+        },
+        {
+          "accountTitle": "暂估应付款",
+          "direction": "CREDIT",
+          "amount": 5200,
+          "summary": "采购入库"
+        }
+      ],
+      "operator": "资产管理员",
+      "postedAt": "2026-04-12 09:00",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "IN05170003 采购入库形成固定资产原值。"
+    },
+    {
+      "id": "afv-98694818e01611",
+      "voucherNo": "VCH98694818e01611",
+      "voucherType": "ASSET_PURCHASE_INBOUND",
+      "typeLabel": "采购入库",
+      "sourceType": "PURCHASE_INBOUND",
+      "sourceId": "initial-bat-002",
+      "sourceNo": "IN05170002",
+      "assetId": "bat-002",
+      "btCode": "BT202605170002",
+      "approvalNo": "",
+      "amount": 4800,
+      "debitTotal": 4800,
+      "creditTotal": 4800,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "DEBIT",
+          "amount": 4800,
+          "summary": "BT202605170002 采购验收入库"
+        },
+        {
+          "accountTitle": "暂估应付款",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "采购入库"
+        }
+      ],
+      "operator": "资产管理员",
+      "postedAt": "2026-04-18 09:00",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "IN05170002 采购入库形成固定资产原值。"
+    },
+    {
+      "id": "afv-98694818243d43",
+      "voucherNo": "VCH98694818243d43",
+      "voucherType": "ASSET_PURCHASE_INBOUND",
+      "typeLabel": "采购入库",
+      "sourceType": "PURCHASE_INBOUND",
+      "sourceId": "initial-bat-001",
+      "sourceNo": "IN05170001",
+      "assetId": "bat-001",
+      "btCode": "BT202605170001",
+      "approvalNo": "",
+      "amount": 4800,
+      "debitTotal": 4800,
+      "creditTotal": 4800,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "DEBIT",
+          "amount": 4800,
+          "summary": "BT202605170001 采购验收入库"
+        },
+        {
+          "accountTitle": "暂估应付款",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "采购入库"
+        }
+      ],
+      "operator": "资产管理员",
+      "postedAt": "2026-04-18 09:00",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "IN05170001 采购入库形成固定资产原值。"
+    },
+    {
+      "id": "afv-98694818064eed",
+      "voucherNo": "VCH98694818064eed",
+      "voucherType": "ASSET_PURCHASE_INBOUND",
+      "typeLabel": "采购入库",
+      "sourceType": "PURCHASE_INBOUND",
+      "sourceId": "initial-bat-41208621",
+      "sourceNo": "IN41208621",
+      "assetId": "bat-41208621",
+      "btCode": "BTTEST020648A",
+      "approvalNo": "",
+      "amount": 4800,
+      "debitTotal": 4800,
+      "creditTotal": 4800,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "DEBIT",
+          "amount": 4800,
+          "summary": "BTTEST020648A 采购验收入库"
+        },
+        {
+          "accountTitle": "暂估应付款",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "采购入库"
+        }
+      ],
+      "operator": "王库管",
+      "postedAt": "2026-05-17 09:00",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "IN41208621 采购入库形成固定资产原值。"
+    },
+    {
+      "id": "afv-98694818a9a548",
+      "voucherNo": "VCH98694818a9a548",
+      "voucherType": "ASSET_PURCHASE_INBOUND",
+      "typeLabel": "采购入库",
+      "sourceType": "PURCHASE_INBOUND",
+      "sourceId": "initial-bat-41208628",
+      "sourceNo": "IN41208628",
+      "assetId": "bat-41208628",
+      "btCode": "BTTEST020648B",
+      "approvalNo": "",
+      "amount": 4800,
+      "debitTotal": 4800,
+      "creditTotal": 4800,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "DEBIT",
+          "amount": 4800,
+          "summary": "BTTEST020648B 采购验收入库"
+        },
+        {
+          "accountTitle": "暂估应付款",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "采购入库"
+        }
+      ],
+      "operator": "王库管",
+      "postedAt": "2026-05-17 09:00",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "IN41208628 采购入库形成固定资产原值。"
+    },
+    {
+      "id": "afv-98694818855fb6",
+      "voucherNo": "VCH98694818855fb6",
+      "voucherType": "ASSET_PURCHASE_INBOUND",
+      "typeLabel": "采购入库",
+      "sourceType": "PURCHASE_INBOUND",
+      "sourceId": "initial-bat-44840288",
+      "sourceNo": "IN44840288",
+      "assetId": "bat-44840288",
+      "btCode": "BTCHK030720A",
+      "approvalNo": "",
+      "amount": 4800,
+      "debitTotal": 4800,
+      "creditTotal": 4800,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "DEBIT",
+          "amount": 4800,
+          "summary": "BTCHK030720A 采购验收入库"
+        },
+        {
+          "accountTitle": "暂估应付款",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "采购入库"
+        }
+      ],
+      "operator": "王库管",
+      "postedAt": "2026-05-17 09:00",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "IN44840288 采购入库形成固定资产原值。"
+    },
+    {
+      "id": "afv-98694817fc3c40",
+      "voucherNo": "VCH98694817fc3c40",
+      "voucherType": "ASSET_PURCHASE_INBOUND",
+      "typeLabel": "采购入库",
+      "sourceType": "PURCHASE_INBOUND",
+      "sourceId": "initial-bat-44840294",
+      "sourceNo": "IN44840294",
+      "assetId": "bat-44840294",
+      "btCode": "BTCHK030720B",
+      "approvalNo": "",
+      "amount": 4800,
+      "debitTotal": 4800,
+      "creditTotal": 4800,
+      "balanced": true,
+      "entries": [
+        {
+          "accountTitle": "固定资产-锂电池",
+          "direction": "DEBIT",
+          "amount": 4800,
+          "summary": "BTCHK030720B 采购验收入库"
+        },
+        {
+          "accountTitle": "暂估应付款",
+          "direction": "CREDIT",
+          "amount": 4800,
+          "summary": "采购入库"
+        }
+      ],
+      "operator": "王库管",
+      "postedAt": "2026-05-17 09:00",
+      "status": "POSTED",
+      "statusLabel": "已入账",
+      "remark": "IN44840294 采购入库形成固定资产原值。"
+    }
+  ],
+  "uploadedFiles": [
+    {
+      "id": "file-805d0496-daaa-4be6-9739-32784e11551d",
+      "name": "yckx-approval-smoke-1779099197.txt",
+      "fileName": "yckx-approval-smoke-1779099197.txt",
+      "storedName": "file-805d0496-daaa-4be6-9739-32784e11551d.txt",
+      "storageKey": "approvals/file-805d0496-daaa-4be6-9739-32784e11551d.txt",
+      "category": "approvals",
+      "businessId": "approval-99197756",
+      "businessType": "LOAN",
+      "mimeType": "text/plain",
+      "size": 21,
+      "uploadedAt": "2026-05-18 18:13",
+      "uploadedBy": "admin",
+      "fileUrl": "/api/mock/files/file-805d0496-daaa-4be6-9739-32784e11551d"
+    },
+    {
+      "id": "file-fc304d31-19f3-453c-bbcc-09e54d970614",
+      "name": "yckx-approval-smoke-1779099020.txt",
+      "fileName": "yckx-approval-smoke-1779099020.txt",
+      "storedName": "file-fc304d31-19f3-453c-bbcc-09e54d970614.txt",
+      "storageKey": "approvals/file-fc304d31-19f3-453c-bbcc-09e54d970614.txt",
+      "category": "approvals",
+      "businessId": "approval-99020909",
+      "businessType": "LOAN",
+      "mimeType": "text/plain",
+      "size": 21,
+      "uploadedAt": "2026-05-18 18:10",
+      "uploadedBy": "?????",
+      "fileUrl": "/api/mock/files/file-fc304d31-19f3-453c-bbcc-09e54d970614"
+    },
+    {
+      "id": "file-ab96274a-6eb3-4402-871c-3dd125ef01ca",
+      "name": "yckx-approval-smoke.txt",
+      "fileName": "yckx-approval-smoke.txt",
+      "storedName": "file-ab96274a-6eb3-4402-871c-3dd125ef01ca.txt",
+      "storageKey": "approvals/file-ab96274a-6eb3-4402-871c-3dd125ef01ca.txt",
+      "category": "approvals",
+      "businessId": "approval-98974078",
+      "businessType": "LOAN",
+      "mimeType": "text/plain",
+      "size": 21,
+      "uploadedAt": "2026-05-18 18:09",
+      "uploadedBy": "?????",
+      "fileUrl": "/api/mock/files/file-ab96274a-6eb3-4402-871c-3dd125ef01ca"
+    }
+  ],
+  "automationState": {
+    "enabled": true,
+    "intervalMs": 300000,
+    "lastRunAt": "2026-05-18 18:51",
+    "nextRunAt": "2026-05-18 18:56",
+    "lastResult": {
+      "ok": true,
+      "trigger": "SCHEDULED",
+      "asOfDate": "2026-05-18",
+      "receipt": {
+        "autoReceivedCount": 0,
+        "receivedOutbounds": []
+      },
+      "finance": {
+        "ok": true,
+        "trigger": "SCHEDULED",
+        "asOfDate": "2026-05-18",
+        "generatedCount": 0,
+        "skippedCount": 3,
+        "markedOverdueCount": 0,
+        "generatedBills": [],
+        "skippedOrders": [
+          {
+            "orderNo": "ORD202605170001",
+            "reason": "未到账单日"
+          },
+          {
+            "orderNo": "ORD202605170002",
+            "reason": "未到账单日"
+          },
+          {
+            "orderNo": "ORD202604280006",
+            "reason": "未到账单日"
+          }
+        ],
+        "markedOverdueBills": [],
+        "ranAt": "2026-05-18 18:51"
+      }
+    },
+    "runCount": 1
+  },
   "systemOperationLogs": [
+    {
+      "id": "sys-log-1779099381075",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:16",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779099197604",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:13",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779099164837",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:12",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779099066572",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:11",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779099020620",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:10",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779099002516",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "赵财务",
+      "target": "finance01",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:10",
+      "detail": "财务登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098973893",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:09",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098920290",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:08",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098901799",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:08",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098891419",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:08",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098881890",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:08",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098868300",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:07",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098856105",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:07",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098808747",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "赵财务",
+      "target": "finance01",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:06",
+      "detail": "财务登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098770256",
+      "module": "登录鉴权",
+      "action": "客户登录",
+      "operator": "张经理",
+      "target": "河南示例物流有限公司",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:06",
+      "detail": "客户管理员登录客户移动端成功"
+    },
+    {
+      "id": "sys-log-1779098770216",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "赵财务",
+      "target": "finance01",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:06",
+      "detail": "财务登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098754853",
+      "module": "登录鉴权",
+      "action": "客户登录",
+      "operator": "张经理",
+      "target": "河南示例物流有限公司",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "客户管理员登录客户移动端成功"
+    },
+    {
+      "id": "sys-log-1779098754800",
+      "module": "登录鉴权",
+      "action": "客户登录",
+      "operator": "陈调度",
+      "target": "河南示例物流有限公司",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "客户员工登录客户移动端成功"
+    },
+    {
+      "id": "sys-log-1779098754778",
+      "module": "系统管理",
+      "action": "测试接口",
+      "operator": "系统管理员",
+      "target": "平台A设备数据",
+      "result": "失败",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "示例地址不能发起真实测试，请配置第三方真实地址"
+    },
+    {
+      "id": "sys-log-1779098754717",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "刘销售",
+      "target": "sales01",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "销售登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098754593",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098751779",
+      "module": "登录鉴权",
+      "action": "客户登录",
+      "operator": "张经理",
+      "target": "河南示例物流有限公司",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "客户管理员登录客户移动端成功"
+    },
+    {
+      "id": "sys-log-1779098751715",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "赵财务",
+      "target": "finance01",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "财务登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098732714",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "系统管理员登录后台成功"
+    },
+    {
+      "id": "sys-log-1779098714826",
+      "module": "登录鉴权",
+      "action": "后台登录",
+      "operator": "系统管理员",
+      "target": "admin",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 18:05",
+      "detail": "系统管理员登录后台成功"
+    },
     {
       "id": "sys-log-1779088826008",
       "module": "系统管理",
@@ -2895,6 +5780,15 @@
         "target": "郑州经开区第八大街",
         "status": "处理中",
         "remark": "车辆启动时电池异常报警，续航明显下降。"
+      },
+      {
+        "type": "买断",
+        "title": "客户买断审批自动联动",
+        "time": "2026-05-18 18:13",
+        "operator": "admin",
+        "target": "SP99197942",
+        "status": "已登记",
+        "remark": "买断收益 1820 元"
       }
     ],
     "bat-003": [
@@ -3029,6 +5923,15 @@
         "target": "郑州总仓",
         "status": "已完成",
         "remark": "BATCH202605 批次新增入库。"
+      },
+      {
+        "type": "出库",
+        "title": "批量订单出库",
+        "time": "2026-05-18 18:13",
+        "operator": "系统自动任务",
+        "target": "郑州测试配送有限公司",
+        "status": "待客户收货",
+        "remark": "OUT99197901，批量绑定 ORD202605170002。"
       }
     ],
     "bat-44840294": [
@@ -3040,6 +5943,15 @@
         "target": "郑州总仓",
         "status": "已完成",
         "remark": "BATCH202605 批次新增入库。"
+      },
+      {
+        "type": "出库",
+        "title": "批量订单出库",
+        "time": "2026-05-18 18:13",
+        "operator": "系统自动任务",
+        "target": "郑州测试配送有限公司",
+        "status": "待客户收货",
+        "remark": "OUT99197901，批量绑定 ORD202605170002。"
       }
     ]
   },
@@ -3056,7 +5968,7 @@
         "customerName": "",
         "phone": "13800000001",
         "status": "ENABLED",
-        "lastLoginAt": "2026-05-18 08:45",
+        "lastLoginAt": "2026-05-18 18:16",
         "createdAt": "2026-05-01 09:00"
       },
       {
@@ -3070,7 +5982,7 @@
         "customerName": "",
         "phone": "13800000002",
         "status": "ENABLED",
-        "lastLoginAt": "2026-05-18 08:20",
+        "lastLoginAt": "2026-05-18 18:05",
         "createdAt": "2026-05-01 09:10"
       },
       {
@@ -3098,7 +6010,7 @@
         "customerName": "",
         "phone": "13800000004",
         "status": "ENABLED",
-        "lastLoginAt": "2026-05-18 09:12",
+        "lastLoginAt": "2026-05-18 18:10",
         "createdAt": "2026-05-01 09:30"
       },
       {
@@ -3126,7 +6038,7 @@
         "customerName": "河南示例物流有限公司",
         "phone": "13800138001",
         "status": "ENABLED",
-        "lastLoginAt": "2026-05-18 08:02",
+        "lastLoginAt": "2026-05-18 18:06",
         "createdAt": "2026-05-02 10:00"
       },
       {
@@ -3140,7 +6052,7 @@
         "customerName": "河南示例物流有限公司",
         "phone": "13800138006",
         "status": "ENABLED",
-        "lastLoginAt": "2026-05-17 20:16",
+        "lastLoginAt": "2026-05-18 18:05",
         "createdAt": "2026-05-02 10:10"
       }
     ],
@@ -3153,10 +6065,18 @@
         "dataScope": "全部业务与系统配置",
         "description": "维护账号、角色、字典、审批流、接口配置和审计日志。",
         "permissionSummary": [
-          "系统管理",
-          "账号权限",
-          "接口配置",
-          "操作审计"
+          "账号维护",
+          "角色权限维护",
+          "接口配置维护",
+          "查看操作日志",
+          "查看财务数据",
+          "生成月度账单",
+          "确认账单",
+          "登记回款",
+          "维护付款凭证",
+          "付款凭证对账",
+          "调整账单",
+          "催收跟进"
         ],
         "permissions": [
           {
@@ -3186,6 +6106,62 @@
             "module": "系统管理",
             "enabled": true,
             "sensitive": false
+          },
+          {
+            "code": "bill.read",
+            "name": "查看财务数据",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "bill.generate",
+            "name": "生成月度账单",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.confirm",
+            "name": "确认账单",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.payment",
+            "name": "登记回款",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.voucher",
+            "name": "维护付款凭证",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.reconcile",
+            "name": "付款凭证对账",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.adjust",
+            "name": "调整账单",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.follow",
+            "name": "催收跟进",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": false
           }
         ],
         "riskNotes": [
@@ -3201,9 +6177,9 @@
         "dataScope": "本人客户和本人订单",
         "description": "创建租赁订单、查看合同进度和客户履约状态。",
         "permissionSummary": [
-          "租赁订单",
-          "客户信息",
-          "合同进度"
+          "创建/编辑订单",
+          "查看合同",
+          "查看财务数据"
         ],
         "permissions": [
           {
@@ -3233,6 +6209,20 @@
             "module": "固定资产",
             "enabled": false,
             "sensitive": true
+          },
+          {
+            "code": "bill.read",
+            "name": "查看财务数据",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "bill.follow",
+            "name": "催收跟进",
+            "module": "财务管理",
+            "enabled": false,
+            "sensitive": false
           }
         ],
         "riskNotes": [
@@ -3295,9 +6285,14 @@
         "dataScope": "账单、回款和订单财务信息",
         "description": "确认账单、登记回款、查看欠款和逾期客户。",
         "permissionSummary": [
-          "财务管理",
-          "账单确认",
-          "回款登记"
+          "确认账单",
+          "登记回款",
+          "调整账单",
+          "查看财务数据",
+          "生成月度账单",
+          "维护付款凭证",
+          "付款凭证对账",
+          "催收跟进"
         ],
         "permissions": [
           {
@@ -3327,6 +6322,41 @@
             "module": "系统管理",
             "enabled": false,
             "sensitive": true
+          },
+          {
+            "code": "bill.read",
+            "name": "查看财务数据",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "bill.generate",
+            "name": "生成月度账单",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.voucher",
+            "name": "维护付款凭证",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.reconcile",
+            "name": "付款凭证对账",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.follow",
+            "name": "催收跟进",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": false
           }
         ],
         "riskNotes": [
@@ -3389,10 +6419,11 @@
         "dataScope": "本公司订单、电池、账单和报修",
         "description": "查看本公司订单、确认收货、查看账单并提交报修。",
         "permissionSummary": [
-          "客户订单",
-          "收货确认",
-          "账单金额",
-          "报修提交"
+          "查看本公司订单",
+          "确认收货",
+          "查看账单金额",
+          "提交报修",
+          "提交付款凭证"
         ],
         "permissions": [
           {
@@ -3422,6 +6453,13 @@
             "module": "客户移动端",
             "enabled": true,
             "sensitive": false
+          },
+          {
+            "code": "customer.bill.voucher",
+            "name": "提交付款凭证",
+            "module": "客户移动端",
+            "enabled": true,
+            "sensitive": true
           }
         ],
         "riskNotes": [
@@ -3437,9 +6475,8 @@
         "dataScope": "本公司订单、电池和报修，不显示金额",
         "description": "查看电池状态、提交报修，不可查看账单金额和欠款。",
         "permissionSummary": [
-          "客户订单",
-          "电池列表",
-          "报修提交"
+          "查看本公司订单",
+          "提交报修"
         ],
         "permissions": [
           {
@@ -3469,6 +6506,13 @@
             "module": "客户移动端",
             "enabled": true,
             "sensitive": false
+          },
+          {
+            "code": "customer.bill.voucher",
+            "name": "提交付款凭证",
+            "module": "客户移动端",
+            "enabled": false,
+            "sensitive": true
           }
         ],
         "riskNotes": [
@@ -3634,9 +6678,13 @@
         "authMode": "Bearer Token",
         "timeoutMs": 8000,
         "enabled": true,
-        "status": "ONLINE",
-        "lastSyncAt": "2026-05-18 09:05",
-        "lastResult": "同步 426 条设备运行数据"
+        "status": "ERROR",
+        "lastSyncAt": "2026-05-18 18:05",
+        "lastResult": "示例地址不能发起真实测试，请配置第三方真实地址",
+        "requestMethod": "GET",
+        "credential": "",
+        "credentialConfigured": false,
+        "credentialHint": ""
       },
       {
         "id": "if-platform-b",
@@ -3650,7 +6698,11 @@
         "enabled": true,
         "status": "ERROR",
         "lastSyncAt": "2026-05-18 08:55",
-        "lastResult": "鉴权失败，等待重新配置 token"
+        "lastResult": "鉴权失败，等待重新配置 token",
+        "requestMethod": "GET",
+        "credential": "",
+        "credentialConfigured": false,
+        "credentialHint": ""
       },
       {
         "id": "if-map",
@@ -3664,7 +6716,11 @@
         "enabled": true,
         "status": "ONLINE",
         "lastSyncAt": "2026-05-18 08:50",
-        "lastResult": "最近一次查询成功"
+        "lastResult": "最近一次查询成功",
+        "requestMethod": "GET",
+        "credential": "",
+        "credentialConfigured": false,
+        "credentialHint": ""
       },
       {
         "id": "if-sms",
@@ -3678,7 +6734,11 @@
         "enabled": false,
         "status": "DISABLED",
         "lastSyncAt": "",
-        "lastResult": "暂未启用，当前采用站内通知"
+        "lastResult": "暂未启用，当前采用站内通知",
+        "requestMethod": "POST",
+        "credential": "",
+        "credentialConfigured": false,
+        "credentialHint": ""
       }
     ],
     "approvalFlows": [
@@ -4050,6 +7110,281 @@
       }
     ],
     "operationLogs": [
+      {
+        "id": "sys-log-1779099381075",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:16",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779099197604",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:13",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779099164837",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:12",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779099066572",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:11",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779099020620",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:10",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779099002516",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "赵财务",
+        "target": "finance01",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:10",
+        "detail": "财务登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098973893",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:09",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098920290",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:08",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098901799",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:08",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098891419",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:08",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098881890",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:08",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098868300",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:07",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098856105",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:07",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098808747",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "赵财务",
+        "target": "finance01",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:06",
+        "detail": "财务登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098770256",
+        "module": "登录鉴权",
+        "action": "客户登录",
+        "operator": "张经理",
+        "target": "河南示例物流有限公司",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:06",
+        "detail": "客户管理员登录客户移动端成功"
+      },
+      {
+        "id": "sys-log-1779098770216",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "赵财务",
+        "target": "finance01",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:06",
+        "detail": "财务登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098754853",
+        "module": "登录鉴权",
+        "action": "客户登录",
+        "operator": "张经理",
+        "target": "河南示例物流有限公司",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "客户管理员登录客户移动端成功"
+      },
+      {
+        "id": "sys-log-1779098754800",
+        "module": "登录鉴权",
+        "action": "客户登录",
+        "operator": "陈调度",
+        "target": "河南示例物流有限公司",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "客户员工登录客户移动端成功"
+      },
+      {
+        "id": "sys-log-1779098754778",
+        "module": "系统管理",
+        "action": "测试接口",
+        "operator": "系统管理员",
+        "target": "平台A设备数据",
+        "result": "失败",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "示例地址不能发起真实测试，请配置第三方真实地址"
+      },
+      {
+        "id": "sys-log-1779098754717",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "刘销售",
+        "target": "sales01",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "销售登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098754593",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098751779",
+        "module": "登录鉴权",
+        "action": "客户登录",
+        "operator": "张经理",
+        "target": "河南示例物流有限公司",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "客户管理员登录客户移动端成功"
+      },
+      {
+        "id": "sys-log-1779098751715",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "赵财务",
+        "target": "finance01",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "财务登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098732714",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "系统管理员登录后台成功"
+      },
+      {
+        "id": "sys-log-1779098714826",
+        "module": "登录鉴权",
+        "action": "后台登录",
+        "operator": "系统管理员",
+        "target": "admin",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 18:05",
+        "detail": "系统管理员登录后台成功"
+      },
       {
         "id": "sys-log-1779088826008",
         "module": "系统管理",

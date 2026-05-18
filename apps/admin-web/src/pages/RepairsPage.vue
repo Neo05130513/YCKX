@@ -407,10 +407,15 @@
               </el-button>
             </div>
             <div class="image-list">
-              <div v-for="image in detail.images || []" :key="image" class="image-item">
+              <div v-for="(image, index) in detail.images || []" :key="fileKey(image, index)" class="image-item">
                 <el-icon><Document /></el-icon>
-                <span>{{ image }}</span>
+                <a v-if="fileHref(image)" :href="fileHref(image)" target="_blank" rel="noreferrer">
+                  {{ fileLabel(image) }}
+                </a>
+                <span v-else>{{ fileLabel(image) }}</span>
+                <small v-if="fileSize(image)">{{ fileSize(image) }}</small>
               </div>
+              <el-empty v-if="!detail.images?.length" description="暂无图片资料" :image-size="64" />
             </div>
           </section>
 
@@ -432,6 +437,14 @@
                 <span>客户确认</span>
                 <strong>{{ detail.customerConfirmed ? "已确认" : "待确认" }}</strong>
               </div>
+              <div>
+                <span>OA审批</span>
+                <strong>{{ detail.approvalNo || detail.approvalStatusLabel || "--" }}</strong>
+              </div>
+              <div>
+                <span>财务账单</span>
+                <strong>{{ detail.financeBillNo || detail.financeStatusLabel || "--" }}</strong>
+              </div>
             </div>
             <el-table :data="detail.costItems || []" border class="record-table">
               <el-table-column prop="item" label="费用项目" min-width="160" />
@@ -439,6 +452,12 @@
                 <template #default="{ row }">{{ money(row.amount) }}</template>
               </el-table-column>
               <el-table-column prop="payer" label="承担方" width="120" />
+              <el-table-column label="OA审批" width="150">
+                <template #default="{ row }">{{ row.approvalNo || row.approvalStatusLabel || "--" }}</template>
+              </el-table-column>
+              <el-table-column label="财务联动" width="160">
+                <template #default="{ row }">{{ row.financeBillNo || row.financeStatusLabel || "--" }}</template>
+              </el-table-column>
             </el-table>
           </section>
         </main>
@@ -513,6 +532,14 @@
       <el-form label-position="top">
         <el-form-item label="图片/附件名称">
           <el-input v-model.trim="imageForm.name" placeholder="例如：现场复核照片、返厂检测报告" />
+        </el-form-item>
+        <el-form-item label="本地文件">
+          <el-upload v-model:file-list="imageUploadFileList" multiple :auto-upload="false" :limit="6">
+            <el-button>选择文件</el-button>
+            <template #tip>
+              <span class="upload-tip">文件会写入 mock 对象存储并回填附件链接。</span>
+            </template>
+          </el-upload>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -681,7 +708,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, type UploadRawFile, type UploadUserFile } from "element-plus";
 import {
   ArrowDown,
   ArrowUp,
@@ -699,7 +726,15 @@ import {
   User,
   Warning,
 } from "@element-plus/icons-vue";
-import { getMock, patchMock, postMock } from "../api/http";
+import {
+  getMock,
+  mockFileUrl,
+  patchMock,
+  postMock,
+  uploadMockFiles,
+  type MockUploadedFile,
+  type MockUploadResult,
+} from "../api/http";
 
 type RepairStatus =
   | "PENDING_ACCEPT"
@@ -711,6 +746,7 @@ type RepairStatus =
 type ListTab = "all" | "pending" | "processing" | "inbound" | "closed";
 type DetailTab = "overview" | "logs" | "materials" | "photos" | "costs";
 type LeftFilter = "all" | RepairStatus | "urgent" | "slaRisk" | "customer" | "internal";
+type FileRef = string | MockUploadedFile | Record<string, any>;
 
 interface RepairLog {
   time: string;
@@ -754,6 +790,15 @@ interface RepairRow {
   responsibility?: string;
   repairMethod?: string;
   costAmount?: number;
+  approvalId?: string;
+  approvalNo?: string;
+  approvalStatus?: string;
+  approvalStatusLabel?: string;
+  financeBillId?: string;
+  financeBillNo?: string;
+  financeStatus?: string;
+  financeStatusLabel?: string;
+  financeVoucherNo?: string;
   slaHours?: number;
   slaDueAt?: string;
   slaStatus?: "NORMAL" | "DUE_SOON" | "OVERDUE" | "DONE" | "CLOSED" | "UNSET";
@@ -766,7 +811,7 @@ interface RepairRow {
   customerConfirmedAt?: string;
   customerConfirmRequired?: boolean;
   sourceAlarmNo?: string;
-  images?: string[];
+  images?: FileRef[];
   logs?: RepairLog[];
   materials?: Array<Record<string, any>>;
   costItems?: Array<Record<string, any>>;
@@ -820,6 +865,7 @@ const assignmentDialogVisible = ref(false);
 const assignmentTarget = ref<RepairRow | null>(null);
 const importText = ref("");
 const importFailures = ref<ImportFailure[]>([]);
+const imageUploadFileList = ref<UploadUserFile[]>([]);
 
 const teamOptions = ["售后一组", "技术二组", "资产管理部", "待分配"];
 const technicianOptions = ["李工", "赵工", "王工", "陈工", "孙工"];
@@ -1330,20 +1376,68 @@ async function submitMaterial() {
   }
 }
 
+function fileEntry(file: FileRef) {
+  return file && typeof file === "object" ? (file as Record<string, any>) : null;
+}
+
+function fileLabel(file: FileRef) {
+  const entry = fileEntry(file);
+  return String(entry?.name || entry?.fileName || file || "附件");
+}
+
+function fileHref(file: FileRef) {
+  const entry = fileEntry(file);
+  return mockFileUrl(String(entry?.fileUrl || entry?.url || ""));
+}
+
+function fileKey(file: FileRef, index: number) {
+  const entry = fileEntry(file);
+  return String(entry?.id || entry?.fileUrl || entry?.name || file || index);
+}
+
+function fileSize(file: FileRef) {
+  const size = Number(fileEntry(file)?.size || 0);
+  if (!size) return "";
+  if (size >= 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`;
+  return `${Math.ceil(size / 1024)} KB`;
+}
+
+function rawUploadFiles(list: UploadUserFile[]) {
+  return list
+    .map((item) => item.raw)
+    .filter((file): file is UploadRawFile => Boolean(file));
+}
+
 function openImageDialog() {
   imageForm.name = "";
+  imageUploadFileList.value = [];
   imageDialogVisible.value = true;
 }
 
 async function submitImage() {
-  if (!detail.value || !imageForm.name) {
-    ElMessage.warning("请填写图片或附件名称");
+  if (!detail.value) return;
+  const rawFiles = rawUploadFiles(imageUploadFileList.value);
+  if (!imageForm.name && !rawFiles.length) {
+    ElMessage.warning("请填写图片名称或选择文件");
     return;
   }
   try {
-    const updated = await postMock<RepairRow>(`/repairs/${detail.value.id}/images`, imageForm);
+    const uploaded = rawFiles.length
+      ? await uploadMockFiles<MockUploadResult>("/files", rawFiles, {
+          category: "repair",
+          businessType: "REPAIR",
+          businessId: detail.value.id,
+          operator: detail.value.technician || detail.value.handler || "售后人员",
+        })
+      : { files: [] };
+    const updated = await postMock<RepairRow>(`/repairs/${detail.value.id}/images`, {
+      name: imageForm.name,
+      files: uploaded.files,
+      operator: detail.value.technician || detail.value.handler || "售后人员",
+    });
     syncRepair(updated);
     imageDialogVisible.value = false;
+    imageUploadFileList.value = [];
     ElMessage.success("图片资料已保存");
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message ?? "保存图片失败");
@@ -2146,6 +2240,24 @@ onMounted(loadRepairs);
 .image-item .el-icon {
   font-size: 24px;
   color: #4d5cff;
+}
+
+.image-item a,
+.image-item span {
+  max-width: 132px;
+  color: #28324d;
+  font-size: 13px;
+  text-align: center;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-item small,
+.upload-tip {
+  color: #7a8499;
+  font-size: 12px;
 }
 
 .cost-board {

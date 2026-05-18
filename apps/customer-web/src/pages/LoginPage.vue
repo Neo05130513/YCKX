@@ -25,25 +25,59 @@
         <input v-model.trim="code" placeholder="默认 123456" />
       </label>
 
-      <button class="primary-btn" @click="login">进入系统</button>
+      <button class="primary-btn" :disabled="loading" @click="login">
+        {{ loading ? "登录中..." : "进入系统" }}
+      </button>
       <p class="login-tip">员工角色默认隐藏账单金额，仅保留订单、电池和报修入口。</p>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { setCustomerRole, type CustomerRole } from "../api/customerSession";
+import { showToast } from "vant";
+import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { postMock } from "../api/http";
+import {
+  saveCustomerSession,
+  type CustomerLoginResult,
+  type CustomerRole,
+} from "../api/customerSession";
 
+const route = useRoute();
 const router = useRouter();
 const role = ref<CustomerRole>("admin");
 const phone = ref("13800138001");
 const code = ref("123456");
+const loading = ref(false);
 
-function login() {
-  setCustomerRole(role.value);
-  router.replace("/home");
+watch(role, (nextRole) => {
+  phone.value = nextRole === "staff" ? "13800138006" : "13800138001";
+});
+
+async function login() {
+  if (!phone.value || !code.value) {
+    showToast("请输入手机号和验证码");
+    return;
+  }
+  loading.value = true;
+  try {
+    const result = await postMock<CustomerLoginResult>("/auth/customer-login", {
+      phone: phone.value,
+      code: code.value,
+      role: role.value,
+    });
+    if (result.profile.type !== "CUSTOMER") {
+      showToast("当前账号不是客户移动端账号");
+      return;
+    }
+    saveCustomerSession(result);
+    const redirect =
+      typeof route.query.redirect === "string" ? route.query.redirect : "/home";
+    await router.replace(redirect);
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -141,5 +175,9 @@ input:focus {
   color: #fff;
   font: inherit;
   font-weight: 700;
+}
+
+.primary-btn:disabled {
+  opacity: 0.65;
 }
 </style>

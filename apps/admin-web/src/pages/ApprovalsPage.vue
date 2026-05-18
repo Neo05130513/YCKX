@@ -329,9 +329,13 @@
             <el-button size="small" @click="openAttachmentDialog">补充附件</el-button>
           </div>
           <div class="attachment-list">
-            <div v-for="file in detail.attachments" :key="file">
+            <div v-for="file in detail.attachments" :key="attachmentKey(file)">
               <el-icon><Document /></el-icon>
-              <span>{{ file }}</span>
+              <a v-if="attachmentUrl(file)" :href="attachmentUrl(file)" target="_blank" rel="noreferrer">
+                {{ attachmentName(file) }}
+              </a>
+              <span v-else>{{ attachmentName(file) }}</span>
+              <small v-if="attachmentMeta(file)">{{ attachmentMeta(file) }}</small>
             </div>
             <el-empty v-if="!detail.attachments?.length" description="暂无附件" :image-size="60" />
           </div>
@@ -455,7 +459,7 @@
           <el-upload v-model:file-list="createUploadFileList" multiple :auto-upload="false" :limit="12">
             <el-button>选择文件</el-button>
             <template #tip>
-              <span class="upload-tip">本地文件仅记录名称，后续可接入真实对象存储。</span>
+              <span class="upload-tip">文件会上传到本地 mock 文件库，并随审批单归档。</span>
             </template>
           </el-upload>
         </el-form-item>
@@ -523,7 +527,7 @@
           <el-upload v-model:file-list="appendUploadFileList" multiple :auto-upload="false" :limit="12">
             <el-button>选择文件</el-button>
             <template #tip>
-              <span class="upload-tip">当前先保存附件名称，生产环境再替换为真实上传。</span>
+              <span class="upload-tip">文件会上传到本地 mock 文件库，审批详情可直接打开。</span>
             </template>
           </el-upload>
         </el-form-item>
@@ -541,7 +545,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { ElMessage, ElMessageBox, type UploadUserFile } from "element-plus";
+import {
+  ElMessage,
+  ElMessageBox,
+  type UploadRawFile,
+  type UploadUserFile,
+} from "element-plus";
 import {
   ArrowDown,
   ArrowUp,
@@ -556,14 +565,36 @@ import {
   Switch,
   Warning,
 } from "@element-plus/icons-vue";
-import { deleteMock, getMock, patchMock, postMock } from "../api/http";
-import { approvalTemplates, type ApprovalTemplate } from "./approvalTemplates";
+import {
+  deleteMock,
+  getMock,
+  mockFileUrl,
+  patchMock,
+  postMock,
+  uploadMockFiles,
+} from "../api/http";
+import {
+  approvalTemplates,
+  type ApprovalTemplate,
+  type ApprovalTemplateCondition,
+} from "./approvalTemplates";
 
 type ApprovalStatus = "DRAFT" | "PROCESSING" | "APPROVED" | "REJECTED" | "CANCELLED";
-type NodeStatus = "APPROVED" | "CURRENT" | "PENDING" | "REJECTED";
+type NodeStatus = "APPROVED" | "CURRENT" | "PENDING" | "REJECTED" | "SKIPPED";
 type ListTab = "all" | "todo" | "mine" | "draft" | "done";
 type LeftStatus = "all" | ApprovalStatus | "overdue";
 type ActionType = "APPROVE" | "REJECT" | "TRANSFER" | "COMMENT";
+
+interface ApprovalAttachment {
+  id?: string;
+  name: string;
+  fileName?: string;
+  fileUrl?: string;
+  mimeType?: string;
+  size?: number;
+  uploadedAt?: string;
+  uploadedBy?: string;
+}
 
 interface ApprovalNode {
   name: string;
@@ -571,6 +602,8 @@ interface ApprovalNode {
   status: NodeStatus;
   time: string;
   remark: string;
+  conditionLabel?: string;
+  skipReason?: string;
 }
 
 interface ApprovalLog {
@@ -607,7 +640,7 @@ interface ApprovalRow {
   formItems: Array<{ label: string; value: string }>;
   nodes: ApprovalNode[];
   logs: ApprovalLog[];
-  attachments: string[];
+  attachments: Array<string | ApprovalAttachment>;
   nodeCount: number;
   approvedNodeCount: number;
   progressPercent: number;
@@ -765,6 +798,7 @@ function nodeClass(status: NodeStatus) {
     approved: status === "APPROVED",
     current: status === "CURRENT",
     rejected: status === "REJECTED",
+    skipped: status === "SKIPPED",
     pending: status === "PENDING",
   };
 }
@@ -775,6 +809,7 @@ function nodeStatusLabel(status: NodeStatus) {
       APPROVED: "已通过",
       CURRENT: "处理中",
       PENDING: "待处理",
+      SKIPPED: "已跳过",
       REJECTED: "已驳回",
     }[status] ?? status
   );
@@ -839,6 +874,57 @@ function templateAttachmentText(template: ApprovalTemplate) {
   return template.requiredAttachments?.length ? template.requiredAttachments.join("、") : "无固定附件要求";
 }
 
+function approvalConditionText(
+  condition?: ApprovalTemplateCondition | ApprovalTemplateCondition[],
+): string {
+  if (!condition) return "";
+  if (Array.isArray(condition)) {
+    return condition.map((item) => approvalConditionText(item)).filter(Boolean).join(" 且 ");
+  }
+  if (Array.isArray(condition.conditions) && condition.conditions.length) {
+    const text = condition.conditions.map((item) => approvalConditionText(item)).filter(Boolean).join(
+      condition.logic === "any" ? " 或 " : " 且 ",
+    );
+    return text;
+  }
+
+  const fieldMap: Record<string, string> = {
+    amount: "审批金额",
+    paymentAmount: "付款金额",
+    depositTotal: "押金金额",
+    depositRefundAmount: "退款金额",
+    damageClaimAmount: "索赔金额",
+    buyoutAmount: "买断金额",
+    budgetAmount: "预算金额",
+    loanAmount: "借款金额",
+    days: "请假天数",
+    contractType: "合同类型",
+    buyoutType: "买断类型",
+    sealType: "印章类型",
+  };
+  const operatorMap: Record<string, string> = {
+    eq: "=",
+    neq: "!=",
+    gt: ">",
+    gte: ">=",
+    lt: "<",
+    lte: "<=",
+    includes: "包含",
+    in: "属于",
+    exists: "已填写",
+    not_exists: "未填写",
+    truthy: "为真",
+    falsy: "为假",
+  };
+  const field = fieldMap[condition.field || ""] || condition.field || "字段";
+  const operator = condition.operator || "eq";
+  if (["exists", "not_exists", "truthy", "falsy"].includes(operator)) {
+    return `${field}${operatorMap[operator] || operator}`;
+  }
+  const value = Array.isArray(condition.value) ? condition.value.join(" / ") : String(condition.value ?? "");
+  return `${field} ${operatorMap[operator] || operator} ${value}`.trim();
+}
+
 function applySelectedTemplate() {
   Object.keys(formValues).forEach((key) => {
     delete formValues[key];
@@ -877,13 +963,40 @@ function openCreateWithTemplate(type: string) {
   createVisible.value = true;
 }
 
-function collectAttachmentNames(text: string, files: UploadUserFile[]) {
-  const typed = text
+function collectManualAttachmentNames(text: string) {
+  return text
     .split(/[,，;；\n]+/)
     .map((item) => item.trim())
     .filter(Boolean);
-  const uploaded = files.map((file) => file.name).filter(Boolean);
-  return Array.from(new Set([...typed, ...uploaded]));
+}
+
+async function uploadSelectedAttachments(
+  files: UploadUserFile[],
+  businessId: string,
+  operator: string,
+) {
+  const rawFiles = files
+    .map((file) => file.raw)
+    .filter((file): file is UploadRawFile => Boolean(file));
+  if (!rawFiles.length) return [];
+  const result = await uploadMockFiles<{ uploadedCount: number; files: ApprovalAttachment[] }>("/files", rawFiles, {
+    category: "approvals",
+    businessType: "approval",
+    businessId,
+    operator,
+  });
+  return result.files;
+}
+
+async function collectApprovalAttachments(
+  text: string,
+  files: UploadUserFile[],
+  businessId: string,
+  operator: string,
+) {
+  const manual = collectManualAttachmentNames(text);
+  const uploaded = await uploadSelectedAttachments(files, businessId, operator);
+  return [...manual, ...uploaded];
 }
 
 async function submitCreate(asDraft = false) {
@@ -901,7 +1014,13 @@ async function submitCreate(asDraft = false) {
     ElMessage.warning(`请填写：${missing.map((field) => field.label).join("、")}`);
     return;
   }
-  const attachments = collectAttachmentNames(createForm.attachmentsText, createUploadFileList.value);
+  const pendingBusinessId = `approval-draft-${Date.now()}`;
+  const attachments = await collectApprovalAttachments(
+    createForm.attachmentsText,
+    createUploadFileList.value,
+    pendingBusinessId,
+    createForm.applicant || currentUser,
+  );
   const getTemplateValue = (key?: string) => (key ? formValues[key] : "");
   const customerName = String(createForm.customerName || getTemplateValue(template.customerField) || "");
   const businessNo = String(createForm.businessNo || getTemplateValue(template.businessNoField) || "");
@@ -913,6 +1032,8 @@ async function submitCreate(asDraft = false) {
   const flowNodes = template.nodes.map((node) => ({
     name: node.name,
     operator: node.operator,
+    condition: node.condition,
+    conditionLabel: node.conditionLabel || approvalConditionText(node.condition),
   }));
   const payload = {
     ...createForm,
@@ -1034,7 +1155,12 @@ function openAttachmentDialog() {
 
 async function submitAppendAttachments() {
   if (!detail.value) return;
-  const attachments = collectAttachmentNames(attachmentForm.attachmentsText, appendUploadFileList.value);
+  const attachments = await collectApprovalAttachments(
+    attachmentForm.attachmentsText,
+    appendUploadFileList.value,
+    detail.value.id,
+    attachmentForm.operator || currentUser,
+  );
   if (!attachments.length) {
     ElMessage.warning("请填写或选择附件");
     return;
@@ -1047,6 +1173,25 @@ async function submitAppendAttachments() {
   detail.value = updated;
   attachmentVisible.value = false;
   ElMessage.success("附件已补充");
+}
+
+function attachmentName(file: string | ApprovalAttachment) {
+  return typeof file === "string" ? file : file.name || file.fileName || "附件";
+}
+
+function attachmentUrl(file: string | ApprovalAttachment) {
+  return typeof file === "string" ? "" : mockFileUrl(file.fileUrl || "");
+}
+
+function attachmentKey(file: string | ApprovalAttachment) {
+  return typeof file === "string" ? file : file.id || file.fileUrl || file.name;
+}
+
+function attachmentMeta(file: string | ApprovalAttachment) {
+  if (typeof file === "string") return "";
+  const size = Number(file.size || 0);
+  const sizeText = size > 0 ? `${Math.ceil(size / 1024)}KB` : "";
+  return [file.uploadedBy, file.uploadedAt, sizeText].filter(Boolean).join(" / ");
 }
 
 function money(value: number) {

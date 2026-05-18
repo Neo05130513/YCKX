@@ -251,8 +251,16 @@
             <el-table-column prop="name" label="接口名称" min-width="170" />
             <el-table-column prop="platform" label="平台" width="150" />
             <el-table-column prop="endpoint" label="接口地址" min-width="260" show-overflow-tooltip />
+            <el-table-column prop="requestMethod" label="方式" width="80" align="center" />
             <el-table-column prop="syncInterval" label="同步频率" width="110" />
             <el-table-column prop="authMode" label="鉴权方式" width="120" />
+            <el-table-column label="凭据" width="100" align="center">
+              <template #default="{ row }">
+                <el-tag :type="row.credentialConfigured ? 'success' : 'warning'">
+                  {{ row.credentialConfigured ? "已配置" : "未配置" }}
+                </el-tag>
+              </template>
+            </el-table-column>
             <el-table-column label="超时" width="100" align="right">
               <template #default="{ row }">{{ row.timeoutMs }}ms</template>
             </el-table-column>
@@ -522,6 +530,9 @@
         <el-form-item label="接口地址">
           <el-input v-model="interfaceForm.endpoint" />
         </el-form-item>
+        <el-form-item label="请求方式">
+          <el-segmented v-model="interfaceForm.requestMethod" :options="['GET', 'POST']" />
+        </el-form-item>
         <el-form-item label="同步频率">
           <el-input v-model="interfaceForm.syncInterval" placeholder="例如：5分钟、按需" />
         </el-form-item>
@@ -532,6 +543,14 @@
             <el-option label="AccessKey" value="AccessKey" />
             <el-option label="无鉴权" value="无鉴权" />
           </el-select>
+        </el-form-item>
+        <el-form-item label="鉴权凭据">
+          <el-input
+            v-model="interfaceForm.credential"
+            type="password"
+            show-password
+            :placeholder="'留空则保留已有凭据'"
+          />
         </el-form-item>
         <el-form-item label="超时时间">
           <el-input-number v-model="interfaceForm.timeoutMs" :min="1000" :step="500" />
@@ -720,14 +739,19 @@ interface PlatformInterface {
   name: string;
   platform: string;
   endpoint: string;
+  requestMethod: "GET" | "POST";
   syncInterval: string;
   owner: string;
   authMode: string;
+  credential: string;
+  credentialConfigured?: boolean;
+  credentialHint?: string;
   timeoutMs: number;
   enabled: boolean;
   status: InterfaceStatus;
   lastSyncAt: string;
   lastResult: string;
+  lastLatencyMs?: number;
 }
 
 interface ApprovalFlowConfig {
@@ -875,8 +899,10 @@ const interfaceForm = ref({
   id: "",
   name: "",
   endpoint: "",
+  requestMethod: "GET" as "GET" | "POST",
   syncInterval: "",
   authMode: "Bearer Token",
+  credential: "",
   timeoutMs: 5000,
   owner: "",
   enabled: true,
@@ -1346,8 +1372,10 @@ function openInterfaceDialog(row: PlatformInterface) {
     id: row.id,
     name: row.name,
     endpoint: row.endpoint,
+    requestMethod: row.requestMethod || "GET",
     syncInterval: row.syncInterval,
     authMode: row.authMode,
+    credential: "",
     timeoutMs: row.timeoutMs,
     owner: row.owner,
     enabled: row.enabled,
@@ -1362,8 +1390,10 @@ async function saveInterface() {
   }
   await patchMock<PlatformInterface>(`/system/interfaces/${interfaceForm.value.id}`, {
     endpoint: interfaceForm.value.endpoint,
+    requestMethod: interfaceForm.value.requestMethod,
     syncInterval: interfaceForm.value.syncInterval,
     authMode: interfaceForm.value.authMode,
+    credential: interfaceForm.value.credential || undefined,
     timeoutMs: interfaceForm.value.timeoutMs,
     owner: interfaceForm.value.owner,
     enabled: interfaceForm.value.enabled,

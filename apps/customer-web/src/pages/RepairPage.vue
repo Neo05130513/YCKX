@@ -133,7 +133,12 @@
 
         <van-divider>图片资料</van-divider>
         <div class="image-chips">
-          <span v-for="image in selectedRepair.images || []" :key="image">{{ image }}</span>
+          <span v-for="(image, index) in selectedRepair.images || []" :key="fileKey(image, index)">
+            <a v-if="fileHref(image)" :href="fileHref(image)" target="_blank" rel="noreferrer">
+              {{ fileLabel(image) }}
+            </a>
+            <template v-else>{{ fileLabel(image) }}</template>
+          </span>
           <span v-if="!selectedRepair.images?.length">暂无图片</span>
         </div>
 
@@ -178,7 +183,15 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { showConfirmDialog, showFailToast, showSuccessToast } from "vant";
-import { getMock, patchMock, postMock } from "../api/http";
+import {
+  getMock,
+  mockFileUrl,
+  patchMock,
+  postMock,
+  uploadMockFiles,
+  type MockUploadedFile,
+  type MockUploadResult,
+} from "../api/http";
 import { getCustomerHomePath } from "../api/customerSession";
 
 type RepairStatus =
@@ -188,6 +201,7 @@ type RepairStatus =
   | "PENDING_INBOUND"
   | "COMPLETED"
   | "CLOSED";
+type FileRef = string | MockUploadedFile | Record<string, any>;
 
 interface RepairLog {
   time: string;
@@ -220,7 +234,7 @@ interface RepairRow {
   customerConfirmed?: boolean;
   customerConfirmedAt?: string;
   canCustomerConfirm?: boolean;
-  images?: string[];
+  images?: FileRef[];
   imageCount?: number;
   logs?: RepairLog[];
 }
@@ -250,11 +264,39 @@ function scanMock() {
   showSuccessToast("已识别BT码");
 }
 
-function fileNames(list: any[]) {
-  return list.map((item, index) => {
-    const fileName = item.file?.name || item.name;
-    return fileName || `图片${index + 1}`;
+function rawFiles(list: any[]) {
+  return list.map((item) => item.file).filter((file): file is File => Boolean(file));
+}
+
+async function uploadRepairFiles(list: any[], businessId: string) {
+  const uploadFiles = rawFiles(list);
+  if (!uploadFiles.length) return [];
+  const result = await uploadMockFiles<MockUploadResult>("/files", uploadFiles, {
+    category: "repair",
+    businessType: "CUSTOMER_REPAIR",
+    businessId,
+    operator: "客户移动端",
   });
+  return result.files;
+}
+
+function fileEntry(file: FileRef) {
+  return file && typeof file === "object" ? (file as Record<string, any>) : null;
+}
+
+function fileLabel(file: FileRef) {
+  const entry = fileEntry(file);
+  return String(entry?.name || entry?.fileName || file || "附件");
+}
+
+function fileHref(file: FileRef) {
+  const entry = fileEntry(file);
+  return mockFileUrl(String(entry?.fileUrl || entry?.url || ""));
+}
+
+function fileKey(file: FileRef, index: number) {
+  const entry = fileEntry(file);
+  return String(entry?.id || entry?.fileUrl || entry?.name || file || index);
 }
 
 function syncRepair(updated: RepairRow) {
@@ -282,9 +324,10 @@ async function submit() {
     return;
   }
   try {
+    const uploadedFiles = await uploadRepairFiles(files.value, form.btCode);
     const created = await postMock<RepairRow>("/customer/repair", {
       ...form,
-      images: fileNames(files.value),
+      images: uploadedFiles,
     });
     showSuccessToast("报修已提交");
     syncRepair(created);
@@ -316,9 +359,13 @@ async function submitSupplement() {
     return;
   }
   try {
+    const uploadedFiles = await uploadRepairFiles(
+      supplementFiles.value,
+      selectedRepair.value.id,
+    );
     const updated = await postMock<RepairRow>(`/customer/repairs/${selectedRepair.value.id}/supplements`, {
       message: supplementForm.message,
-      images: fileNames(supplementFiles.value),
+      images: uploadedFiles,
     });
     syncRepair(updated);
     supplementVisible.value = false;
@@ -561,6 +608,11 @@ onMounted(loadHome);
   background: #eef2ff;
   color: #3346a3;
   font-size: 12px;
+}
+
+.image-chips a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .detail-footer {

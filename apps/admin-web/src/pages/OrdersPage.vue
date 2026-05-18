@@ -106,6 +106,7 @@
               新建订单
             </el-button>
             <el-button @click="openOutbound()">创建出库</el-button>
+            <el-button :loading="submitting" @click="runAutoReceive">执行自动收货</el-button>
             <el-button @click="exportCsv">导出</el-button>
             <el-dropdown trigger="click" @command="openReserved">
               <el-button>
@@ -1771,6 +1772,24 @@ async function confirmOutboundReceipt(row: Record<string, any>) {
     ElMessage.success("已确认收货并同步订单状态");
   } catch (error) {
     ElMessage.error(errorText(error));
+  }
+}
+
+async function runAutoReceive() {
+  submitting.value = true;
+  try {
+    const result = await postMock<{ autoReceivedCount: number; receivedOutbounds?: Array<Record<string, any>> }>(
+      "/outbounds/auto-receive",
+      { operator: "系统自动任务" },
+    );
+    await loadRows();
+    await refreshDetail();
+    activeListTab.value = "outbound";
+    ElMessage.success(`自动收货任务已执行，确认 ${result.autoReceivedCount} 张出库单`);
+  } catch (error) {
+    ElMessage.error(errorText(error));
+  } finally {
+    submitting.value = false;
   }
 }
 

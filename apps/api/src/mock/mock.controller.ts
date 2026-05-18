@@ -7,12 +7,48 @@ import {
   Patch,
   Post,
   Query,
+  Req,
+  Res,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
-import { MockService } from "./mock.service";
+import { FilesInterceptor } from "@nestjs/platform-express";
+import { MockAuthGuard } from "./mock-auth.guard";
+import { MockService, type MockAuthContext } from "./mock.service";
 
 @Controller("mock")
+@UseGuards(MockAuthGuard)
 export class MockController {
   constructor(private readonly mockService: MockService) {}
+
+  @Post("auth/login")
+  loginInternal(@Body() body: { username?: string; password?: string }) {
+    return this.mockService.loginInternalAccount(body);
+  }
+
+  @Post("auth/customer-login")
+  loginCustomer(
+    @Body()
+    body: {
+      phone?: string;
+      username?: string;
+      code?: string;
+      role?: "admin" | "staff";
+    },
+  ) {
+    return this.mockService.loginCustomerAccount(body);
+  }
+
+  @Get("auth/me")
+  getAuthMe(@Req() request: { mockAuth: MockAuthContext }) {
+    return this.mockService.getAuthMe(request.mockAuth);
+  }
+
+  @Post("auth/logout")
+  logoutAuth(@Req() request: { mockAuth: MockAuthContext }) {
+    return this.mockService.logoutAuth(request.mockAuth);
+  }
 
   @Get("dashboard")
   getDashboard() {
@@ -37,6 +73,11 @@ export class MockController {
   @Post("assets/inbound")
   createAssetInbound(@Body() body: Record<string, any>) {
     return this.mockService.createAssetInbound(body);
+  }
+
+  @Post("assets/import")
+  importAssetInbounds(@Body() body: Record<string, any>) {
+    return this.mockService.importAssetInbounds(body);
   }
 
   @Post("assets/batch/outbound")
@@ -210,6 +251,21 @@ export class MockController {
   @Patch("outbounds/:id/receipt")
   confirmOutboundReceipt(@Param("id") id: string) {
     return this.mockService.confirmReceipt(id);
+  }
+
+  @Post("outbounds/auto-receive")
+  autoReceiveOutbounds(@Body() body: Record<string, any>) {
+    return this.mockService.runAutoReceiveJob(body);
+  }
+
+  @Get("automation")
+  getAutomationState() {
+    return this.mockService.getAutomationState();
+  }
+
+  @Post("automation/run")
+  runAutomationTasks(@Body() body: Record<string, any>) {
+    return this.mockService.runAutomationTasks(body);
   }
 
   @Get("alarms")
@@ -547,6 +603,30 @@ export class MockController {
     return this.mockService.updateRepairCost(id, body);
   }
 
+  @Post("files")
+  @UseInterceptors(
+    FilesInterceptor("files", 12, {
+      limits: { fileSize: 20 * 1024 * 1024 },
+    }),
+  )
+  uploadFiles(
+    @UploadedFiles() files: Array<Record<string, any>>,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.uploadFiles(files, body);
+  }
+
+  @Get("files/:id")
+  getUploadedFile(@Param("id") id: string, @Res() res: any) {
+    const { meta, buffer } = this.mockService.getUploadedFile(id);
+    res.setHeader("Content-Type", meta.mimeType || "application/octet-stream");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename*=UTF-8''${encodeURIComponent(meta.fileName || meta.name)}`,
+    );
+    return res.send(buffer);
+  }
+
   @Get("approvals")
   getApprovals() {
     return this.mockService.getApprovals();
@@ -628,6 +708,38 @@ export class MockController {
     return this.mockService.generateDueBills(body);
   }
 
+  @Get("finance/scheduler")
+  getFinanceScheduler() {
+    return this.mockService.getFinanceScheduler();
+  }
+
+  @Post("finance/scheduler/run")
+  runFinanceScheduler(
+    @Body() body: { asOfDate?: string; operator?: string; trigger?: string },
+    @Req() request: { mockAuth: MockAuthContext },
+  ) {
+    return this.mockService.runFinanceScheduler({
+      ...body,
+      operator: body.operator || request.mockAuth.name,
+      trigger: body.trigger || "MANUAL",
+    });
+  }
+
+  @Get("finance/reconciliation")
+  getFinanceReconciliation() {
+    return this.mockService.getFinanceReconciliation();
+  }
+
+  @Get("automation")
+  getAutomationStatus() {
+    return this.mockService.getFinanceScheduler();
+  }
+
+  @Post("automation/run")
+  runAutomation(@Body() body: Record<string, any>) {
+    return this.mockService.runAutomationTasks(body);
+  }
+
   @Patch("bills/:id/confirm")
   confirmBill(@Param("id") id: string, @Body() body: { operator?: string }) {
     return this.mockService.confirmBill(id, body);
@@ -652,9 +764,59 @@ export class MockController {
       method?: string;
       remark?: string;
       operator?: string;
+      voucherNo?: string;
+      payerName?: string;
+      payerAccount?: string;
+      bankName?: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      attachmentSize?: number;
     },
   ) {
     return this.mockService.registerPayment(id, body);
+  }
+
+  @Post("bills/:id/payment-vouchers")
+  submitPaymentVoucher(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      amount: number;
+      paidAt?: string;
+      method?: string;
+      voucherNo?: string;
+      payerName?: string;
+      payerAccount?: string;
+      bankName?: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      attachmentSize?: number;
+      remark?: string;
+      operator?: string;
+    },
+    @Req() request: { mockAuth: MockAuthContext },
+  ) {
+    return this.mockService.submitPaymentVoucher(id, body, request.mockAuth);
+  }
+
+  @Patch("bills/:id/vouchers/:voucherId/reconcile")
+  reconcilePaymentVoucher(
+    @Param("id") id: string,
+    @Param("voucherId") voucherId: string,
+    @Body()
+    body: {
+      action?: "APPROVE" | "REJECT";
+      remark?: string;
+      operator?: string;
+    },
+    @Req() request: { mockAuth: MockAuthContext },
+  ) {
+    return this.mockService.reconcilePaymentVoucher(
+      id,
+      voucherId,
+      body,
+      request.mockAuth,
+    );
   }
 
   @Post("bills/:id/follow-ups")
@@ -804,9 +966,11 @@ export class MockController {
     @Body()
     body: {
       endpoint?: string;
+      requestMethod?: "GET" | "POST";
       syncInterval?: string;
       owner?: string;
       authMode?: string;
+      credential?: string;
       timeoutMs?: number;
       enabled?: boolean;
     },
@@ -857,8 +1021,33 @@ export class MockController {
   }
 
   @Get("customer/home")
-  getCustomerHome(@Query() query: { role?: string }) {
-    return this.mockService.getCustomerHome(query);
+  getCustomerHome(
+    @Query() query: { role?: string },
+    @Req() request: { mockAuth: MockAuthContext },
+  ) {
+    return this.mockService.getCustomerHome(query, request.mockAuth);
+  }
+
+  @Post("customer/bills/:id/payment-vouchers")
+  submitCustomerPaymentVoucher(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      amount: number;
+      paidAt?: string;
+      method?: string;
+      voucherNo?: string;
+      payerName?: string;
+      payerAccount?: string;
+      bankName?: string;
+      attachmentName?: string;
+      attachmentUrl?: string;
+      attachmentSize?: number;
+      remark?: string;
+    },
+    @Req() request: { mockAuth: MockAuthContext },
+  ) {
+    return this.mockService.submitPaymentVoucher(id, body, request.mockAuth);
   }
 
   @Get("customer/repairs/:id")

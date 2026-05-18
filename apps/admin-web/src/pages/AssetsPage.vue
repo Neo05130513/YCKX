@@ -61,7 +61,7 @@
             </span>
             <el-icon class="right-icon"><ArrowDown /></el-icon>
           </button>
-          <button class="side-item" @click="openReserved('批量导入资产')">
+          <button class="side-item" @click="openImportDialog">
             <span class="side-left">
               <el-icon><Document /></el-icon>
               批量导入
@@ -124,6 +124,7 @@
               <el-icon><Plus /></el-icon>
               新建入库
             </el-button>
+            <el-button @click="openImportDialog">批量导入</el-button>
             <el-button @click="openOutbound()">创建出库</el-button>
             <el-button @click="openTransfer()">调拨</el-button>
             <el-button @click="openInventory()">盘点</el-button>
@@ -267,6 +268,7 @@
           </el-table-column>
           <el-table-column prop="usefulLifeMonths" label="折旧月数" width="92" align="right" />
           <el-table-column prop="lastDepreciationPeriod" label="最近期间" width="110" />
+          <el-table-column prop="latestVoucherNo" label="最新凭证" width="150" show-overflow-tooltip />
           <el-table-column label="计提状态" width="110" align="center">
             <template #default="{ row }">
               <span class="asset-status" :class="depreciationClass(row.depreciationStatus)">
@@ -757,6 +759,30 @@
               <el-table-column prop="postedAt" label="计提时间" width="160" />
               <el-table-column prop="remark" label="备注" min-width="240" show-overflow-tooltip />
             </el-table>
+
+            <div class="record-head sub-head">
+              <strong>财务凭证</strong>
+              <span>{{ detail.financeRecords?.length || 0 }} 张</span>
+            </div>
+            <el-table :data="detail.financeRecords || []" border class="record-table voucher-table">
+              <el-table-column prop="voucherNo" label="凭证号" width="160" />
+              <el-table-column prop="typeLabel" label="业务类型" width="110" />
+              <el-table-column prop="sourceNo" label="来源单号" width="150" />
+              <el-table-column prop="approvalNo" label="审批单" width="130" />
+              <el-table-column label="借方" width="110" align="right">
+                <template #default="{ row }">{{ money(row.debitTotal) }}</template>
+              </el-table-column>
+              <el-table-column label="贷方" width="110" align="right">
+                <template #default="{ row }">{{ money(row.creditTotal) }}</template>
+              </el-table-column>
+              <el-table-column prop="operator" label="入账人" width="100" />
+              <el-table-column prop="postedAt" label="入账时间" width="160" />
+              <el-table-column label="分录" min-width="260" show-overflow-tooltip>
+                <template #default="{ row }">
+                  {{ voucherEntryText(row) }}
+                </template>
+              </el-table-column>
+            </el-table>
           </section>
 
           <section v-else-if="activeDetailTab === 'repair'" class="record-page">
@@ -814,7 +840,7 @@
       </div>
     </template>
 
-    <el-dialog v-model="inboundDialogVisible" title="新建入库单" width="640px">
+    <el-dialog v-model="inboundDialogVisible" title="采购入库审批" width="640px">
       <el-form label-width="96px" class="asset-form">
         <div class="dialog-grid">
           <el-form-item label="BT码" required>
@@ -841,6 +867,18 @@
           <el-form-item label="电量">
             <el-input v-model.number="inboundForm.powerPercent" />
           </el-form-item>
+          <el-form-item label="资产原值">
+            <el-input-number v-model="inboundForm.originalValue" :min="1" :precision="2" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="预计残值">
+            <el-input-number v-model="inboundForm.salvageValue" :min="0" :precision="2" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="供应商">
+            <el-input v-model="inboundForm.supplierName" />
+          </el-form-item>
+          <el-form-item label="发票号">
+            <el-input v-model="inboundForm.invoiceNo" />
+          </el-form-item>
         </div>
         <el-form-item label="备注">
           <el-input v-model="inboundForm.remark" type="textarea" :rows="3" />
@@ -848,7 +886,42 @@
       </el-form>
       <template #footer>
         <el-button @click="inboundDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="actionLoading" @click="submitInbound">确认入库</el-button>
+        <el-button type="primary" :loading="actionLoading" @click="submitInbound">提交审批</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="importDialogVisible" title="资产批量导入审批" width="760px">
+      <el-form label-width="96px" class="asset-form">
+        <div class="dialog-grid">
+          <el-form-item label="入库仓库">
+            <el-input v-model="importForm.warehouse" />
+          </el-form-item>
+          <el-form-item label="经办人">
+            <el-input v-model="importForm.operator" />
+          </el-form-item>
+          <el-form-item label="采购批次">
+            <el-input v-model="importForm.batchNum" />
+          </el-form-item>
+          <el-form-item label="供应商">
+            <el-input v-model="importForm.supplierName" />
+          </el-form-item>
+        </div>
+        <el-form-item label="导入明细">
+          <el-input
+            v-model="importForm.recordsText"
+            type="textarea"
+            :rows="10"
+            placeholder="每行一组：BT码, 型号, 规格, 原值, 残值, 发票号&#10;例如：BT202605180101,72V 45AH,72V/45AH,4800,480,FP2026051801"
+          />
+        </el-form-item>
+        <div v-if="importFailures.length" class="import-failures">
+          <strong>校验失败</strong>
+          <p v-for="item in importFailures" :key="item">{{ item }}</p>
+        </div>
+      </el-form>
+      <template #footer>
+        <el-button @click="importDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="actionLoading" @click="submitAssetImport">提交导入审批</el-button>
       </template>
     </el-dialog>
 
@@ -1225,6 +1298,8 @@ interface AssetRow {
   lastDepreciationAt: string;
   supplierName: string;
   invoiceNo: string;
+  voucherCount: number;
+  latestVoucherNo: string;
   hasPendingDisposal: boolean;
   pendingDisposalApprovalNo: string;
   pendingDisposalStatus: string;
@@ -1302,6 +1377,33 @@ interface DepreciationRow {
   operator: string;
   postedAt: string;
   remark: string;
+  voucherNo?: string;
+}
+
+interface FinanceVoucherEntry {
+  accountTitle: string;
+  direction: "DEBIT" | "CREDIT";
+  amount: number;
+  summary: string;
+}
+
+interface FinanceVoucher {
+  id: string;
+  voucherNo: string;
+  voucherType: string;
+  typeLabel: string;
+  sourceNo: string;
+  approvalNo: string;
+  btCode: string;
+  amount: number;
+  debitTotal: number;
+  creditTotal: number;
+  balanced: boolean;
+  entries: FinanceVoucherEntry[];
+  operator: string;
+  postedAt: string;
+  statusLabel: string;
+  remark: string;
 }
 
 interface AssetDetail extends AssetRow {
@@ -1318,6 +1420,7 @@ interface AssetDetail extends AssetRow {
   disposalRecords?: DisposalRow[];
   inventoryRecords?: InventoryRow[];
   depreciationRecords?: DepreciationRow[];
+  financeRecords?: FinanceVoucher[];
   movements?: AssetMovement[];
 }
 
@@ -1336,6 +1439,7 @@ interface BatchActionResult {
   failedCount?: number;
   assets?: AssetDetail[];
   approval?: { id: string; approvalNo: string };
+  records?: Array<Record<string, any>>;
 }
 
 const rows = ref<AssetRow[]>([]);
@@ -1364,6 +1468,8 @@ const valuationDialogVisible = ref(false);
 const returnInboundDialogVisible = ref(false);
 const repairInboundDialogVisible = ref(false);
 const disposalDialogVisible = ref(false);
+const importDialogVisible = ref(false);
+const importFailures = ref<string[]>([]);
 
 const inboundForm = ref({
   btCode: "",
@@ -1374,7 +1480,19 @@ const inboundForm = ref({
   purchaseDate: "",
   keeper: "王库管",
   powerPercent: 100,
+  originalValue: 4800,
+  salvageValue: 480,
+  supplierName: "",
+  invoiceNo: "",
   remark: "",
+});
+
+const importForm = ref({
+  operator: "王库管",
+  warehouse: "郑州总仓",
+  batchNum: "",
+  supplierName: "",
+  recordsText: "",
 });
 
 const outboundForm = ref({
@@ -1683,6 +1801,12 @@ function money(value?: number) {
   return currency.format(Number(value || 0));
 }
 
+function voucherEntryText(row: FinanceVoucher) {
+  return (row.entries || [])
+    .map((entry) => `${entry.direction === "DEBIT" ? "借" : "贷"} ${entry.accountTitle} ${money(entry.amount)}`)
+    .join("；");
+}
+
 function runningStatusLabel(status: string) {
   const labels: Record<string, string> = {
     ONLINE: "在线",
@@ -1833,7 +1957,7 @@ async function submitValuation() {
     valuationDialogVisible.value = false;
     activeListTab.value = "value";
     activeDetailTab.value = "finance";
-    await refreshAssetState(asset.id);
+    await loadAssets();
     ElMessage.success("资产价值参数已保存");
   } catch (error) {
     ElMessage.error(requestErrorMessage(error, "保存价值参数失败"));
@@ -1950,6 +2074,10 @@ function openInboundDialog() {
     purchaseDate: "",
     keeper: "王库管",
     powerPercent: 100,
+    originalValue: 4800,
+    salvageValue: 480,
+    supplierName: "",
+    invoiceNo: "",
     remark: "",
   };
   inboundDialogVisible.value = true;
@@ -1958,13 +2086,88 @@ function openInboundDialog() {
 async function submitInbound() {
   actionLoading.value = true;
   try {
-    const asset = await postMock<AssetDetail>("/assets/inbound", inboundForm.value);
+    const result = await postMock<BatchActionResult>("/assets/inbound", inboundForm.value);
     inboundDialogVisible.value = false;
     activeListTab.value = "inbound";
-    await refreshAssetState(asset.id);
-    ElMessage.success("资产已入库，台账和履历已更新");
+    await loadAssets();
+    ElMessage.success(`采购入库审批已提交：${result.approval?.approvalNo || ""}`);
   } catch (error) {
     ElMessage.error(requestErrorMessage(error, "入库失败"));
+  } finally {
+    actionLoading.value = false;
+  }
+}
+
+function openImportDialog() {
+  importFailures.value = [];
+  importForm.value = {
+    operator: "王库管",
+    warehouse: selectedWarehouse.value !== "all" ? selectedWarehouse.value : "郑州总仓",
+    batchNum: `BATCH${new Date().toISOString().slice(0, 7).replace("-", "")}`,
+    supplierName: "",
+    recordsText: "",
+  };
+  importDialogVisible.value = true;
+}
+
+function parseAssetImportRecords() {
+  importFailures.value = [];
+  const lines = importForm.value.recordsText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!lines.length) {
+    importFailures.value = ["请先粘贴需要导入的资产明细"];
+    return [];
+  }
+
+  const records = lines.map((line, index) => {
+    const parts = line.split(/[\t,，]/).map((part) => part.trim());
+    if (parts.length < 2) {
+      importFailures.value.push(`第 ${index + 1} 行至少需要 BT码 和 型号`);
+    }
+    return {
+      btCode: parts[0] || "",
+      model: parts[1] || "72V 45AH",
+      specification: parts[2] || parts[1] || "",
+      originalValue: Number(parts[3] || 4800),
+      salvageValue: Number(parts[4] || 480),
+      invoiceNo: parts[5] || "",
+      warehouse: importForm.value.warehouse,
+      batchNum: importForm.value.batchNum,
+      supplierName: importForm.value.supplierName,
+      keeper: importForm.value.operator,
+      powerPercent: 100,
+    };
+  });
+
+  const seen = new Set<string>();
+  records.forEach((record, index) => {
+    if (!record.btCode) importFailures.value.push(`第 ${index + 1} 行缺少 BT 码`);
+    if (seen.has(record.btCode)) importFailures.value.push(`第 ${index + 1} 行 BT 码重复：${record.btCode}`);
+    seen.add(record.btCode);
+    if (!Number.isFinite(record.originalValue) || record.originalValue <= 0) {
+      importFailures.value.push(`第 ${index + 1} 行原值必须大于 0`);
+    }
+  });
+  return importFailures.value.length ? [] : records;
+}
+
+async function submitAssetImport() {
+  const records = parseAssetImportRecords();
+  if (!records.length) return;
+  actionLoading.value = true;
+  try {
+    const result = await postMock<BatchActionResult>("/assets/import", {
+      operator: importForm.value.operator,
+      records,
+    });
+    importDialogVisible.value = false;
+    activeListTab.value = "inbound";
+    await loadAssets();
+    ElMessage.success(`已提交 ${result.successCount} 组资产导入审批：${result.approval?.approvalNo || ""}`);
+  } catch (error) {
+    ElMessage.error(requestErrorMessage(error, "资产批量导入失败"));
   } finally {
     actionLoading.value = false;
   }
@@ -3351,6 +3554,24 @@ onMounted(async () => {
   margin-top: 6px;
   color: #23253c;
   font-size: 18px;
+}
+
+.sub-head {
+  margin-top: 14px;
+}
+
+.import-failures {
+  max-height: 120px;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid #f5c2c7;
+  border-radius: 6px;
+  background: #fff5f5;
+  color: #b42318;
+}
+
+.import-failures p {
+  margin: 4px 0 0;
 }
 
 .empty-state {

@@ -25,10 +25,12 @@
           <span>帮助文档</span>
         </RouterLink>
         <div class="avatar-wrapper">
-          <span class="user-avatar">管</span>
-          <span class="user-name">系统管理员</span>
+          <span class="user-avatar">{{ profile?.name?.slice(0, 1) || "管" }}</span>
+          <span class="user-name">{{ profile?.name || "系统管理员" }}</span>
+          <span class="user-role">{{ profile?.roleName || "系统管理员" }}</span>
           <el-icon><CaretBottom /></el-icon>
         </div>
+        <button class="logout-btn" type="button" @click="logout">退出</button>
       </div>
     </header>
     <main class="main">
@@ -51,16 +53,55 @@ import {
   Tickets,
   Tools,
 } from "@element-plus/icons-vue";
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import {
+  clearAdminSession,
+  getAdminProfile,
+  hasAnyAdminPermission,
+} from "../api/session";
 
-const menu = [
+const router = useRouter();
+const profile = computed(() => getAdminProfile());
+
+const allMenu = [
   { label: "首页", path: "/dashboard", icon: House },
-  { label: "设备管理", path: "/devices", icon: Monitor },
-  { label: "告警管理", path: "/alarms", icon: Bell },
-  { label: "租赁订单", path: "/orders", icon: Tickets },
-  { label: "固定资产", path: "/assets", icon: Coin },
-  { label: "售后报修", path: "/repairs", icon: Tools },
-  { label: "财务管理", path: "/bills", icon: DataAnalysis },
-  { label: "OA审批", path: "/approvals", icon: Operation },
-  { label: "系统管理", path: "/settings", icon: Setting },
+  { label: "设备管理", path: "/devices", icon: Monitor, permissions: ["asset.write", "alarm.write"] },
+  { label: "告警管理", path: "/alarms", icon: Bell, permissions: ["alarm.write"] },
+  { label: "租赁订单", path: "/orders", icon: Tickets, permissions: ["order.write", "contract.read"] },
+  {
+    label: "固定资产",
+    path: "/assets",
+    icon: Coin,
+    permissions: ["asset.write", "asset.outbound", "asset.repair_inbound", "asset.dispose"],
+  },
+  { label: "售后报修", path: "/repairs", icon: Tools, permissions: ["repair.write"] },
+  {
+    label: "财务管理",
+    path: "/bills",
+    icon: DataAnalysis,
+    permissions: ["bill.confirm", "bill.payment", "bill.adjust", "bill.read"],
+  },
+  {
+    label: "OA审批",
+    path: "/approvals",
+    icon: Operation,
+    permissions: ["order.write", "asset.write", "repair.write", "bill.confirm", "system.role.write"],
+  },
+  {
+    label: "系统管理",
+    path: "/settings",
+    icon: Setting,
+    permissions: ["system.account.write", "system.role.write", "system.interface.write", "audit.read"],
+  },
 ];
+
+const menu = computed(() =>
+  allMenu.filter((item) => hasAnyAdminPermission(item.permissions ?? [])),
+);
+
+async function logout() {
+  clearAdminSession();
+  await router.replace("/login");
+}
 </script>

@@ -19,26 +19,67 @@
       <p>使用内部员工账号进入业务运营中心</p>
       <el-form label-position="top">
         <el-form-item label="账号">
-          <el-input model-value="admin" size="large" />
+          <el-input v-model.trim="username" size="large" autocomplete="username" />
         </el-form-item>
         <el-form-item label="密码">
           <el-input
-            model-value="admin123"
+            v-model="password"
             type="password"
             size="large"
+            autocomplete="current-password"
             show-password
+            @keyup.enter="login"
           />
         </el-form-item>
         <el-button
           type="primary"
           size="large"
-          @click="$router.push('/dashboard')"
+          :loading="loading"
+          @click="login"
           >登录后台</el-button
         >
       </el-form>
     </section>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ElMessage } from "element-plus";
+import { ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { postMock } from "../api/http";
+import { saveAdminSession, type AdminLoginResult } from "../api/session";
+
+const route = useRoute();
+const router = useRouter();
+const username = ref("admin");
+const password = ref("admin123");
+const loading = ref(false);
+
+async function login() {
+  if (!username.value || !password.value) {
+    ElMessage.warning("请输入账号和密码");
+    return;
+  }
+  loading.value = true;
+  try {
+    const result = await postMock<AdminLoginResult>("/auth/login", {
+      username: username.value,
+      password: password.value,
+    });
+    if (result.profile.type !== "INTERNAL") {
+      ElMessage.error("当前账号不是内部后台账号");
+      return;
+    }
+    saveAdminSession(result);
+    const redirect =
+      typeof route.query.redirect === "string" ? route.query.redirect : "/dashboard";
+    await router.replace(redirect);
+  } finally {
+    loading.value = false;
+  }
+}
+</script>
 
 <style scoped>
 .login-page {

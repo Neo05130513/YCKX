@@ -70,6 +70,16 @@
         <van-cell v-if="item.collectionAction" title="跟进建议" :value="item.collectionAction" />
         <van-cell v-if="item.adjustReason" title="调整说明" :value="item.adjustReason" />
 
+        <div v-if="item.paymentVouchers?.length" class="voucher-list">
+          <div v-for="voucher in item.paymentVouchers" :key="voucher.id" class="voucher-line">
+            <div>
+              <strong>{{ money(voucher.amount) }}</strong>
+              <span>{{ voucher.voucherNo || "付款凭证" }} · {{ voucher.paidAt || voucher.uploadedAt }}</span>
+            </div>
+            <em :class="voucher.status.toLowerCase()">{{ voucherStatusLabel(voucher.status) }}</em>
+          </div>
+        </div>
+
         <div v-if="item.payments?.length" class="payment-list">
           <div v-for="payment in item.payments" :key="payment.paymentNo" class="payment-line">
             <div>
@@ -79,14 +89,52 @@
             <em>{{ payment.remark || "已登记回款" }}</em>
           </div>
         </div>
+
+        <button v-if="item.debtAmount > 0" class="voucher-btn" @click="openVoucherDialog(item)">提交付款凭证</button>
       </article>
+
+      <div v-if="voucherVisible" class="voucher-mask">
+        <section class="voucher-dialog">
+          <header>
+            <strong>提交付款凭证</strong>
+            <button @click="voucherVisible = false">×</button>
+          </header>
+          <label>
+            凭证金额
+            <input v-model.number="voucherForm.amount" type="number" min="1" />
+          </label>
+          <label>
+            付款时间
+            <input v-model="voucherForm.paidAt" type="datetime-local" />
+          </label>
+          <label>
+            付款凭证号
+            <input v-model.trim="voucherForm.voucherNo" placeholder="银行流水号或交易号" />
+          </label>
+          <label>
+            凭证文件
+            <input v-model.trim="voucherForm.attachmentName" placeholder="付款截图或银行回单文件名" />
+          </label>
+          <label>
+            备注
+            <textarea v-model.trim="voucherForm.remark" rows="3" placeholder="补充说明"></textarea>
+          </label>
+          <div class="voucher-actions">
+            <button @click="voucherVisible = false">取消</button>
+            <button class="primary" :disabled="submittingVoucher" @click="submitVoucher">
+              {{ submittingVoucher ? "提交中..." : "提交对账" }}
+            </button>
+          </div>
+        </section>
+      </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { getMock } from "../api/http";
+import { showToast } from "vant";
+import { getMock, postMock } from "../api/http";
 import { getCustomerHomePath } from "../api/customerSession";
 
 type BillStatus =
@@ -106,6 +154,15 @@ interface BillPayment {
   remark?: string;
 }
 
+interface PaymentVoucher {
+  id: string;
+  amount: number;
+  paidAt?: string;
+  uploadedAt?: string;
+  voucherNo?: string;
+  status: "PENDING" | "VERIFIED" | "REJECTED";
+}
+
 interface CustomerBill {
   id: string;
   billNo: string;
@@ -121,6 +178,7 @@ interface CustomerBill {
   daysOverdue?: number;
   collectionAction?: string;
   payments?: BillPayment[];
+  paymentVouchers?: PaymentVoucher[];
 }
 
 interface CustomerHome {
@@ -136,6 +194,16 @@ const canViewAmount = computed(() => home.value?.canViewAmount !== false);
 const bills = computed(() => home.value?.bills ?? []);
 const unpaidBills = computed(() => bills.value.filter((item) => item.debtAmount > 0));
 const settledBills = computed(() => bills.value.filter((item) => item.status === "SETTLED"));
+const voucherVisible = ref(false);
+const submittingVoucher = ref(false);
+const activeBill = ref<CustomerBill | null>(null);
+const voucherForm = ref({
+  amount: 0,
+  paidAt: "",
+  voucherNo: "",
+  attachmentName: "",
+  remark: "",
+});
 
 function money(value: number) {
   return `¥${Number(value || 0).toLocaleString("zh-CN", {
@@ -162,6 +230,66 @@ function statusClass(status: BillStatus) {
   if (status === "SETTLED") return "success";
   if (status === "PARTIALLY_PAID") return "primary";
   return "warning";
+}
+
+function voucherStatusLabel(status: PaymentVoucher["status"]) {
+  return (
+    {
+      PENDING: "待对账",
+      VERIFIED: "已入账",
+      REJECTED: "已驳回",
+    }[status] ?? status
+  );
+}
+
+function dateTimeLocalText() {
+  const date = new Date();
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mi = String(date.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+}
+
+function openVoucherDialog(item: CustomerBill) {
+  activeBill.value = item;
+  voucherForm.value = {
+    amount: Number(item.debtAmount || 0),
+    paidAt: dateTimeLocalText(),
+    voucherNo: "",
+    attachmentName: "",
+    remark: "",
+  };
+  voucherVisible.value = true;
+}
+
+async function submitVoucher() {
+  if (!activeBill.value) return;
+  if (voucherForm.value.amount <= 0) {
+    showToast("请填写有效金额");
+    return;
+  }
+  if (!voucherForm.value.voucherNo && !voucherForm.value.attachmentName) {
+    showToast("请填写凭证号或凭证文件");
+    return;
+  }
+  submittingVoucher.value = true;
+  try {
+    await postMock(`/customer/bills/${activeBill.value.id}/payment-vouchers`, {
+      amount: voucherForm.value.amount,
+      paidAt: voucherForm.value.paidAt.replace("T", " "),
+      method: "银行转账",
+      voucherNo: voucherForm.value.voucherNo,
+      attachmentName: voucherForm.value.attachmentName,
+      remark: voucherForm.value.remark,
+    });
+    showToast("凭证已提交，等待财务对账");
+    voucherVisible.value = false;
+    home.value = await getMock<CustomerHome>(getCustomerHomePath());
+  } finally {
+    submittingVoucher.value = false;
+  }
 }
 
 onMounted(async () => {
@@ -328,6 +456,13 @@ onMounted(async () => {
   border-top: 1px solid #eef2f7;
 }
 
+.voucher-list {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
+.voucher-line,
 .payment-line {
   display: flex;
   justify-content: space-between;
@@ -335,12 +470,17 @@ onMounted(async () => {
   padding: 10px 0 0;
 }
 
+.voucher-line strong,
+.voucher-line span,
+.voucher-line em,
 .payment-line strong,
 .payment-line span,
 .payment-line em {
   display: block;
 }
 
+.voucher-line span,
+.voucher-line em,
 .payment-line span,
 .payment-line em {
   margin-top: 3px;
@@ -349,9 +489,101 @@ onMounted(async () => {
   font-style: normal;
 }
 
+.voucher-line em {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #f97316;
+}
+
+.voucher-line em.verified {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.voucher-line em.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
 .payment-line em {
   max-width: 120px;
   text-align: right;
+}
+
+.voucher-btn {
+  width: 100%;
+  height: 38px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #155eef;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+}
+
+.voucher-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.voucher-dialog {
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px 18px 0 0;
+  background: #fff;
+}
+
+.voucher-dialog header,
+.voucher-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.voucher-dialog header button,
+.voucher-actions button {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font: inherit;
+}
+
+.voucher-dialog label {
+  display: block;
+  margin-top: 12px;
+  color: #334155;
+  font-size: 13px;
+}
+
+.voucher-dialog input,
+.voucher-dialog textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 10px;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  font: inherit;
+}
+
+.voucher-actions {
+  margin-top: 16px;
+}
+
+.voucher-actions .primary {
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #155eef;
+  color: #fff;
+  font-weight: 700;
 }
 
 .status.primary {

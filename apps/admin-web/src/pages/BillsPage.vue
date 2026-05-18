@@ -56,6 +56,12 @@
               经营大屏
             </span>
           </button>
+          <button class="side-item" @click="activePage = 'reconciliation'">
+            <span class="side-left">
+              <el-icon><Document /></el-icon>
+              对账凭证
+            </span>
+          </button>
           <button class="side-item" @click="exportCsv">
             <span class="side-left">
               <el-icon><Download /></el-icon>
@@ -75,6 +81,9 @@
           </button>
           <button :class="{ active: activePage === 'bills' }" @click="activePage = 'bills'">
             账单流水
+          </button>
+          <button :class="{ active: activePage === 'reconciliation' }" @click="activePage = 'reconciliation'">
+            对账凭证
           </button>
           <button :class="{ active: activePage === 'screen' }" @click="activePage = 'screen'">
             经营大屏
@@ -104,7 +113,7 @@
           </div>
           <div class="toolbar-right">
             <el-button :icon="Refresh" :loading="loading" @click="loadFinance">刷新</el-button>
-            <el-button type="primary" @click="generateDueBills">
+            <el-button type="primary" :disabled="!hasPermission('bill.generate')" @click="generateDueBills">
               <el-icon><Plus /></el-icon>
               生成到期账单
             </el-button>
@@ -211,7 +220,7 @@
           <el-table-column label="操作" width="170" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
-                <el-button text type="primary" @click.stop="openFollowUp(row)">跟进</el-button>
+                <el-button v-if="row.canFollowUp && hasPermission('bill.follow')" text type="primary" @click.stop="openFollowUp(row)">跟进</el-button>
                 <el-button text type="primary" @click.stop="openDetail(row)">详情</el-button>
               </div>
             </template>
@@ -232,6 +241,10 @@
           <el-table-column prop="billNo" label="账单号" width="148" fixed show-overflow-tooltip />
           <el-table-column prop="customerName" label="客户" min-width="180" fixed show-overflow-tooltip />
           <el-table-column prop="orderNo" label="订单号" width="150" show-overflow-tooltip />
+          <el-table-column label="来源" width="130" show-overflow-tooltip>
+            <template #default="{ row }">{{ row.repairNo ? "维修费用" : "租赁账单" }}</template>
+          </el-table-column>
+          <el-table-column prop="repairNo" label="维修单" width="150" show-overflow-tooltip />
           <el-table-column prop="period" label="账期" width="96" />
           <el-table-column label="应收" width="112" align="right">
             <template #default="{ row }">{{ money(row.receivableAmount) }}</template>
@@ -256,11 +269,69 @@
           <el-table-column label="操作" width="230" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
-                <el-button v-if="row.canConfirm" text type="primary" @click.stop="confirmBill(row)">确认</el-button>
-                <el-button v-if="row.canRegisterPayment" text type="primary" @click.stop="openPayment(row)">回款</el-button>
-                <el-button v-if="row.canFollowUp" text type="primary" @click.stop="openFollowUp(row)">跟进</el-button>
-                <el-button v-if="row.status !== 'VOIDED'" text type="primary" @click.stop="openAdjust(row)">调整</el-button>
+                <el-button v-if="row.canConfirm && hasPermission('bill.confirm')" text type="primary" @click.stop="confirmBill(row)">确认</el-button>
+                <el-button v-if="row.canRegisterPayment && hasPermission('bill.payment')" text type="primary" @click.stop="openPayment(row)">回款</el-button>
+                <el-button v-if="row.canFollowUp && hasPermission('bill.follow')" text type="primary" @click.stop="openFollowUp(row)">跟进</el-button>
+                <el-button v-if="row.status !== 'VOIDED' && hasPermission('bill.adjust')" text type="primary" @click.stop="openAdjust(row)">调整</el-button>
                 <el-button text type="primary" @click.stop="openDetail(row)">详情</el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <el-table
+          v-else-if="activePage === 'reconciliation'"
+          v-loading="loading"
+          :data="filteredReconciliationRecords"
+          border
+          height="calc(100% - 130px)"
+          class="target-table"
+          @row-dblclick="openReconciliationBill"
+        >
+          <el-table-column type="index" label="序号" width="62" align="center" fixed />
+          <el-table-column prop="uploadedAt" label="提交时间" width="160" fixed />
+          <el-table-column prop="customerName" label="客户" min-width="190" fixed show-overflow-tooltip />
+          <el-table-column prop="billNo" label="账单号" width="150" show-overflow-tooltip />
+          <el-table-column prop="period" label="账期" width="92" />
+          <el-table-column label="凭证金额" width="120" align="right">
+            <template #default="{ row }">{{ money(row.amount) }}</template>
+          </el-table-column>
+          <el-table-column prop="method" label="方式" width="110" />
+          <el-table-column prop="voucherNo" label="凭证号" width="150" show-overflow-tooltip />
+          <el-table-column prop="attachmentName" label="凭证文件" min-width="180" show-overflow-tooltip>
+            <template #default="{ row }">
+              <a v-if="row.attachmentUrl" :href="mockFileUrl(row.attachmentUrl)" target="_blank">{{ row.attachmentName || "查看凭证" }}</a>
+              <span v-else>{{ row.attachmentName || "--" }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100" align="center">
+            <template #default="{ row }">
+              <span class="finance-status" :class="voucherStatusClass(row.status)">{{ row.statusLabel }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="reconciledBy" label="对账人" width="100">
+            <template #default="{ row }">{{ row.reconciledBy || "--" }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="190" fixed="right">
+            <template #default="{ row }">
+              <div class="table-actions">
+                <el-button
+                  v-if="row.canReconcile && hasPermission('bill.reconcile')"
+                  text
+                  type="primary"
+                  @click.stop="reconcileVoucher(row, 'APPROVE')"
+                >
+                  通过
+                </el-button>
+                <el-button
+                  v-if="row.canReconcile && hasPermission('bill.reconcile')"
+                  text
+                  type="danger"
+                  @click.stop="reconcileVoucher(row, 'REJECT')"
+                >
+                  驳回
+                </el-button>
+                <el-button text type="primary" @click.stop="openReconciliationBill(row)">详情</el-button>
               </div>
             </template>
           </el-table-column>
@@ -362,8 +433,8 @@
               返回列表
             </el-button>
             <el-button size="small" :icon="Refresh" @click="refreshCustomerDetail">刷新</el-button>
-            <el-button size="small" type="primary" @click="openFirstReceivablePayment">登记回款</el-button>
-            <el-button size="small" @click="openFirstReceivableFollowUp">催收跟进</el-button>
+            <el-button v-if="hasPermission('bill.payment')" size="small" type="primary" @click="openFirstReceivablePayment">登记回款</el-button>
+            <el-button v-if="hasPermission('bill.follow')" size="small" @click="openFirstReceivableFollowUp">催收跟进</el-button>
           </div>
         </div>
 
@@ -512,7 +583,7 @@
           <section v-else-if="activeDetailTab === 'bills'" class="record-page">
             <div class="record-head">
               <strong>客户账单</strong>
-              <el-button class="right-action" @click="openFirstReceivablePayment">登记回款</el-button>
+              <el-button v-if="hasPermission('bill.payment')" class="right-action" @click="openFirstReceivablePayment">登记回款</el-button>
             </div>
             <el-table :data="activeCustomer.bills || []" border class="record-table">
               <el-table-column prop="billNo" label="账单号" width="150" />
@@ -532,8 +603,8 @@
               <el-table-column label="操作" min-width="220">
                 <template #default="{ row }">
                   <div class="table-actions">
-                    <el-button v-if="row.canRegisterPayment" text type="primary" @click="openPayment(row)">回款</el-button>
-                    <el-button v-if="row.canFollowUp" text type="primary" @click="openFollowUp(row)">跟进</el-button>
+                    <el-button v-if="row.canRegisterPayment && hasPermission('bill.payment')" text type="primary" @click="openPayment(row)">回款</el-button>
+                    <el-button v-if="row.canFollowUp && hasPermission('bill.follow')" text type="primary" @click="openFollowUp(row)">跟进</el-button>
                     <el-button text type="primary" @click="openDetail(row)">详情</el-button>
                   </div>
                 </template>
@@ -578,10 +649,32 @@
             </el-table>
           </section>
 
+          <section v-else-if="activeDetailTab === 'vouchers'" class="record-page">
+            <div class="record-head">
+              <strong>付款凭证</strong>
+            </div>
+            <el-table :data="activeCustomer.paymentVouchers || []" border class="record-table">
+              <el-table-column prop="billNo" label="账单号" width="150" />
+              <el-table-column prop="period" label="账期" width="100" />
+              <el-table-column label="金额" width="120" align="right">
+                <template #default="{ row }">{{ money(row.amount) }}</template>
+              </el-table-column>
+              <el-table-column prop="voucherNo" label="凭证号" width="150" show-overflow-tooltip />
+              <el-table-column label="状态" width="100">
+                <template #default="{ row }">
+                  <span class="finance-status" :class="voucherStatusClass(row.status)">{{ voucherStatusLabel(row.status) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="uploadedAt" label="提交时间" width="160" />
+              <el-table-column prop="reconciledBy" label="对账人" width="100" />
+              <el-table-column prop="reconciliationRemark" label="对账备注" min-width="220" show-overflow-tooltip />
+            </el-table>
+          </section>
+
           <section v-else class="record-page">
             <div class="record-head">
               <strong>催收记录</strong>
-              <el-button class="right-action" @click="openFirstReceivableFollowUp">新增跟进</el-button>
+              <el-button v-if="hasPermission('bill.follow')" class="right-action" @click="openFirstReceivableFollowUp">新增跟进</el-button>
             </div>
             <el-table :data="activeCustomer.followUpLogs || []" border class="record-table">
               <el-table-column prop="billNo" label="账单号" width="150" />
@@ -624,6 +717,10 @@
 
         <el-descriptions :column="1" border>
           <el-descriptions-item label="订单号">{{ activeBill.orderNo }}</el-descriptions-item>
+          <el-descriptions-item label="业务来源">
+            {{ activeBill.repairNo ? `维修费用 / ${activeBill.repairNo}` : "租赁账单" }}
+          </el-descriptions-item>
+          <el-descriptions-item label="OA审批">{{ activeBill.approvalNo || "--" }}</el-descriptions-item>
           <el-descriptions-item label="合同号">{{ activeBill.contractNo || "--" }}</el-descriptions-item>
           <el-descriptions-item label="生成日期">{{ activeBill.generatedAt || "--" }}</el-descriptions-item>
           <el-descriptions-item label="最晚付款日">{{ activeBill.dueDate }}</el-descriptions-item>
@@ -641,6 +738,23 @@
               <span>{{ payment.method }} / {{ payment.paidAt }}</span>
             </div>
             <em>{{ payment.remark || "财务登记回款" }}</em>
+          </div>
+        </section>
+
+        <section class="detail-section">
+          <h3>付款凭证</h3>
+          <el-empty v-if="!activeBill.paymentVouchers?.length" description="暂无付款凭证" />
+          <div v-for="voucher in activeBill.paymentVouchers" :key="voucher.id" class="detail-line">
+            <div>
+              <strong>{{ money(voucher.amount) }} / {{ voucherStatusLabel(voucher.status) }}</strong>
+              <span>{{ voucher.voucherNo || "--" }} / {{ voucher.uploadedAt || "--" }}</span>
+            </div>
+            <em>
+              <a v-if="voucher.attachmentUrl" :href="mockFileUrl(voucher.attachmentUrl)" target="_blank">
+                {{ voucher.attachmentName || "查看凭证" }}
+              </a>
+              <span v-else>{{ voucher.attachmentName || voucher.reconciliationRemark || "待对账" }}</span>
+            </em>
           </div>
         </section>
 
@@ -688,6 +802,18 @@
             <el-option label="支付宝" value="支付宝" />
             <el-option label="现金" value="现金" />
           </el-select>
+        </el-form-item>
+        <el-form-item label="付款凭证号">
+          <el-input v-model.trim="paymentForm.voucherNo" placeholder="银行流水号、回单号或平台交易号" />
+        </el-form-item>
+        <el-form-item label="付款方">
+          <el-input v-model.trim="paymentForm.payerName" placeholder="付款单位或付款人" />
+        </el-form-item>
+        <el-form-item label="凭证文件">
+          <el-input v-model.trim="paymentForm.attachmentName" placeholder="付款截图、银行回单或对账单文件名" />
+        </el-form-item>
+        <el-form-item label="凭证链接">
+          <el-input v-model.trim="paymentForm.attachmentUrl" placeholder="可粘贴已上传文件链接，留空则只登记凭证信息" />
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model.trim="paymentForm.remark" type="textarea" :rows="3" />
@@ -772,11 +898,12 @@ import {
   UserFilled,
   Warning,
 } from "@element-plus/icons-vue";
-import { getMock, patchMock, postMock } from "../api/http";
+import { getMock, mockFileUrl, patchMock, postMock } from "../api/http";
+import { hasAnyAdminPermission } from "../api/session";
 
 type ViewMode = "list" | "detail";
-type PageKey = "screen" | "customers" | "overdue" | "bills";
-type DetailTab = "overview" | "bills" | "orders" | "payments" | "followups";
+type PageKey = "screen" | "customers" | "overdue" | "bills" | "reconciliation";
+type DetailTab = "overview" | "bills" | "orders" | "payments" | "vouchers" | "followups";
 type LeftFilter = "all" | "debt" | "overdue" | "pending" | "dueSoon" | "settled";
 type QueryField = "customerName" | "billNo" | "orderNo" | "contactPhone";
 type BillStatus =
@@ -794,8 +921,49 @@ interface PaymentRecord {
   paidAt: string;
   method: string;
   remark?: string;
+  voucherId?: string;
+  voucherNo?: string;
+  payerName?: string;
+  payerAccount?: string;
+  bankName?: string;
+  attachmentName?: string;
+  attachmentUrl?: string;
+  reconciliationStatus?: string;
   billNo?: string;
   period?: string;
+}
+
+interface PaymentVoucherRecord {
+  id: string;
+  voucherId?: string;
+  billId?: string;
+  billNo?: string;
+  orderNo?: string;
+  customerName?: string;
+  period?: string;
+  amount: number;
+  paidAt?: string;
+  method?: string;
+  payerName?: string;
+  payerAccount?: string;
+  bankName?: string;
+  voucherNo?: string;
+  attachmentName?: string;
+  attachmentUrl?: string;
+  attachmentSize?: number;
+  uploadedAt?: string;
+  uploadedBy?: string;
+  uploadedByType?: string;
+  status: "PENDING" | "VERIFIED" | "REJECTED";
+  statusLabel?: string;
+  reconciledAt?: string;
+  reconciledBy?: string;
+  reconciliationRemark?: string;
+  paymentNo?: string;
+  billDebtAmount?: number;
+  billStatus?: BillStatus;
+  billStatusLabel?: string;
+  canReconcile?: boolean;
 }
 
 interface FollowUpRecord {
@@ -831,6 +999,16 @@ interface BillRow {
   generatedAt?: string;
   confirmedAt?: string;
   contractNo?: string;
+  sourceType?: string;
+  sourceId?: string;
+  sourceNo?: string;
+  repairNo?: string;
+  btCode?: string;
+  approvalNo?: string;
+  approvalStatus?: string;
+  approvalStatusLabel?: string;
+  costItem?: string;
+  costItemId?: string;
   adjustReason?: string;
   ageingBucket: string;
   ageingBucketLabel?: string;
@@ -844,6 +1022,11 @@ interface BillRow {
   canRegisterPayment: boolean;
   canFollowUp: boolean;
   payments?: PaymentRecord[];
+  paymentVouchers?: PaymentVoucherRecord[];
+  voucherCount?: number;
+  pendingVoucherCount?: number;
+  canSubmitVoucher?: boolean;
+  canReconcile?: boolean;
   followUpLogs?: FollowUpRecord[];
   operationLogs?: Array<{
     time: string;
@@ -927,7 +1110,33 @@ interface FinanceCustomer {
   bills?: BillRow[];
   orders?: FinanceOrder[];
   payments?: PaymentRecord[];
+  paymentVouchers?: PaymentVoucherRecord[];
+  pendingVoucherCount?: number;
   followUpLogs?: FollowUpRecord[];
+}
+
+interface FinanceReconciliation {
+  summary: {
+    totalCount: number;
+    pendingCount: number;
+    verifiedCount: number;
+    rejectedCount: number;
+    pendingAmount: number;
+    verifiedAmount: number;
+  };
+  records: PaymentVoucherRecord[];
+}
+
+interface FinanceScheduler {
+  enabled: boolean;
+  intervalMs: number;
+  lastRunAt?: string;
+  nextRunAt?: string;
+  runCount?: number;
+  lastResult?: {
+    generatedCount?: number;
+    markedOverdueCount?: number;
+  } | null;
 }
 
 const emptyOverview: FinanceOverview = {
@@ -951,9 +1160,29 @@ const viewMode = ref<ViewMode>("list");
 const activePage = ref<PageKey>("customers");
 const activeDetailTab = ref<DetailTab>("overview");
 const loading = ref(false);
+
+function hasPermission(code: string) {
+  return hasAnyAdminPermission([code]);
+}
+
 const bills = ref<BillRow[]>([]);
 const customers = ref<FinanceCustomer[]>([]);
 const overview = ref<FinanceOverview>(emptyOverview);
+const reconciliation = ref<FinanceReconciliation>({
+  summary: {
+    totalCount: 0,
+    pendingCount: 0,
+    verifiedCount: 0,
+    rejectedCount: 0,
+    pendingAmount: 0,
+    verifiedAmount: 0,
+  },
+  records: [],
+});
+const scheduler = ref<FinanceScheduler>({
+  enabled: false,
+  intervalMs: 0,
+});
 const selectedCustomerId = ref("all");
 const customerTreeKeyword = ref("");
 const ownerScope = ref<"all" | "mine">("all");
@@ -973,6 +1202,13 @@ const paymentForm = ref({
   amount: 0,
   paidAt: dateTimeText(),
   method: "银行转账",
+  voucherNo: "",
+  payerName: "",
+  payerAccount: "",
+  bankName: "",
+  attachmentName: "",
+  attachmentUrl: "",
+  attachmentSize: 0,
   remark: "客户回款到账，财务登记。",
 });
 
@@ -1002,6 +1238,7 @@ const detailTabs = [
   { value: "bills" as const, label: "客户账单" },
   { value: "orders" as const, label: "关联订单" },
   { value: "payments" as const, label: "回款记录" },
+  { value: "vouchers" as const, label: "付款凭证" },
   { value: "followups" as const, label: "催收记录" },
 ];
 
@@ -1078,6 +1315,25 @@ const filteredOverdueBills = computed(() =>
   }),
 );
 
+const filteredReconciliationRecords = computed(() =>
+  reconciliation.value.records.filter((record) => {
+    const key = keyword.value.trim().toLowerCase();
+    if (!key) return true;
+    return [
+      record.customerName,
+      record.billNo,
+      record.orderNo,
+      record.voucherNo,
+      record.attachmentName,
+      record.payerName,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(key);
+  }),
+);
+
 const topRiskCustomers = computed(() => filteredCustomers.value.filter((item) => item.debtTotal > 0).slice(0, 8));
 
 const summaryMetrics = computed(() => [
@@ -1141,6 +1397,14 @@ const summaryMetrics = computed(() => [
       activePage.value = "bills";
       ageingFilter.value = "NOT_DUE";
       setLeftFilter("dueSoon");
+    },
+  },
+  {
+    label: "待对账",
+    value: reconciliation.value.summary.pendingCount,
+    tone: "warning",
+    action: () => {
+      activePage.value = "reconciliation";
     },
   },
   {
@@ -1307,6 +1571,24 @@ function statusClass(status: BillStatus) {
   };
 }
 
+function voucherStatusLabel(status: PaymentVoucherRecord["status"]) {
+  return (
+    {
+      PENDING: "待对账",
+      VERIFIED: "已对账",
+      REJECTED: "已驳回",
+    }[status] ?? status
+  );
+}
+
+function voucherStatusClass(status: PaymentVoucherRecord["status"]) {
+  return {
+    warning: status === "PENDING",
+    success: status === "VERIFIED",
+    danger: status === "REJECTED",
+  };
+}
+
 function riskClass(level: FinanceCustomer["riskLevel"]) {
   return {
     danger: ["HIGH", "OVERDUE"].includes(level),
@@ -1346,14 +1628,18 @@ function billRowClassName({ row }: { row: BillRow }) {
 async function loadFinance() {
   loading.value = true;
   try {
-    const [overviewData, customerRows, billRows] = await Promise.all([
+    const [overviewData, customerRows, billRows, reconciliationData, schedulerData] = await Promise.all([
       getMock<FinanceOverview>("/finance/overview"),
       getMock<FinanceCustomer[]>("/finance/customers"),
       getMock<BillRow[]>("/bills"),
+      getMock<FinanceReconciliation>("/finance/reconciliation"),
+      getMock<FinanceScheduler>("/finance/scheduler"),
     ]);
     overview.value = overviewData;
     customers.value = customerRows;
     bills.value = billRows;
+    reconciliation.value = reconciliationData;
+    scheduler.value = schedulerData;
   } finally {
     loading.value = false;
   }
@@ -1415,6 +1701,35 @@ async function openDetail(row: BillRow) {
   activeBill.value = await getMock<BillRow>(`/bills/${row.id}`);
 }
 
+async function openReconciliationBill(row: PaymentVoucherRecord) {
+  activeBill.value = null;
+  detailVisible.value = true;
+  activeBill.value = await getMock<BillRow>(`/bills/${row.billId}`);
+}
+
+async function reconcileVoucher(row: PaymentVoucherRecord, action: "APPROVE" | "REJECT") {
+  if (!hasPermission("bill.reconcile")) {
+    ElMessage.warning("当前账号没有付款凭证对账权限");
+    return;
+  }
+  const message =
+    action === "APPROVE"
+      ? `确认 ${row.voucherNo || row.billNo} 对账通过并入账？`
+      : `确认驳回 ${row.voucherNo || row.billNo}？`;
+  await ElMessageBox.confirm(message, action === "APPROVE" ? "对账通过" : "驳回凭证", {
+    confirmButtonText: action === "APPROVE" ? "通过并入账" : "驳回",
+    cancelButtonText: "取消",
+    type: action === "APPROVE" ? "warning" : "error",
+  });
+  await patchMock(`/bills/${row.billId}/vouchers/${row.voucherId || row.id}/reconcile`, {
+    action,
+    remark: action === "APPROVE" ? "凭证与到账金额一致" : "凭证信息与到账记录不一致",
+    operator: "赵财务",
+  });
+  ElMessage.success(action === "APPROVE" ? "凭证已对账入账" : "凭证已驳回");
+  await reloadAfterMutation();
+}
+
 async function confirmBill(row: BillRow) {
   await ElMessageBox.confirm(`确认 ${row.billNo} 后客户可见并进入回款流程。`, "确认账单", {
     confirmButtonText: "确认",
@@ -1432,6 +1747,13 @@ function openPayment(row: BillRow) {
     amount: Number(row.debtAmount || 0),
     paidAt: dateTimeText(),
     method: "银行转账",
+    voucherNo: "",
+    payerName: row.customerName,
+    payerAccount: "",
+    bankName: "",
+    attachmentName: "",
+    attachmentUrl: "",
+    attachmentSize: 0,
     remark: "客户回款到账，财务登记。",
   };
   paymentVisible.value = true;
@@ -1441,6 +1763,10 @@ async function submitPayment() {
   if (!activeBill.value) return;
   if (paymentForm.value.amount <= 0) {
     ElMessage.warning("请填写有效回款金额");
+    return;
+  }
+  if (!paymentForm.value.voucherNo && !paymentForm.value.attachmentName && !paymentForm.value.attachmentUrl) {
+    ElMessage.warning("请填写付款凭证号或凭证文件信息");
     return;
   }
   await postMock(`/bills/${activeBill.value.id}/payments`, {
@@ -1500,11 +1826,16 @@ async function submitAdjust() {
 }
 
 async function generateDueBills() {
-  const result = await postMock<{ generatedCount: number }>("/finance/generate-due-bills", {
+  if (!hasPermission("bill.generate")) {
+    ElMessage.warning("当前账号没有生成月度账单权限");
+    return;
+  }
+  const result = await postMock<{ generatedCount: number; markedOverdueCount: number }>("/finance/scheduler/run", {
     asOfDate: dateText(),
     operator: "赵财务",
+    trigger: "MANUAL",
   });
-  ElMessage.success(`已生成 ${result.generatedCount} 张到期账单`);
+  ElMessage.success(`已生成 ${result.generatedCount} 张账单，标记 ${result.markedOverdueCount} 张逾期`);
   await reloadAfterMutation();
 }
 
@@ -1515,9 +1846,12 @@ function csvCell(value: unknown) {
 function exportCsv() {
   const exportingCustomers = activePage.value === "customers";
   const exportingOverdue = activePage.value === "overdue";
+  const exportingReconciliation = activePage.value === "reconciliation";
   const header = exportingCustomers
     ? ["客户", "联系人", "手机号", "应收", "已收", "欠款", "逾期", "未结清账单", "状态", "下一动作"]
-    : ["账单号", "客户", "订单号", "账期", "应收", "已收", "欠款", "状态", "账龄", "到期日", "催收动作"];
+    : exportingReconciliation
+      ? ["提交时间", "客户", "账单号", "账期", "凭证金额", "方式", "凭证号", "状态", "对账人", "备注"]
+      : ["账单号", "客户", "订单号", "账期", "应收", "已收", "欠款", "状态", "账龄", "到期日", "催收动作"];
   const rows = exportingCustomers
     ? filteredCustomers.value.map((customer) =>
         [
@@ -1535,6 +1869,23 @@ function exportCsv() {
           .map(csvCell)
           .join(","),
       )
+    : exportingReconciliation
+      ? filteredReconciliationRecords.value.map((record) =>
+          [
+            record.uploadedAt,
+            record.customerName,
+            record.billNo,
+            record.period,
+            record.amount,
+            record.method,
+            record.voucherNo,
+            record.statusLabel || voucherStatusLabel(record.status),
+            record.reconciledBy,
+            record.reconciliationRemark,
+          ]
+            .map(csvCell)
+            .join(","),
+        )
     : (exportingOverdue ? filteredOverdueBills.value : filteredBills.value).map((bill) =>
         [
           bill.billNo,
