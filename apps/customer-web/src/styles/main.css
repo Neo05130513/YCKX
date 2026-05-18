@@ -1,0 +1,83 @@
+:root {
+  --primary: #155eef;
+  --success: #16a34a;
+  --warning: #f97316;
+  --danger: #dc2626;
+  --bg: #f8fafc;
+  --text: #111827;
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+.mobile-shell {
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--bg);
+}
+.mobile-content {
+  padding: 14px 14px 80px;
+}
+.page-header {
+  padding: 10px 2px 14px;
+}
+.page-header h1 {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+.page-header p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 13px;
+}
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.quick {
+  text-align: center;
+  padding: 12px 6px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: var(--primary);
+  font-weight: 700;
+}
+.amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--danger);
+}
+.status {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #eff6ff;
+  color: var(--primary);
+}
+.status.danger {
+  background: #fef2f2;
+  color: var(--danger);
+}
+.status.success {
+  background: #f0fdf4;
+  color: var(--success);
+}
+.muted {
+  color: #6b7280;
+  font-size: 13px;
+}

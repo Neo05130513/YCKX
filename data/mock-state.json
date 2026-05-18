@@ -1,0 +1,4176 @@
+{
+  "version": 1,
+  "savedAt": "2026-05-18 15:26",
+  "batteries": [
+    {
+      "id": "bat-44840294",
+      "btCode": "BTCHK030720B",
+      "deviceNum": "LN44840294",
+      "batterySn": "BTCHK030720B",
+      "model": "72V 45AH",
+      "specification": "72V 45AH / 新增入库",
+      "orgName": "延成科讯 / 内部仓储",
+      "sourcePlatform": "内部入库",
+      "runningStatus": "OFFLINE",
+      "assetStatus": "IN_STOCK",
+      "powerPercent": 100,
+      "voltage": 0,
+      "current": 0,
+      "temperature": 25,
+      "protectFactory": "待同步",
+      "protectStatus": "离线",
+      "locatorSoftwareVersion": "",
+      "bmsSoftwareVersion": "",
+      "imei": "",
+      "iccid": "",
+      "signal": 0,
+      "lifecycle": "库存",
+      "customStatus": "新增入库",
+      "inboundState": "在库",
+      "cardState": "未激活",
+      "batchNum": "BATCH202605",
+      "groupName": "郑州总仓",
+      "packageName": "未绑定",
+      "remainingDays": 0,
+      "renewalDesc": "未激活",
+      "expiryTime": "",
+      "activationTime": "",
+      "purchaseDate": "2026-05-17",
+      "onlineTime": "",
+      "offlineTime": "2026-5-18 03:07:20",
+      "gpsUpdateTime": "",
+      "qrCode": "BTCHK030720B",
+      "userName": "郑州总仓",
+      "abnormal": "无",
+      "movementStatus": "静止",
+      "offlineDays": 0,
+      "locationHardwareVersion": "",
+      "bmsDetailVersion": "",
+      "bmsManufacturers": "待同步",
+      "configuration": "待配置",
+      "output": "关闭",
+      "charging": "关",
+      "discharging": "关",
+      "locationMethod": "仓库登记",
+      "pressureDiff": 0,
+      "pressureMax": 0,
+      "pressureMin": 0,
+      "sendTimeGeneral": "",
+      "sendTimeProtect": "",
+      "lastChargeDate": "",
+      "lastDischargeDate": "",
+      "exchangeKey": "",
+      "price": 0,
+      "stopUse": "否",
+      "stopTime": "",
+      "isPush": "否",
+      "replaceQrCode": "",
+      "oldImei": "",
+      "oldQrCode": "",
+      "newQrCode": "",
+      "oldBT": "",
+      "newBT": "",
+      "bmsIsConnect": "未连接",
+      "bmsTime": "",
+      "bmsFactoryDate": "2026-05-17",
+      "bmsAddress": "",
+      "cellType": "",
+      "designCapacity": 0,
+      "cellTemperature1": 25,
+      "cellTemperature2": 25,
+      "chargeMos": "已关闭",
+      "dischargeMos": "已关闭",
+      "preDischargeMos": "已关闭",
+      "balanceStatus": "空闲中",
+      "heatStatus": "空闲中",
+      "recoveryStatus": "已恢复",
+      "totalMileage": 0,
+      "cycleNum": 0,
+      "nominalCapacity": 0,
+      "remainingCapacity": 0,
+      "serialNumber": 0,
+      "satelliteNum": 0,
+      "location": "郑州总仓",
+      "warehouse": "郑州总仓",
+      "initialWarehouse": "郑州总仓",
+      "initialInboundNo": "IN44840294",
+      "initialInboundSource": "采购入库",
+      "keeper": "王库管",
+      "customerId": null,
+      "orderId": null,
+      "updatedAt": "2026-5-18 03:07:20"
+    },
+    {
+      "id": "bat-44840288",
+      "btCode": "BTCHK030720A",
+      "deviceNum": "LN44840288",
+      "batterySn": "BTCHK030720A",
+      "model": "72V 45AH",
+      "specification": "72V 45AH / 新增入库",
+      "orgName": "延成科讯 / 内部仓储",
+      "sourcePlatform": "内部入库",
+      "runningStatus": "OFFLINE",
+      "assetStatus": "IN_STOCK",
+      "powerPercent": 100,
+      "voltage": 0,
+      "current": 0,
+      "temperature": 25,
+      "protectFactory": "待同步",
+      "protectStatus": "离线",
+      "locatorSoftwareVersion": "",
+      "bmsSoftwareVersion": "",
+      "imei": "",
+      "iccid": "",
+      "signal": 0,
+      "lifecycle": "库存",
+      "customStatus": "新增入库",
+      "inboundState": "在库",
+      "cardState": "未激活",
+      "batchNum": "BATCH202605",
+      "groupName": "郑州总仓",
+      "packageName": "未绑定",
+      "remainingDays": 0,
+      "renewalDesc": "未激活",
+      "expiryTime": "",
+      "activationTime": "",
+      "purchaseDate": "2026-05-17",
+      "onlineTime": "",
+      "offlineTime": "2026-5-18 03:07:20",
+      "gpsUpdateTime": "",
+      "qrCode": "BTCHK030720A",
+      "userName": "郑州总仓",
+      "abnormal": "无",
+      "movementStatus": "静止",
+      "offlineDays": 0,
+      "locationHardwareVersion": "",
+      "bmsDetailVersion": "",
+      "bmsManufacturers": "待同步",
+      "configuration": "待配置",
+      "output": "关闭",
+      "charging": "关",
+      "discharging": "关",
+      "locationMethod": "仓库登记",
+      "pressureDiff": 0,
+      "pressureMax": 0,
+      "pressureMin": 0,
+      "sendTimeGeneral": "",
+      "sendTimeProtect": "",
+      "lastChargeDate": "",
+      "lastDischargeDate": "",
+      "exchangeKey": "",
+      "price": 0,
+      "stopUse": "否",
+      "stopTime": "",
+      "isPush": "否",
+      "replaceQrCode": "",
+      "oldImei": "",
+      "oldQrCode": "",
+      "newQrCode": "",
+      "oldBT": "",
+      "newBT": "",
+      "bmsIsConnect": "未连接",
+      "bmsTime": "",
+      "bmsFactoryDate": "2026-05-17",
+      "bmsAddress": "",
+      "cellType": "",
+      "designCapacity": 0,
+      "cellTemperature1": 25,
+      "cellTemperature2": 25,
+      "chargeMos": "已关闭",
+      "dischargeMos": "已关闭",
+      "preDischargeMos": "已关闭",
+      "balanceStatus": "空闲中",
+      "heatStatus": "空闲中",
+      "recoveryStatus": "已恢复",
+      "totalMileage": 0,
+      "cycleNum": 0,
+      "nominalCapacity": 0,
+      "remainingCapacity": 0,
+      "serialNumber": 0,
+      "satelliteNum": 0,
+      "location": "郑州总仓",
+      "warehouse": "郑州总仓",
+      "initialWarehouse": "郑州总仓",
+      "initialInboundNo": "IN44840288",
+      "initialInboundSource": "采购入库",
+      "keeper": "王库管",
+      "customerId": null,
+      "orderId": null,
+      "updatedAt": "2026-5-18 03:07:20"
+    },
+    {
+      "id": "bat-41208628",
+      "btCode": "BTTEST020648B",
+      "deviceNum": "LN41208628",
+      "batterySn": "BTTEST020648B",
+      "model": "72V 45AH",
+      "specification": "72V 45AH / 新增入库",
+      "orgName": "延成科讯 / 内部仓储",
+      "sourcePlatform": "内部入库",
+      "runningStatus": "OFFLINE",
+      "assetStatus": "SCRAPPED",
+      "powerPercent": 100,
+      "voltage": 0,
+      "current": 0,
+      "temperature": 25,
+      "protectFactory": "待同步",
+      "protectStatus": "离线",
+      "locatorSoftwareVersion": "",
+      "bmsSoftwareVersion": "",
+      "imei": "",
+      "iccid": "",
+      "signal": 0,
+      "lifecycle": "报废",
+      "customStatus": "租赁退回",
+      "inboundState": "退回入库",
+      "cardState": "未激活",
+      "batchNum": "BATCH202605",
+      "groupName": "郑州总仓",
+      "packageName": "未绑定",
+      "remainingDays": 0,
+      "renewalDesc": "未激活",
+      "expiryTime": "",
+      "activationTime": "",
+      "purchaseDate": "2026-05-17",
+      "onlineTime": "",
+      "offlineTime": "2026-5-18 02:06:48",
+      "gpsUpdateTime": "",
+      "qrCode": "BTTEST020648B",
+      "userName": "郑州总仓",
+      "abnormal": "无",
+      "movementStatus": "静止",
+      "offlineDays": 0,
+      "locationHardwareVersion": "",
+      "bmsDetailVersion": "",
+      "bmsManufacturers": "待同步",
+      "configuration": "待配置",
+      "output": "关闭",
+      "charging": "关",
+      "discharging": "关",
+      "locationMethod": "仓库登记",
+      "pressureDiff": 0,
+      "pressureMax": 0,
+      "pressureMin": 0,
+      "sendTimeGeneral": "",
+      "sendTimeProtect": "",
+      "lastChargeDate": "",
+      "lastDischargeDate": "",
+      "exchangeKey": "",
+      "price": 0,
+      "stopUse": "否",
+      "stopTime": "",
+      "isPush": "否",
+      "replaceQrCode": "",
+      "oldImei": "",
+      "oldQrCode": "",
+      "newQrCode": "",
+      "oldBT": "",
+      "newBT": "",
+      "bmsIsConnect": "未连接",
+      "bmsTime": "",
+      "bmsFactoryDate": "2026-05-17",
+      "bmsAddress": "",
+      "cellType": "",
+      "designCapacity": 0,
+      "cellTemperature1": 25,
+      "cellTemperature2": 25,
+      "chargeMos": "已关闭",
+      "dischargeMos": "已关闭",
+      "preDischargeMos": "已关闭",
+      "balanceStatus": "空闲中",
+      "heatStatus": "空闲中",
+      "recoveryStatus": "已恢复",
+      "totalMileage": 0,
+      "cycleNum": 0,
+      "nominalCapacity": 0,
+      "remainingCapacity": 0,
+      "serialNumber": 0,
+      "satelliteNum": 0,
+      "location": "报废暂存区",
+      "warehouse": "报废暂存区",
+      "initialWarehouse": "郑州总仓",
+      "initialInboundNo": "IN41208628",
+      "initialInboundSource": "采购入库",
+      "keeper": "王库管",
+      "customerId": null,
+      "orderId": null,
+      "updatedAt": "2026-5-18 02:06:48"
+    },
+    {
+      "id": "bat-41208621",
+      "btCode": "BTTEST020648A",
+      "deviceNum": "LN41208621",
+      "batterySn": "BTTEST020648A",
+      "model": "72V 45AH",
+      "specification": "72V 45AH / 新增入库",
+      "orgName": "延成科讯 / 内部仓储",
+      "sourcePlatform": "内部入库",
+      "runningStatus": "OFFLINE",
+      "assetStatus": "SCRAPPED",
+      "powerPercent": 100,
+      "voltage": 0,
+      "current": 0,
+      "temperature": 25,
+      "protectFactory": "待同步",
+      "protectStatus": "离线",
+      "locatorSoftwareVersion": "",
+      "bmsSoftwareVersion": "",
+      "imei": "",
+      "iccid": "",
+      "signal": 0,
+      "lifecycle": "报废",
+      "customStatus": "租赁退回",
+      "inboundState": "退回入库",
+      "cardState": "未激活",
+      "batchNum": "BATCH202605",
+      "groupName": "郑州总仓",
+      "packageName": "未绑定",
+      "remainingDays": 0,
+      "renewalDesc": "未激活",
+      "expiryTime": "",
+      "activationTime": "",
+      "purchaseDate": "2026-05-17",
+      "onlineTime": "",
+      "offlineTime": "2026-5-18 02:06:48",
+      "gpsUpdateTime": "",
+      "qrCode": "BTTEST020648A",
+      "userName": "郑州总仓",
+      "abnormal": "无",
+      "movementStatus": "静止",
+      "offlineDays": 0,
+      "locationHardwareVersion": "",
+      "bmsDetailVersion": "",
+      "bmsManufacturers": "待同步",
+      "configuration": "待配置",
+      "output": "关闭",
+      "charging": "关",
+      "discharging": "关",
+      "locationMethod": "仓库登记",
+      "pressureDiff": 0,
+      "pressureMax": 0,
+      "pressureMin": 0,
+      "sendTimeGeneral": "",
+      "sendTimeProtect": "",
+      "lastChargeDate": "",
+      "lastDischargeDate": "",
+      "exchangeKey": "",
+      "price": 0,
+      "stopUse": "否",
+      "stopTime": "",
+      "isPush": "否",
+      "replaceQrCode": "",
+      "oldImei": "",
+      "oldQrCode": "",
+      "newQrCode": "",
+      "oldBT": "",
+      "newBT": "",
+      "bmsIsConnect": "未连接",
+      "bmsTime": "",
+      "bmsFactoryDate": "2026-05-17",
+      "bmsAddress": "",
+      "cellType": "",
+      "designCapacity": 0,
+      "cellTemperature1": 25,
+      "cellTemperature2": 25,
+      "chargeMos": "已关闭",
+      "dischargeMos": "已关闭",
+      "preDischargeMos": "已关闭",
+      "balanceStatus": "空闲中",
+      "heatStatus": "空闲中",
+      "recoveryStatus": "已恢复",
+      "totalMileage": 0,
+      "cycleNum": 0,
+      "nominalCapacity": 0,
+      "remainingCapacity": 0,
+      "serialNumber": 0,
+      "satelliteNum": 0,
+      "location": "报废暂存区",
+      "warehouse": "报废暂存区",
+      "initialWarehouse": "郑州总仓",
+      "initialInboundNo": "IN41208621",
+      "initialInboundSource": "采购入库",
+      "keeper": "王库管",
+      "customerId": null,
+      "orderId": null,
+      "updatedAt": "2026-5-18 02:06:48"
+    },
+    {
+      "id": "bat-001",
+      "btCode": "BT202605170001",
+      "deviceNum": "LN202605170001",
+      "batterySn": "BT202605170001",
+      "model": "72V 45AH",
+      "specification": "72V / 45AH / 24串",
+      "orgName": "延成科讯 / 河南示例物流",
+      "sourcePlatform": "平台A",
+      "runningStatus": "ONLINE",
+      "assetStatus": "IN_STOCK",
+      "powerPercent": 86,
+      "voltage": 74.6,
+      "current": -12.4,
+      "temperature": 32,
+      "protectFactory": "嘉佰达",
+      "protectStatus": "在线",
+      "locatorSoftwareVersion": "LNA-2.8.1",
+      "bmsSoftwareVersion": "BMS-4.2.0",
+      "imei": "867202605170001",
+      "iccid": "8986042026051700012",
+      "signal": 28,
+      "lifecycle": "库存",
+      "customStatus": "租赁退回",
+      "inboundState": "退回入库",
+      "cardState": "正常",
+      "batchNum": "BATCH202605",
+      "groupName": "郑州总仓",
+      "packageName": "标准年包",
+      "remainingDays": 312,
+      "renewalDesc": "正常",
+      "expiryTime": "2027-04-30",
+      "activationTime": "2026-05-01",
+      "purchaseDate": "2026-04-18",
+      "onlineTime": "2026-05-17 09:20",
+      "offlineTime": "",
+      "gpsUpdateTime": "2026-05-17 09:20",
+      "qrCode": "LN202605170001",
+      "userName": "郑州总仓",
+      "abnormal": "无",
+      "movementStatus": "移动",
+      "offlineDays": 0,
+      "locationHardwareVersion": "LNA-HW-2.1",
+      "bmsDetailVersion": "PB-2026.05",
+      "bmsManufacturers": "嘉佰达",
+      "configuration": "已配置",
+      "output": "打开",
+      "charging": "关",
+      "discharging": "开",
+      "locationMethod": "GPS",
+      "pressureDiff": 0.042,
+      "pressureMax": 3.666,
+      "pressureMin": 3.624,
+      "sendTimeGeneral": "2026-05-16 16:20",
+      "sendTimeProtect": "2026-05-16 16:28",
+      "lastChargeDate": "2026-05-16 22:10",
+      "lastDischargeDate": "2026-05-17 08:58",
+      "exchangeKey": "EX-170001",
+      "price": 365,
+      "stopUse": "否",
+      "stopTime": "",
+      "isPush": "否",
+      "replaceQrCode": "",
+      "oldImei": "",
+      "oldQrCode": "",
+      "newQrCode": "",
+      "oldBT": "",
+      "newBT": "",
+      "bmsIsConnect": "已连接",
+      "bmsTime": "2026-05-17 09:20",
+      "bmsFactoryDate": "2026-04-08",
+      "bmsAddress": "0x01",
+      "cellType": "三元",
+      "designCapacity": 45,
+      "cellTemperature1": 32,
+      "cellTemperature2": 34,
+      "chargeMos": "已打开",
+      "dischargeMos": "已打开",
+      "preDischargeMos": "已关闭",
+      "balanceStatus": "均衡中",
+      "heatStatus": "空闲中",
+      "recoveryStatus": "已恢复",
+      "totalMileage": 1286,
+      "cycleNum": 42,
+      "nominalCapacity": 45,
+      "remainingCapacity": 38.7,
+      "serialNumber": 24,
+      "satelliteNum": 12,
+      "location": "郑州总仓",
+      "customerId": null,
+      "orderId": null,
+      "updatedAt": "2026-5-18 02:06:48",
+      "warehouse": "郑州总仓"
+    },
+    {
+      "id": "bat-002",
+      "btCode": "BT202605170002",
+      "deviceNum": "LN202605170002",
+      "batterySn": "BT202605170002",
+      "model": "72V 45AH",
+      "specification": "72V / 45AH / 24串",
+      "orgName": "延成科讯 / 河南示例物流",
+      "sourcePlatform": "平台B",
+      "runningStatus": "ABNORMAL",
+      "assetStatus": "LEASING",
+      "powerPercent": 23,
+      "voltage": 66.8,
+      "current": -18.9,
+      "temperature": 41,
+      "protectFactory": "极空",
+      "protectStatus": "在线",
+      "locatorSoftwareVersion": "LNA-2.7.5",
+      "bmsSoftwareVersion": "BMS-4.1.9",
+      "imei": "867202605170002",
+      "iccid": "8986042026051700020",
+      "signal": 16,
+      "lifecycle": "运营",
+      "customStatus": "低电量告警",
+      "inboundState": "已出库",
+      "cardState": "正常",
+      "batchNum": "BATCH202605",
+      "groupName": "郑州经开区配送组",
+      "packageName": "标准年包",
+      "remainingDays": 312,
+      "renewalDesc": "正常",
+      "expiryTime": "2027-04-30",
+      "activationTime": "2026-05-01",
+      "purchaseDate": "2026-04-18",
+      "onlineTime": "2026-05-17 09:18",
+      "offlineTime": "",
+      "gpsUpdateTime": "2026-05-17 09:18",
+      "qrCode": "LN202605170002",
+      "userName": "河南示例物流",
+      "abnormal": "低电量告警 / 温度偏高",
+      "movementStatus": "移动",
+      "offlineDays": 0,
+      "locationHardwareVersion": "LNA-HW-2.1",
+      "bmsDetailVersion": "PB-2026.05",
+      "bmsManufacturers": "极空",
+      "configuration": "已配置",
+      "output": "打开",
+      "charging": "关",
+      "discharging": "开",
+      "locationMethod": "GPS",
+      "pressureDiff": 0.058,
+      "pressureMax": 3.451,
+      "pressureMin": 3.393,
+      "sendTimeGeneral": "2026-05-16 16:20",
+      "sendTimeProtect": "2026-05-16 16:28",
+      "lastChargeDate": "2026-05-15 21:46",
+      "lastDischargeDate": "2026-05-17 08:54",
+      "exchangeKey": "EX-170002",
+      "price": 365,
+      "stopUse": "否",
+      "stopTime": "",
+      "isPush": "是",
+      "replaceQrCode": "",
+      "oldImei": "",
+      "oldQrCode": "",
+      "newQrCode": "",
+      "oldBT": "",
+      "newBT": "",
+      "bmsIsConnect": "已连接",
+      "bmsTime": "2026-05-17 09:18",
+      "bmsFactoryDate": "2026-04-08",
+      "bmsAddress": "0x02",
+      "cellType": "三元",
+      "designCapacity": 45,
+      "cellTemperature1": 41,
+      "cellTemperature2": 43,
+      "chargeMos": "已打开",
+      "dischargeMos": "已打开",
+      "preDischargeMos": "已关闭",
+      "balanceStatus": "均衡中",
+      "heatStatus": "空闲中",
+      "recoveryStatus": "未恢复",
+      "totalMileage": 1468,
+      "cycleNum": 51,
+      "nominalCapacity": 45,
+      "remainingCapacity": 29.2,
+      "serialNumber": 24,
+      "satelliteNum": 9,
+      "location": "郑州经开区",
+      "customerId": "customer-yancheng",
+      "orderId": "order-001",
+      "updatedAt": "2026-05-17 09:18"
+    },
+    {
+      "id": "bat-003",
+      "btCode": "BT202605170003",
+      "deviceNum": "LN202605170003",
+      "batterySn": "BT202605170003",
+      "model": "60V 50AH",
+      "specification": "60V / 50AH / 20串",
+      "orgName": "延成科讯 / 总仓",
+      "sourcePlatform": "平台C",
+      "runningStatus": "OFFLINE",
+      "assetStatus": "IN_STOCK",
+      "powerPercent": 0,
+      "voltage": 0,
+      "current": 0,
+      "temperature": 25,
+      "protectFactory": "锂钠安",
+      "protectStatus": "离线",
+      "locatorSoftwareVersion": "LNA-2.6.8",
+      "bmsSoftwareVersion": "BMS-3.9.1",
+      "imei": "867202605170003",
+      "iccid": "8986042026051700038",
+      "signal": 0,
+      "lifecycle": "库存",
+      "customStatus": "待激活",
+      "inboundState": "在库",
+      "cardState": "未激活",
+      "batchNum": "BATCH202604",
+      "groupName": "盘点测试仓",
+      "packageName": "未绑定",
+      "remainingDays": 0,
+      "renewalDesc": "未激活",
+      "expiryTime": "",
+      "activationTime": "",
+      "purchaseDate": "2026-04-12",
+      "onlineTime": "",
+      "offlineTime": "2026-05-17 08:42",
+      "gpsUpdateTime": "2026-05-16 18:20",
+      "qrCode": "LN202605170003",
+      "userName": "总仓",
+      "abnormal": "设备离线",
+      "movementStatus": "静止",
+      "offlineDays": 1,
+      "locationHardwareVersion": "LNA-HW-2.0",
+      "bmsDetailVersion": "PB-2026.04",
+      "bmsManufacturers": "锂钠安",
+      "configuration": "待配置",
+      "output": "关闭",
+      "charging": "关",
+      "discharging": "关",
+      "locationMethod": "基站",
+      "pressureDiff": 0,
+      "pressureMax": 0,
+      "pressureMin": 0,
+      "sendTimeGeneral": "",
+      "sendTimeProtect": "",
+      "lastChargeDate": "",
+      "lastDischargeDate": "",
+      "exchangeKey": "EX-170003",
+      "price": 0,
+      "stopUse": "否",
+      "stopTime": "",
+      "isPush": "否",
+      "replaceQrCode": "",
+      "oldImei": "",
+      "oldQrCode": "",
+      "newQrCode": "",
+      "oldBT": "",
+      "newBT": "",
+      "bmsIsConnect": "已断开",
+      "bmsTime": "2026-05-17 08:42",
+      "bmsFactoryDate": "2026-04-02",
+      "bmsAddress": "0x03",
+      "cellType": "磷酸铁锂",
+      "designCapacity": 50,
+      "cellTemperature1": 25,
+      "cellTemperature2": 25,
+      "chargeMos": "已关闭",
+      "dischargeMos": "已关闭",
+      "preDischargeMos": "已关闭",
+      "balanceStatus": "空闲中",
+      "heatStatus": "空闲中",
+      "recoveryStatus": "已恢复",
+      "totalMileage": 0,
+      "cycleNum": 0,
+      "nominalCapacity": 50,
+      "remainingCapacity": 0,
+      "serialNumber": 20,
+      "satelliteNum": 0,
+      "location": "盘点测试仓",
+      "customerId": null,
+      "orderId": null,
+      "updatedAt": "2026-5-18 03:07:20",
+      "warehouse": "盘点测试仓"
+    }
+  ],
+  "orders": [
+    {
+      "id": "order-001",
+      "orderNo": "ORD202605170001",
+      "customerId": "customer-yancheng",
+      "customerName": "河南示例物流有限公司",
+      "customerShortName": "河南示例物流",
+      "customerContact": "张经理",
+      "contactPhone": "13800138001",
+      "region": "郑州高新区",
+      "status": "PENDING_RECEIPT",
+      "leaseStart": "2026-05-01",
+      "leaseEnd": "2027-04-30",
+      "billingDay": 5,
+      "monthlyRent": 8000,
+      "depositAmount": 12000,
+      "orderedBatteryCount": 5,
+      "batteryCount": 1,
+      "outboundProgress": "1/5",
+      "outboundCount": 1,
+      "receivedCount": 0,
+      "pendingReceiptCount": 1,
+      "receivableAmount": 16000,
+      "paidAmount": 1600,
+      "debtAmount": 14400,
+      "overdueAmount": 6400,
+      "currentPeriod": "2026-06",
+      "nextBillingDate": "2026-06-05",
+      "salesOwner": "刘销售",
+      "assetOwner": "王库管",
+      "financeOwner": "赵财务",
+      "contractName": "锂电池租赁合同-河南示例物流",
+      "contractNo": "HT20260501001",
+      "contractStatus": "已会签",
+      "createdAt": "2026-05-01 09:30",
+      "updatedAt": "2026-5-18 02:06:48",
+      "remark": "首批 2 组已出库，剩余 3 组等待客户排车。",
+      "contract": {
+        "name": "锂电池租赁合同-河南示例物流",
+        "contractNo": "HT20260501001",
+        "status": "已会签",
+        "signDate": "2026-05-01",
+        "startDate": "2026-05-01",
+        "endDate": "2027-04-30",
+        "fileName": "HT20260501001.pdf",
+        "approvalNo": "SP20260501008"
+      },
+      "approvals": [
+        {
+          "node": "销售发起",
+          "operator": "刘销售",
+          "result": "已提交",
+          "time": "2026-05-01 09:30",
+          "remark": "客户确认租赁 5 组电池。"
+        },
+        {
+          "node": "部门负责人",
+          "operator": "陈经理",
+          "result": "通过",
+          "time": "2026-05-01 10:12",
+          "remark": "价格和租期符合标准。"
+        },
+        {
+          "node": "财务复核",
+          "operator": "赵财务",
+          "result": "通过",
+          "time": "2026-05-01 11:05",
+          "remark": "押金与账单日已确认。"
+        }
+      ],
+      "timeline": [
+        {
+          "time": "2026-05-01 09:30",
+          "title": "创建租赁订单",
+          "content": "录入客户、租期、月租和账单日。"
+        },
+        {
+          "time": "2026-05-01 11:05",
+          "title": "合同会签通过",
+          "content": "订单进入待出库状态。"
+        },
+        {
+          "time": "2026-05-10 16:20",
+          "title": "首批出库",
+          "content": "出库 2 组电池，等待客户收货确认。"
+        },
+        {
+          "time": "2026-05-12 00:00",
+          "title": "生成首期账单",
+          "content": "账期 2026-05，应收 8000 元。"
+        },
+        {
+          "time": "2026-5-18 02:06:48",
+          "title": "资产退回入库",
+          "content": "1 组电池已从客户现场退回仓库。"
+        }
+      ]
+    },
+    {
+      "id": "order-002",
+      "orderNo": "ORD202605170002",
+      "customerId": "customer-demo-2",
+      "customerName": "郑州测试配送有限公司",
+      "customerShortName": "郑州测试配送",
+      "customerContact": "李主管",
+      "contactPhone": "13800138002",
+      "region": "郑州经开区",
+      "status": "PENDING_OUTBOUND",
+      "leaseStart": "2026-06-01",
+      "leaseEnd": "2027-05-31",
+      "billingDay": 10,
+      "monthlyRent": 15600,
+      "depositAmount": 30000,
+      "orderedBatteryCount": 10,
+      "batteryCount": 0,
+      "outboundProgress": "0/10",
+      "outboundCount": 0,
+      "receivedCount": 0,
+      "pendingReceiptCount": 0,
+      "receivableAmount": 0,
+      "paidAmount": 0,
+      "debtAmount": 0,
+      "overdueAmount": 0,
+      "currentPeriod": "",
+      "nextBillingDate": "2026-06-10",
+      "salesOwner": "刘销售",
+      "assetOwner": "王库管",
+      "financeOwner": "赵财务",
+      "contractName": "锂电池租赁合同-郑州测试配送",
+      "contractNo": "HT20260517002",
+      "contractStatus": "已会签",
+      "createdAt": "2026-05-17 14:40",
+      "updatedAt": "2026-5-18 02:06:48",
+      "remark": "合同通过，等待资产部创建首批出库单。",
+      "contract": {
+        "name": "锂电池租赁合同-郑州测试配送",
+        "contractNo": "HT20260517002",
+        "status": "已会签",
+        "signDate": "2026-05-17",
+        "startDate": "2026-06-01",
+        "endDate": "2027-05-31",
+        "fileName": "HT20260517002.pdf",
+        "approvalNo": "SP20260517021"
+      },
+      "approvals": [
+        {
+          "node": "销售发起",
+          "operator": "刘销售",
+          "result": "已提交",
+          "time": "2026-05-17 14:40",
+          "remark": "客户新增 10 组电池。"
+        },
+        {
+          "node": "财务复核",
+          "operator": "赵财务",
+          "result": "通过",
+          "time": "2026-05-17 15:15",
+          "remark": "押金已确认。"
+        }
+      ],
+      "timeline": [
+        {
+          "time": "2026-05-17 14:40",
+          "title": "创建租赁订单",
+          "content": "录入客户和租赁计划。"
+        },
+        {
+          "time": "2026-05-17 15:15",
+          "title": "合同会签通过",
+          "content": "订单进入待出库。"
+        },
+        {
+          "time": "2026-5-18 02:06:48",
+          "title": "批量创建出库单",
+          "content": "OUT41208640 出库 2 组电池，等待客户确认收货。"
+        },
+        {
+          "time": "2026-5-18 02:06:48",
+          "title": "资产退回入库",
+          "content": "2 组电池已从客户现场退回仓库。"
+        }
+      ]
+    },
+    {
+      "id": "order-003",
+      "orderNo": "ORD202604280006",
+      "customerId": "customer-demo-3",
+      "customerName": "开封城配新能源有限公司",
+      "customerShortName": "开封城配",
+      "customerContact": "周总",
+      "contactPhone": "13800138003",
+      "region": "开封龙亭区",
+      "status": "PARTIALLY_OUTBOUND",
+      "leaseStart": "2026-04-28",
+      "leaseEnd": "2027-04-27",
+      "billingDay": 15,
+      "monthlyRent": 9600,
+      "depositAmount": 18000,
+      "orderedBatteryCount": 6,
+      "batteryCount": 3,
+      "outboundProgress": "3/6",
+      "outboundCount": 3,
+      "receivedCount": 3,
+      "pendingReceiptCount": 0,
+      "receivableAmount": 9600,
+      "paidAmount": 9600,
+      "debtAmount": 0,
+      "overdueAmount": 0,
+      "currentPeriod": "2026-05",
+      "nextBillingDate": "2026-06-15",
+      "salesOwner": "孙销售",
+      "assetOwner": "王库管",
+      "financeOwner": "赵财务",
+      "contractName": "锂电池租赁合同-开封城配",
+      "contractNo": "HT20260428006",
+      "contractStatus": "已会签",
+      "createdAt": "2026-04-28 10:30",
+      "updatedAt": "2026-05-15 17:30",
+      "remark": "已完成第一批出库，第二批等待仓库备货。",
+      "contract": {
+        "name": "锂电池租赁合同-开封城配",
+        "contractNo": "HT20260428006",
+        "status": "已会签",
+        "signDate": "2026-04-28",
+        "startDate": "2026-04-28",
+        "endDate": "2027-04-27",
+        "fileName": "HT20260428006.pdf",
+        "approvalNo": "SP20260428017"
+      },
+      "approvals": [
+        {
+          "node": "销售发起",
+          "operator": "孙销售",
+          "result": "已提交",
+          "time": "2026-04-28 10:30",
+          "remark": "开封区域配送用车。"
+        },
+        {
+          "node": "部门负责人",
+          "operator": "陈经理",
+          "result": "通过",
+          "time": "2026-04-28 11:02",
+          "remark": "同意分批出库。"
+        }
+      ],
+      "timeline": [
+        {
+          "time": "2026-04-28 10:30",
+          "title": "创建订单",
+          "content": "订单需求 6 组电池。"
+        },
+        {
+          "time": "2026-05-02 09:10",
+          "title": "第一批客户收货",
+          "content": "客户确认收到 3 组电池。"
+        },
+        {
+          "time": "2026-05-15 00:00",
+          "title": "账单结清",
+          "content": "2026-05 账期已收 9600 元。"
+        }
+      ]
+    }
+  ],
+  "outbounds": [
+    {
+      "id": "out-41208640",
+      "outboundNo": "OUT41208640",
+      "orderId": "order-002",
+      "customerName": "郑州测试配送有限公司",
+      "status": "PENDING_RECEIPT",
+      "outboundAt": "2026-05-17",
+      "autoReceiveAt": "2026-05-23",
+      "receivedAt": "",
+      "warehouse": "测试前置仓",
+      "operator": "王库管",
+      "receiver": "李主管",
+      "address": "郑州经开区",
+      "btCodes": [
+        "BTTEST020648A",
+        "BTTEST020648B"
+      ],
+      "remark": "资产部门批量出库 2 组电池，绑定订单 ORD202605170002。",
+      "returnedBtCodes": [
+        "BTTEST020648A",
+        "BTTEST020648B"
+      ],
+      "returnedAt": "2026-5-18 02:06:48"
+    },
+    {
+      "id": "out-001",
+      "outboundNo": "OUT202605170001",
+      "orderId": "order-001",
+      "customerName": "河南示例物流有限公司",
+      "status": "PENDING_RECEIPT",
+      "outboundAt": "2026-05-10",
+      "autoReceiveAt": "2026-05-17",
+      "receivedAt": "",
+      "warehouse": "郑州总仓",
+      "operator": "王库管",
+      "receiver": "张经理",
+      "address": "郑州高新区科学大道100号",
+      "btCodes": [
+        "BT202605170001",
+        "BT202605170002"
+      ],
+      "returnedBtCodes": [
+        "BT202605170001"
+      ],
+      "returnedAt": "2026-5-18 02:06:48"
+    },
+    {
+      "id": "out-002",
+      "outboundNo": "OUT202605020006",
+      "orderId": "order-003",
+      "customerName": "开封城配新能源有限公司",
+      "status": "RECEIVED",
+      "outboundAt": "2026-04-30",
+      "autoReceiveAt": "2026-05-07",
+      "receivedAt": "2026-05-02 09:10",
+      "warehouse": "郑州总仓",
+      "operator": "王库管",
+      "receiver": "周总",
+      "address": "开封龙亭区复兴大道88号",
+      "btCodes": [
+        "BT202604280061",
+        "BT202604280062",
+        "BT202604280063"
+      ]
+    }
+  ],
+  "bills": [
+    {
+      "id": "bill-001",
+      "billNo": "BILL202605001",
+      "customerName": "河南示例物流有限公司",
+      "orderNo": "ORD202605170001",
+      "period": "2026-05",
+      "receivableAmount": 8000,
+      "paidAmount": 1600,
+      "debtAmount": 6400,
+      "status": "OVERDUE",
+      "generatedAt": "2026-05-05",
+      "dueDate": "2026-05-12",
+      "confirmedAt": "2026-05-05 10:00",
+      "adjustReason": "",
+      "payments": [
+        {
+          "paymentNo": "PAY20260509001",
+          "amount": 1600,
+          "paidAt": "2026-05-09 16:20",
+          "method": "银行转账",
+          "remark": "首期部分回款"
+        }
+      ],
+      "collectionStatus": "已跟进",
+      "operationLogs": [
+        {
+          "time": "2026-5-18 03:09:18",
+          "operator": "???",
+          "action": "催收跟进",
+          "remark": "??：????????",
+          "detail": {
+            "id": "follow-1779044958711",
+            "createdAt": "2026-5-18 03:09:18",
+            "method": "??",
+            "result": "????????",
+            "promisedPayAt": "",
+            "nextFollowUpAt": "2026-05-20",
+            "remark": "",
+            "operator": "???"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bill-002",
+      "billNo": "BILL202606001",
+      "customerName": "河南示例物流有限公司",
+      "orderNo": "ORD202605170001",
+      "period": "2026-06",
+      "receivableAmount": 8000,
+      "paidAmount": 0,
+      "debtAmount": 8000,
+      "status": "PENDING_CONFIRM",
+      "generatedAt": "2026-06-05",
+      "dueDate": "2026-06-12",
+      "confirmedAt": "",
+      "adjustReason": "",
+      "payments": [],
+      "operationLogs": []
+    },
+    {
+      "id": "bill-003",
+      "billNo": "BILL202605003",
+      "customerName": "开封城配新能源有限公司",
+      "orderNo": "ORD202604280006",
+      "period": "2026-05",
+      "receivableAmount": 9600,
+      "paidAmount": 9600,
+      "debtAmount": 0,
+      "status": "SETTLED",
+      "generatedAt": "2026-05-15",
+      "dueDate": "2026-05-22",
+      "confirmedAt": "2026-05-15 09:20",
+      "adjustReason": "",
+      "payments": [
+        {
+          "paymentNo": "PAY20260515003",
+          "amount": 9600,
+          "paidAt": "2026-05-15 17:30",
+          "method": "银行转账",
+          "remark": "月租已结清"
+        }
+      ],
+      "operationLogs": []
+    }
+  ],
+  "approvals": [
+    {
+      "id": "approval-88142970",
+      "approvalNo": "SP88142970",
+      "type": "SAMPLE_DELIVERY",
+      "typeLabel": "送样审批",
+      "title": "自动验证-审批草稿",
+      "status": "PROCESSING",
+      "applicant": "刘销售",
+      "department": "销售部",
+      "priority": "普通",
+      "businessId": "",
+      "businessNo": "",
+      "customerName": "",
+      "amount": 0,
+      "currentNode": "赵财务审批",
+      "currentOperator": "赵财务",
+      "dueAt": "2026-05-20 18:00",
+      "createdAt": "2026-5-18 15:09:02",
+      "updatedAt": "2026-5-18 15:09:02",
+      "summary": "验证草稿、附件、提交、撤销和删除链路。",
+      "riskItems": [
+        "验证后删除"
+      ],
+      "formItems": [
+        {
+          "label": "客户名称",
+          "value": "自动化验证客户"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "申请人提交",
+          "operator": "刘销售",
+          "status": "APPROVED",
+          "time": "2026-5-18 15:09:02",
+          "remark": "申请已提交。"
+        },
+        {
+          "name": "赵财务审批",
+          "operator": "赵财务",
+          "status": "CURRENT",
+          "time": "",
+          "remark": ""
+        },
+        {
+          "name": "彭总审批",
+          "operator": "彭总",
+          "status": "PENDING",
+          "time": "",
+          "remark": ""
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-5-18 15:09:02",
+          "operator": "刘销售",
+          "action": "提交",
+          "nodeName": "申请人提交",
+          "result": "已提交",
+          "comment": "验证草稿、附件、提交、撤销和删除链路。"
+        },
+        {
+          "time": "2026-5-18 15:09:02",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "赵财务审批",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        }
+      ],
+      "attachments": [
+        "验证附件.docx"
+      ]
+    },
+    {
+      "id": "approval-001",
+      "approvalNo": "SP20260518001",
+      "type": "CONTRACT",
+      "typeLabel": "合同会签",
+      "title": "河南示例物流租赁合同补充会签",
+      "status": "PROCESSING",
+      "applicant": "刘销售",
+      "department": "销售部",
+      "priority": "紧急",
+      "businessId": "order-001",
+      "businessNo": "ORD202605170001",
+      "customerName": "河南示例物流有限公司",
+      "amount": 16000,
+      "currentNode": "财务复核",
+      "currentOperator": "赵财务",
+      "dueAt": "2026-05-18 18:00",
+      "createdAt": "2026-05-18 09:10",
+      "updatedAt": "2026-05-18 10:05",
+      "summary": "客户追加 3 组电池并要求沿用原合同账单日，需确认押金、月租和出库节奏。",
+      "riskItems": [
+        "当前订单仍有 6400 元逾期欠款",
+        "首批出库仍有 2 组等待客户收货确认",
+        "追加电池需重新确认押金差额"
+      ],
+      "formItems": [
+        {
+          "label": "合同编号",
+          "value": "HT20260501001-B01"
+        },
+        {
+          "label": "追加电池",
+          "value": "3 组"
+        },
+        {
+          "label": "月租增量",
+          "value": "¥4,800"
+        },
+        {
+          "label": "账单日",
+          "value": "每月 5 日"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "销售发起",
+          "operator": "刘销售",
+          "status": "APPROVED",
+          "time": "2026-05-18 09:10",
+          "remark": "客户确认追加需求。"
+        },
+        {
+          "name": "部门负责人",
+          "operator": "陈经理",
+          "status": "APPROVED",
+          "time": "2026-05-18 09:42",
+          "remark": "同意按原价格体系执行。"
+        },
+        {
+          "name": "财务复核",
+          "operator": "赵财务",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "待确认押金差额和历史欠款处理。"
+        },
+        {
+          "name": "总经理审批",
+          "operator": "周总",
+          "status": "PENDING",
+          "time": "",
+          "remark": ""
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-05-18 09:10",
+          "operator": "刘销售",
+          "action": "提交",
+          "nodeName": "销售发起",
+          "result": "已提交",
+          "comment": "客户追加 3 组电池，申请合同补充会签。"
+        },
+        {
+          "time": "2026-05-18 09:42",
+          "operator": "陈经理",
+          "action": "通过",
+          "nodeName": "部门负责人",
+          "result": "通过",
+          "comment": "价格和租期符合现有客户政策。"
+        },
+        {
+          "time": "2026-05-18 10:05",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "财务复核",
+          "result": "等待处理",
+          "comment": "已流转至赵财务。"
+        }
+      ],
+      "attachments": [
+        "补充合同草稿.docx",
+        "客户确认截图.png"
+      ]
+    },
+    {
+      "id": "approval-002",
+      "approvalNo": "SP20260517021",
+      "type": "ASSET_OUTBOUND",
+      "typeLabel": "资产出库",
+      "title": "郑州测试配送首批 10 组电池出库",
+      "status": "PROCESSING",
+      "applicant": "王库管",
+      "department": "资产管理部",
+      "priority": "普通",
+      "businessId": "order-002",
+      "businessNo": "ORD202605170002",
+      "customerName": "郑州测试配送有限公司",
+      "amount": 30000,
+      "currentNode": "仓库复核",
+      "currentOperator": "李仓储",
+      "dueAt": "2026-05-19 12:00",
+      "createdAt": "2026-05-17 16:20",
+      "updatedAt": "2026-05-17 16:30",
+      "summary": "合同已会签，客户要求 2026-06-01 前完成首批电池交付，需审批出库与配送安排。",
+      "riskItems": [
+        "需确认 72V 45AH 库存是否满足 10 组",
+        "出库后 7 日内客户未确认将自动收货"
+      ],
+      "formItems": [
+        {
+          "label": "出库仓库",
+          "value": "郑州总仓"
+        },
+        {
+          "label": "出库数量",
+          "value": "10 组"
+        },
+        {
+          "label": "收货地址",
+          "value": "郑州经开区客户仓"
+        },
+        {
+          "label": "计划出库",
+          "value": "2026-05-20"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "资产发起",
+          "operator": "王库管",
+          "status": "APPROVED",
+          "time": "2026-05-17 16:20",
+          "remark": "按订单创建首批出库申请。"
+        },
+        {
+          "name": "仓库复核",
+          "operator": "李仓储",
+          "status": "CURRENT",
+          "time": "",
+          "remark": "待核对批次和库存。"
+        },
+        {
+          "name": "业务确认",
+          "operator": "刘销售",
+          "status": "PENDING",
+          "time": "",
+          "remark": ""
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-05-17 16:20",
+          "operator": "王库管",
+          "action": "提交",
+          "nodeName": "资产发起",
+          "result": "已提交",
+          "comment": "订单已会签，申请生成首批出库。"
+        },
+        {
+          "time": "2026-05-17 16:30",
+          "operator": "系统",
+          "action": "流转",
+          "nodeName": "仓库复核",
+          "result": "等待处理",
+          "comment": "已流转至李仓储。"
+        }
+      ],
+      "attachments": [
+        "出库清单.xlsx"
+      ]
+    },
+    {
+      "id": "approval-003",
+      "approvalNo": "SP20260516012",
+      "type": "REPAIR_COST",
+      "typeLabel": "维修费用",
+      "title": "定位模块返厂维修质保确认",
+      "status": "APPROVED",
+      "applicant": "赵工",
+      "department": "售后技术部",
+      "priority": "普通",
+      "businessId": "repair-003",
+      "businessNo": "REP202605160006",
+      "customerName": "内部仓储",
+      "amount": 0,
+      "currentNode": "流程完成",
+      "currentOperator": "",
+      "dueAt": "2026-05-17 18:00",
+      "createdAt": "2026-05-16 10:20",
+      "updatedAt": "2026-05-17 16:40",
+      "summary": "定位模块离线经检测属于厂商质保范围，维修完成后走资产入库流程。",
+      "riskItems": [
+        "已要求维修完成后必须重新入库，不能直接再次出库"
+      ],
+      "formItems": [
+        {
+          "label": "维修单号",
+          "value": "REP202605160006"
+        },
+        {
+          "label": "故障类型",
+          "value": "定位模块"
+        },
+        {
+          "label": "责任归属",
+          "value": "厂商质保"
+        },
+        {
+          "label": "费用金额",
+          "value": "¥0"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "技术提交",
+          "operator": "赵工",
+          "status": "APPROVED",
+          "time": "2026-05-16 10:20",
+          "remark": "判断为厂商质保。"
+        },
+        {
+          "name": "售后负责人",
+          "operator": "李主管",
+          "status": "APPROVED",
+          "time": "2026-05-16 11:10",
+          "remark": "同意质保处理。"
+        },
+        {
+          "name": "资产确认",
+          "operator": "王库管",
+          "status": "APPROVED",
+          "time": "2026-05-17 16:40",
+          "remark": "维修完成，等待入库。"
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-05-16 10:20",
+          "operator": "赵工",
+          "action": "提交",
+          "nodeName": "技术提交",
+          "result": "已提交",
+          "comment": "返厂检测记录已上传。"
+        },
+        {
+          "time": "2026-05-16 11:10",
+          "operator": "李主管",
+          "action": "通过",
+          "nodeName": "售后负责人",
+          "result": "通过",
+          "comment": "同意走质保。"
+        },
+        {
+          "time": "2026-05-17 16:40",
+          "operator": "王库管",
+          "action": "通过",
+          "nodeName": "资产确认",
+          "result": "通过",
+          "comment": "维修完成后重新入库。"
+        }
+      ],
+      "attachments": [
+        "返修回执.pdf",
+        "检测记录.jpg"
+      ]
+    },
+    {
+      "id": "approval-004",
+      "approvalNo": "SP20260515009",
+      "type": "BILL_ADJUST",
+      "typeLabel": "账单调整",
+      "title": "开封城配 2026-05 账单优惠确认",
+      "status": "REJECTED",
+      "applicant": "赵财务",
+      "department": "财务部",
+      "priority": "普通",
+      "businessId": "bill-003",
+      "businessNo": "BILL202605003",
+      "customerName": "开封城配新能源有限公司",
+      "amount": 9600,
+      "currentNode": "流程结束",
+      "currentOperator": "",
+      "dueAt": "2026-05-16 18:00",
+      "createdAt": "2026-05-15 09:30",
+      "updatedAt": "2026-05-15 15:20",
+      "summary": "客户申请当月月租优惠，因已按合同完成交付且账单已结清，本次调整被驳回。",
+      "riskItems": [
+        "优惠无合同依据",
+        "账单已回款完成"
+      ],
+      "formItems": [
+        {
+          "label": "账单号",
+          "value": "BILL202605003"
+        },
+        {
+          "label": "原应收",
+          "value": "¥9,600"
+        },
+        {
+          "label": "申请调整",
+          "value": "¥1,200"
+        },
+        {
+          "label": "回款状态",
+          "value": "已结清"
+        }
+      ],
+      "nodes": [
+        {
+          "name": "财务发起",
+          "operator": "赵财务",
+          "status": "APPROVED",
+          "time": "2026-05-15 09:30",
+          "remark": "客户提出优惠诉求。"
+        },
+        {
+          "name": "业务确认",
+          "operator": "孙销售",
+          "status": "REJECTED",
+          "time": "2026-05-15 15:20",
+          "remark": "无合同依据，不建议调整。"
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-05-15 09:30",
+          "operator": "赵财务",
+          "action": "提交",
+          "nodeName": "财务发起",
+          "result": "已提交",
+          "comment": "客户申请账单优惠。"
+        },
+        {
+          "time": "2026-05-15 15:20",
+          "operator": "孙销售",
+          "action": "驳回",
+          "nodeName": "业务确认",
+          "result": "已驳回",
+          "comment": "无合同依据，维持原账单。"
+        }
+      ],
+      "attachments": []
+    }
+  ],
+  "approvalFlows": [
+    {
+      "id": "flow-sample-delivery",
+      "name": "送样审批",
+      "businessType": "样品管理",
+      "enabled": true,
+      "nodeCount": 6,
+      "approvers": [
+        "业务员发起",
+        "刘少鹏审批",
+        "彭总审批",
+        "资产管理员协同",
+        "业务员测试跟进",
+        "固定资产处理去向"
+      ],
+      "slaHours": 24,
+      "updatedAt": "2026-05-18 10:10"
+    },
+    {
+      "id": "flow-purchase-request",
+      "name": "采购需求审批",
+      "businessType": "采购管理",
+      "enabled": true,
+      "nodeCount": 4,
+      "approvers": [
+        "业务员/需求部门发起",
+        "刘少鹏审批",
+        "彭总审批",
+        "采购抄送执行"
+      ],
+      "slaHours": 24,
+      "updatedAt": "2026-05-18 10:12"
+    },
+    {
+      "id": "flow-purchase-contract",
+      "name": "采购合同会签",
+      "businessType": "采购管理",
+      "enabled": true,
+      "nodeCount": 8,
+      "approvers": [
+        "采购发起",
+        "财务审批",
+        "法务审批",
+        "技术审批",
+        "刘少鹏审批",
+        "彭总审批",
+        "行政用印",
+        "财务/资产抄送"
+      ],
+      "slaHours": 48,
+      "updatedAt": "2026-05-18 10:14"
+    },
+    {
+      "id": "flow-payment-request",
+      "name": "付款申请",
+      "businessType": "财务付款",
+      "enabled": true,
+      "nodeCount": 6,
+      "approvers": [
+        "发起人",
+        "部门负责人审核",
+        "财务审核",
+        "刘少鹏审批",
+        "彭总审批",
+        "出纳付款"
+      ],
+      "slaHours": 24,
+      "updatedAt": "2026-05-18 10:16"
+    },
+    {
+      "id": "flow-sales-contract",
+      "name": "销售/租赁合同会签",
+      "businessType": "销售租赁",
+      "enabled": true,
+      "nodeCount": 9,
+      "approvers": [
+        "合同专员发起",
+        "业务负责人审批",
+        "财务审批",
+        "法务审批",
+        "技术审批",
+        "刘少鹏审批",
+        "彭总审批",
+        "行政用印",
+        "财务/资产抄送"
+      ],
+      "slaHours": 48,
+      "updatedAt": "2026-05-18 10:18"
+    },
+    {
+      "id": "flow-purchase-inbound",
+      "name": "采购入库申请",
+      "businessType": "固定资产",
+      "enabled": true,
+      "nodeCount": 4,
+      "approvers": [
+        "采购发起",
+        "技术部审核",
+        "固定资产专员入库",
+        "财务抄送入账"
+      ],
+      "slaHours": 12,
+      "updatedAt": "2026-05-18 10:20"
+    },
+    {
+      "id": "flow-lease-outbound",
+      "name": "租赁出库申请",
+      "businessType": "固定资产",
+      "enabled": true,
+      "nodeCount": 4,
+      "approvers": [
+        "业务员发起",
+        "资产管理员核对",
+        "技术部划拨",
+        "财务依据发货单入账"
+      ],
+      "slaHours": 12,
+      "updatedAt": "2026-05-18 10:22"
+    },
+    {
+      "id": "flow-asset-transfer",
+      "name": "调拨审批",
+      "businessType": "固定资产",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "业务员发起",
+        "技术部审核",
+        "彭总审批",
+        "固定资产管理员协同",
+        "技术/财务抄送"
+      ],
+      "slaHours": 24,
+      "updatedAt": "2026-05-18 10:24"
+    },
+    {
+      "id": "flow-factory-repair",
+      "name": "返厂维修申请",
+      "businessType": "售后维修",
+      "enabled": true,
+      "nodeCount": 7,
+      "approvers": [
+        "售后发起",
+        "技术审核",
+        "售后物流发出",
+        "固定资产审核",
+        "技术协同厂商",
+        "售后物流收回",
+        "固定资产处理"
+      ],
+      "slaHours": 48,
+      "updatedAt": "2026-05-18 10:26"
+    },
+    {
+      "id": "flow-damage-compensation",
+      "name": "人为损坏赔偿",
+      "businessType": "售后索赔",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "技术部发起",
+        "业务员审核赔付条款",
+        "财务审核赔付金额",
+        "彭总审批标准",
+        "资产/财务执行"
+      ],
+      "slaHours": 48,
+      "updatedAt": "2026-05-18 10:28"
+    },
+    {
+      "id": "flow-customer-return",
+      "name": "客户退租审批",
+      "businessType": "租赁退租",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "业务发起",
+        "技术部验收",
+        "彭总审批",
+        "固定资产回收入库",
+        "财务对账记账"
+      ],
+      "slaHours": 24,
+      "updatedAt": "2026-05-18 10:30"
+    },
+    {
+      "id": "flow-customer-buyout",
+      "name": "客户买断审批",
+      "businessType": "租赁买断",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "业务发起",
+        "财务审批",
+        "彭总审批",
+        "固定资产出库",
+        "财务对账记账"
+      ],
+      "slaHours": 24,
+      "updatedAt": "2026-05-18 10:32"
+    },
+    {
+      "id": "flow-warranty-scrap",
+      "name": "质保期内电池报废",
+      "businessType": "质保报废",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "技术部发起",
+        "采购签订赔偿/换新协议",
+        "财务审核协议",
+        "彭总审批",
+        "财务/固定资产执行"
+      ],
+      "slaHours": 48,
+      "updatedAt": "2026-05-18 10:34"
+    },
+    {
+      "id": "flow-used-battery-disposal",
+      "name": "废旧电池处置",
+      "businessType": "资产处置",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "资产管理员发起",
+        "技术部审批",
+        "采购签售卖合同",
+        "资产管理员出库",
+        "财务记账"
+      ],
+      "slaHours": 48,
+      "updatedAt": "2026-05-18 10:36"
+    },
+    {
+      "id": "flow-seal-use",
+      "name": "用印申请",
+      "businessType": "行政用印",
+      "enabled": true,
+      "nodeCount": 6,
+      "approvers": [
+        "发起人",
+        "行政风控审批并加签",
+        "所涉部门负责人审批",
+        "刘少鹏审批",
+        "彭总审批",
+        "行政协同用印"
+      ],
+      "slaHours": 12,
+      "updatedAt": "2026-05-18 10:38"
+    },
+    {
+      "id": "flow-business-trip",
+      "name": "公出申请",
+      "businessType": "行政人事",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "申请人",
+        "部门负责人审批",
+        "刘少鹏审批",
+        "彭总审批",
+        "人事考勤计算"
+      ],
+      "slaHours": 12,
+      "updatedAt": "2026-05-18 10:40"
+    },
+    {
+      "id": "flow-reimbursement",
+      "name": "报销流程",
+      "businessType": "财务报销",
+      "enabled": true,
+      "nodeCount": 6,
+      "approvers": [
+        "申请人",
+        "财务专员审核",
+        "财务负责人复核",
+        "刘少鹏审批",
+        "彭总审批",
+        "出纳付款"
+      ],
+      "slaHours": 24,
+      "updatedAt": "2026-05-18 10:42"
+    },
+    {
+      "id": "flow-loan",
+      "name": "借款申请",
+      "businessType": "财务借款",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "发起人",
+        "财务审批",
+        "刘少鹏审批",
+        "彭总审批",
+        "出纳付款"
+      ],
+      "slaHours": 24,
+      "updatedAt": "2026-05-18 10:44"
+    },
+    {
+      "id": "flow-leave-request",
+      "name": "请假申请",
+      "businessType": "行政人事",
+      "enabled": true,
+      "nodeCount": 5,
+      "approvers": [
+        "发起人",
+        "部门负责人审批",
+        "刘少鹏审批",
+        "彭总审批",
+        "行政人事"
+      ],
+      "slaHours": 12,
+      "updatedAt": "2026-05-18 10:46"
+    }
+  ],
+  "repairs": [
+    {
+      "id": "repair-001",
+      "repairNo": "REP202605170001",
+      "source": "CUSTOMER",
+      "customerName": "河南示例物流有限公司",
+      "customerShortName": "河南物流",
+      "orderId": "order-001",
+      "btCode": "BT202605170002",
+      "status": "PROCESSING",
+      "priority": "紧急",
+      "description": "车辆启动时电池异常报警，续航明显下降。",
+      "address": "郑州经开区第八大街",
+      "contactName": "张经理",
+      "contactPhone": "13800138001",
+      "createdAt": "2026-05-17 10:10",
+      "acceptedAt": "2026-05-17 10:28",
+      "expectedFinishAt": "2026-05-18 18:00",
+      "completedAt": "",
+      "handler": "售后一组",
+      "technician": "李工",
+      "faultType": "低电量/温度异常",
+      "responsibility": "待判定",
+      "repairMethod": "上门检测",
+      "costAmount": 0,
+      "customerConfirmed": false,
+      "sourceAlarmNo": "ALM202605170018",
+      "images": [
+        "故障面板照片",
+        "车辆安装位置"
+      ]
+    },
+    {
+      "id": "repair-002",
+      "repairNo": "REP202605120003",
+      "source": "CUSTOMER",
+      "customerName": "开封城配新能源有限公司",
+      "customerShortName": "开封城配",
+      "orderId": "order-003",
+      "btCode": "BT202604280062",
+      "status": "PENDING_ACCEPT",
+      "priority": "普通",
+      "description": "客户反馈充电口松动，需要上门确认。",
+      "address": "开封龙亭区复兴大道88号",
+      "contactName": "刘主管",
+      "contactPhone": "13900139002",
+      "createdAt": "2026-05-12 13:45",
+      "acceptedAt": "",
+      "expectedFinishAt": "2026-05-19 18:00",
+      "completedAt": "",
+      "handler": "待分配",
+      "technician": "",
+      "faultType": "充电接口",
+      "responsibility": "待判定",
+      "repairMethod": "待受理",
+      "costAmount": 0,
+      "customerConfirmed": false,
+      "sourceAlarmNo": "",
+      "images": [
+        "客户上传照片"
+      ]
+    },
+    {
+      "id": "repair-003",
+      "repairNo": "REP202605160006",
+      "source": "INTERNAL",
+      "customerName": "内部仓储",
+      "customerShortName": "郑州总仓",
+      "orderId": "",
+      "btCode": "BT202605170003",
+      "status": "PENDING_INBOUND",
+      "priority": "普通",
+      "description": "仓库盘点发现定位模块离线，已返修完成，等待资产重新入库。",
+      "address": "郑州总仓",
+      "contactName": "王库管",
+      "contactPhone": "13700137003",
+      "createdAt": "2026-05-16 09:30",
+      "acceptedAt": "2026-05-16 09:42",
+      "expectedFinishAt": "2026-05-18 12:00",
+      "completedAt": "2026-05-17 16:40",
+      "handler": "技术二组",
+      "technician": "赵工",
+      "faultType": "定位模块",
+      "responsibility": "厂商质保",
+      "repairMethod": "返厂维修",
+      "costAmount": 0,
+      "customerConfirmed": true,
+      "sourceAlarmNo": "",
+      "images": [
+        "内部检测记录",
+        "返修回执"
+      ]
+    }
+  ],
+  "alarms": [
+    {
+      "id": "alarm-001",
+      "alarmNo": "ALM202605170018",
+      "alarmIndex": "low_power",
+      "level": "SEVERE",
+      "status": "PROCESSING",
+      "type": "低电量/温度异常",
+      "btCode": "BT202605170002",
+      "deviceNum": "LN202605170002",
+      "qrCode": "LN202605170002",
+      "batterySn": "BT202605170002",
+      "customerName": "河南示例物流有限公司",
+      "orderNo": "ORD202605170001",
+      "sourcePlatform": "平台B",
+      "bmsManufacturers": "极空",
+      "alarmTime": "2026-05-17 09:30",
+      "recoveredAt": "",
+      "description": "电量低于 25%，电芯温度达到 43℃，客户车辆续航明显下降。",
+      "currentValue": "SOC 23% / 温度 43℃",
+      "threshold": "SOC < 25% 或温度 > 42℃",
+      "location": "郑州经开区",
+      "handler": "售后一组",
+      "mpPush": true,
+      "repairNo": "REP202605170001",
+      "pushes": [
+        {
+          "id": "alarm-001-push-1",
+          "pushType": "mp",
+          "userName": "张经理",
+          "userType": "customer",
+          "userPhone": "13800138001",
+          "firstPushTime": "2026-05-17 09:31",
+          "lastPushTime": "2026-05-17 09:31",
+          "answerTime": "2026-05-17 09:34",
+          "pushCount": 1,
+          "sendStatus": "success",
+          "receiveStatus": "answered",
+          "failReason": "",
+          "remark": "公众号已读"
+        },
+        {
+          "id": "alarm-001-push-2",
+          "pushType": "sms",
+          "userName": "值班人员",
+          "userType": "operator",
+          "userPhone": "13900139002",
+          "firstPushTime": "2026-05-17 09:33",
+          "lastPushTime": "2026-05-17 09:40",
+          "answerTime": "",
+          "pushCount": 2,
+          "sendStatus": "success",
+          "receiveStatus": "unread",
+          "failReason": "",
+          "remark": "短信通道推送"
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-05-18 15:26",
+          "operator": "smoke",
+          "action": "解除静默",
+          "status": "处理中",
+          "remark": "smoke cleanup"
+        },
+        {
+          "time": "2026-05-18 15:26",
+          "operator": "smoke",
+          "action": "静默告警",
+          "status": "静默中",
+          "remark": "静默至 2026-05-18 15:56，原因：smoke-silence-cleanup"
+        },
+        {
+          "time": "2026-05-17 09:30",
+          "operator": "平台B同步",
+          "action": "生成告警",
+          "status": "待处理",
+          "remark": "第三方平台同步电池低电量和温度异常。"
+        },
+        {
+          "time": "2026-05-17 10:10",
+          "operator": "售后一组",
+          "action": "转报修",
+          "status": "处理中",
+          "remark": "已生成报修单 REP202605170001 并安排李工跟进。"
+        }
+      ],
+      "createdAt": "2026-05-17 09:30",
+      "updatedAt": "2026-05-18 15:26",
+      "silencedAt": "",
+      "silenceUntil": "",
+      "silenceReason": "",
+      "silenceOperator": ""
+    },
+    {
+      "id": "alarm-002",
+      "alarmNo": "ALM202605170021",
+      "alarmIndex": "offline",
+      "level": "WARNING",
+      "status": "PENDING",
+      "type": "设备离线",
+      "btCode": "BT202605170003",
+      "deviceNum": "LN202605170003",
+      "qrCode": "LN202605170003",
+      "batterySn": "BT202605170003",
+      "customerName": "内部仓储",
+      "orderNo": "",
+      "sourcePlatform": "平台C",
+      "bmsManufacturers": "锂钠安",
+      "alarmTime": "2026-05-17 08:42",
+      "recoveredAt": "",
+      "description": "库存电池定位模块离线，BMS 通讯已断开，需要内部检测。",
+      "currentValue": "信号 0 / BMS 断开",
+      "threshold": "连续 30 分钟无定位或保护板数据",
+      "location": "郑州总仓",
+      "handler": "技术二组",
+      "mpPush": false,
+      "repairNo": "REP202605160006",
+      "pushes": [
+        {
+          "id": "alarm-002-push-1",
+          "pushType": "sms",
+          "userName": "王库管",
+          "userType": "manager",
+          "userPhone": "13700137003",
+          "firstPushTime": "2026-05-17 08:43",
+          "lastPushTime": "2026-05-17 08:43",
+          "answerTime": "",
+          "pushCount": 1,
+          "sendStatus": "success",
+          "receiveStatus": "unread",
+          "failReason": "",
+          "remark": "库存异常通知"
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-05-17 08:42",
+          "operator": "平台C同步",
+          "action": "生成告警",
+          "status": "待处理",
+          "remark": "设备离线，资产仍保持在库状态。"
+        }
+      ],
+      "createdAt": "2026-05-17 08:42",
+      "updatedAt": "2026-05-17 08:42"
+    },
+    {
+      "id": "alarm-003",
+      "alarmNo": "ALM202605170023",
+      "alarmIndex": "temperature",
+      "level": "SEVERE",
+      "status": "PROCESSING",
+      "type": "温度过高",
+      "btCode": "BT202605170002",
+      "deviceNum": "LN202605170002",
+      "qrCode": "LN202605170002",
+      "batterySn": "BT202605170002",
+      "customerName": "河南示例物流有限公司",
+      "orderNo": "ORD202605170001",
+      "sourcePlatform": "平台B",
+      "bmsManufacturers": "极空",
+      "alarmTime": "2026-05-17 12:08",
+      "recoveredAt": "",
+      "description": "运行中功率温度短时过高，需判断是否与负载和环境温度有关。",
+      "currentValue": "功率温度 58℃",
+      "threshold": "功率温度 > 55℃",
+      "location": "郑州经开区",
+      "handler": "????",
+      "mpPush": true,
+      "repairNo": "",
+      "pushes": [
+        {
+          "id": "alarm-003-push-1779088895639-4",
+          "pushType": "mp",
+          "userName": "????",
+          "userType": "operator",
+          "userPhone": "13900139002",
+          "firstPushTime": "2026-5-18 15:21:35",
+          "lastPushTime": "2026-5-18 15:21:35",
+          "answerTime": "",
+          "pushCount": 1,
+          "sendStatus": "success",
+          "receiveStatus": "unread",
+          "failReason": "",
+          "remark": "告警重新推送，等待接收人确认。"
+        },
+        {
+          "id": "alarm-003-escalation-1779051174202-1",
+          "pushType": "phone",
+          "userName": "????",
+          "userType": "operator",
+          "userPhone": "13900139002",
+          "firstPushTime": "2026-5-18 04:52:54",
+          "lastPushTime": "2026-5-18 04:52:54",
+          "answerTime": "",
+          "pushCount": 1,
+          "sendStatus": "success",
+          "receiveStatus": "unread",
+          "failReason": "",
+          "remark": "????:SLA???????"
+        },
+        {
+          "id": "alarm-003-push-1779044928856-2",
+          "pushType": "sms",
+          "userName": "????",
+          "userType": "operator",
+          "userPhone": "13900139002",
+          "firstPushTime": "2026-5-18 03:08:48",
+          "lastPushTime": "2026-5-18 03:08:48",
+          "answerTime": "2026-5-18 03:08:48",
+          "pushCount": 1,
+          "sendStatus": "success",
+          "receiveStatus": "answered",
+          "failReason": "",
+          "remark": "????:??????????"
+        },
+        {
+          "id": "alarm-003-push-1",
+          "pushType": "phone",
+          "userName": "张经理",
+          "userType": "customer",
+          "userPhone": "13800138001",
+          "firstPushTime": "2026-05-17 12:09",
+          "lastPushTime": "2026-05-17 12:15",
+          "answerTime": "2026-05-17 12:16",
+          "pushCount": 2,
+          "sendStatus": "success",
+          "receiveStatus": "answered",
+          "failReason": "",
+          "remark": "电话确认车辆已暂停使用"
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-05-18 15:26",
+          "operator": "smoke",
+          "action": "解除静默",
+          "status": "处理中",
+          "remark": "cleanup verification silence"
+        },
+        {
+          "time": "2026-5-18 15:24:16",
+          "operator": "auto",
+          "action": "静默告警",
+          "status": "静默中",
+          "remark": "静默至 2026-5-18 15:55:16，原因：debug-ascii"
+        },
+        {
+          "time": "2026-5-18 15:22:33",
+          "operator": "????",
+          "action": "静默告警",
+          "status": "静默中",
+          "remark": "静默至 2026-5-18 15:52:33，原因：??????"
+        },
+        {
+          "time": "2026-5-18 15:21:35",
+          "operator": "????",
+          "action": "解除静默",
+          "status": "处理中",
+          "remark": "????,????"
+        },
+        {
+          "time": "2026-5-18 15:21:35",
+          "operator": "告警管理",
+          "action": "重新推送",
+          "status": "处理中",
+          "remark": "???? 已接收 公众号提醒。"
+        },
+        {
+          "time": "2026-5-18 15:21:35",
+          "operator": "????",
+          "action": "静默告警",
+          "status": "静默中",
+          "remark": "静默至 2026-5-18 15:51:35，原因：???????????"
+        },
+        {
+          "time": "2026-5-18 04:52:54",
+          "operator": "????",
+          "action": "告警升级",
+          "status": "处理中",
+          "remark": "????:SLA???????"
+        },
+        {
+          "time": "2026-5-18 03:08:48",
+          "operator": "????",
+          "action": "确认推送",
+          "status": "待处理",
+          "remark": "???? 已确认收到告警通知。"
+        },
+        {
+          "time": "2026-5-18 03:08:48",
+          "operator": "????",
+          "action": "重新推送",
+          "status": "待处理",
+          "remark": "???? 已接收 短信提醒。"
+        },
+        {
+          "time": "2026-05-17 12:08",
+          "operator": "平台B同步",
+          "action": "生成告警",
+          "status": "待处理",
+          "remark": "温度高于严重阈值。"
+        }
+      ],
+      "createdAt": "2026-05-17 12:08",
+      "updatedAt": "2026-05-18 15:26",
+      "escalationLevel": 1,
+      "lastEscalatedAt": "2026-5-18 04:52:54",
+      "nextEscalationDueAt": "",
+      "silencedAt": "",
+      "silenceUntil": "",
+      "silenceReason": "",
+      "silenceOperator": ""
+    },
+    {
+      "id": "alarm-004",
+      "alarmNo": "ALM202605160006",
+      "alarmIndex": "single_undervoltage",
+      "level": "WARNING",
+      "status": "RESOLVED",
+      "type": "单体压差过大",
+      "btCode": "BT202605170001",
+      "deviceNum": "LN202605170001",
+      "qrCode": "LN202605170001",
+      "batterySn": "BT202605170001",
+      "customerName": "河南示例物流有限公司",
+      "orderNo": "ORD202605170001",
+      "sourcePlatform": "平台A",
+      "bmsManufacturers": "嘉佰达",
+      "alarmTime": "2026-05-16 16:20",
+      "recoveredAt": "2026-05-16 18:05",
+      "description": "单体压差短时放大，充电后恢复。",
+      "currentValue": "压差 58mV",
+      "threshold": "压差 > 50mV",
+      "location": "郑州高新区",
+      "handler": "技术二组",
+      "mpPush": true,
+      "repairNo": "",
+      "pushes": [
+        {
+          "id": "alarm-004-push-1",
+          "pushType": "mp",
+          "userName": "张经理",
+          "userType": "customer",
+          "userPhone": "13800138001",
+          "firstPushTime": "2026-05-16 16:21",
+          "lastPushTime": "2026-05-16 16:21",
+          "answerTime": "",
+          "pushCount": 1,
+          "sendStatus": "success",
+          "receiveStatus": "unread",
+          "failReason": "",
+          "remark": "公众号提醒"
+        }
+      ],
+      "logs": [
+        {
+          "time": "2026-05-16 16:20",
+          "operator": "平台A同步",
+          "action": "生成告警",
+          "status": "待处理",
+          "remark": "单体压差超过预警阈值。"
+        },
+        {
+          "time": "2026-05-16 18:05",
+          "operator": "赵工",
+          "action": "处理完成",
+          "status": "已处理",
+          "remark": "复核充电曲线后恢复，无需报修。"
+        }
+      ],
+      "createdAt": "2026-05-16 16:20",
+      "updatedAt": "2026-05-16 18:05"
+    },
+    {
+      "id": "alarm-005",
+      "alarmNo": "ALM202605150011",
+      "alarmIndex": "gps",
+      "level": "INFO",
+      "status": "FALSE_ALARM",
+      "type": "基站定位漂移",
+      "btCode": "BT202605170001",
+      "deviceNum": "LN202605170001",
+      "qrCode": "LN202605170001",
+      "batterySn": "BT202605170001",
+      "customerName": "河南示例物流有限公司",
+      "orderNo": "ORD202605170001",
+      "sourcePlatform": "平台A",
+      "bmsManufacturers": "嘉佰达",
+      "alarmTime": "2026-05-15 20:10",
+      "recoveredAt": "2026-05-15 20:42",
+      "description": "基站定位从高新区漂移到中牟，GPS 回传正常后判定误报。",
+      "currentValue": "基站位置偏移 18km",
+      "threshold": "单次定位偏移 > 10km",
+      "location": "郑州高新区",
+      "handler": "资产管理部",
+      "mpPush": false,
+      "repairNo": "",
+      "pushes": [],
+      "logs": [
+        {
+          "time": "2026-05-15 20:10",
+          "operator": "平台A同步",
+          "action": "生成告警",
+          "status": "待处理",
+          "remark": "定位漂移触发预警。"
+        },
+        {
+          "time": "2026-05-15 20:42",
+          "operator": "王库管",
+          "action": "标记误报",
+          "status": "误报",
+          "remark": "GPS 轨迹连续，判断为基站漂移误报。"
+        }
+      ],
+      "createdAt": "2026-05-15 20:10",
+      "updatedAt": "2026-05-15 20:42"
+    }
+  ],
+  "alarmRules": [
+    {
+      "id": "rule-low-power",
+      "alarmIndex": "low_power",
+      "name": "低电量优先处置",
+      "level": "SEVERE",
+      "enabled": true,
+      "responseMinutes": 30,
+      "autoRepair": true,
+      "defaultHandler": "售后一组",
+      "escalationReceivers": [
+        "售后一组",
+        "技术二组",
+        "彭总"
+      ],
+      "channels": [
+        "mp",
+        "sms",
+        "phone"
+      ],
+      "remark": "SOC 低于阈值时先通知客户和售后，超时升级到技术负责人。",
+      "updatedAt": "2026-05-17 09:20"
+    },
+    {
+      "id": "rule-temperature",
+      "alarmIndex": "temperature",
+      "name": "温度异常强提醒",
+      "level": "SEVERE",
+      "enabled": true,
+      "responseMinutes": 20,
+      "autoRepair": true,
+      "defaultHandler": "售后一组",
+      "escalationReceivers": [
+        "售后一组",
+        "技术二组",
+        "彭总"
+      ],
+      "channels": [
+        "phone",
+        "sms"
+      ],
+      "remark": "温度异常需电话确认车辆是否停用，严重告警建议转报修。",
+      "updatedAt": "2026-05-17 11:55"
+    },
+    {
+      "id": "rule-offline",
+      "alarmIndex": "offline",
+      "name": "离线设备复核",
+      "level": "WARNING",
+      "enabled": true,
+      "responseMinutes": 120,
+      "autoRepair": false,
+      "defaultHandler": "????",
+      "escalationReceivers": [
+        "????",
+        "?????"
+      ],
+      "channels": [
+        "sms"
+      ],
+      "remark": "?????????????????????????",
+      "updatedAt": "2026-5-18 04:52:54"
+    },
+    {
+      "id": "rule-single-undervoltage",
+      "alarmIndex": "single_undervoltage",
+      "name": "单体欠压复核",
+      "level": "WARNING",
+      "enabled": true,
+      "responseMinutes": 180,
+      "autoRepair": false,
+      "defaultHandler": "技术二组",
+      "escalationReceivers": [
+        "技术二组",
+        "售后一组"
+      ],
+      "channels": [
+        "mp",
+        "sms"
+      ],
+      "remark": "先复核充放电曲线，持续异常再进入维修流程。",
+      "updatedAt": "2026-05-16 16:05"
+    },
+    {
+      "id": "rule-gps",
+      "alarmIndex": "gps",
+      "name": "定位异常观察",
+      "level": "INFO",
+      "enabled": true,
+      "responseMinutes": 240,
+      "autoRepair": false,
+      "defaultHandler": "资产管理部",
+      "escalationReceivers": [
+        "资产管理部"
+      ],
+      "channels": [
+        "mp"
+      ],
+      "remark": "定位漂移先观察轨迹连续性，确认异常再升级。",
+      "updatedAt": "2026-05-15 19:40"
+    },
+    {
+      "id": "rule-mos",
+      "alarmIndex": "mos",
+      "name": "MOS 异常转技术",
+      "level": "SEVERE",
+      "enabled": true,
+      "responseMinutes": 30,
+      "autoRepair": true,
+      "defaultHandler": "技术二组",
+      "escalationReceivers": [
+        "技术二组",
+        "售后一组",
+        "彭总"
+      ],
+      "channels": [
+        "phone",
+        "sms"
+      ],
+      "remark": "保护板异常默认技术先行判断，严重场景同步售后。",
+      "updatedAt": "2026-05-15 19:20"
+    }
+  ],
+  "inboundRecords": [
+    {
+      "id": "ret-4120866101",
+      "assetId": "bat-001",
+      "btCode": "BT202605170001",
+      "inboundNo": "RET4120866101",
+      "source": "租赁退回入库",
+      "warehouse": "郑州总仓",
+      "operator": "王库管",
+      "quantity": 1,
+      "inboundAt": "2026-5-18 02:06:48",
+      "remark": "ORD202605170001 退回后重新入库，资产恢复可调拨状态。"
+    },
+    {
+      "id": "ret-4120865002",
+      "assetId": "bat-41208628",
+      "btCode": "BTTEST020648B",
+      "inboundNo": "RET4120865002",
+      "source": "租赁退回入库",
+      "warehouse": "郑州总仓",
+      "operator": "王库管",
+      "quantity": 1,
+      "inboundAt": "2026-5-18 02:06:48",
+      "remark": "ORD202605170002 退回后重新入库，资产恢复可调拨状态。"
+    },
+    {
+      "id": "ret-4120864901",
+      "assetId": "bat-41208621",
+      "btCode": "BTTEST020648A",
+      "inboundNo": "RET4120864901",
+      "source": "租赁退回入库",
+      "warehouse": "郑州总仓",
+      "operator": "王库管",
+      "quantity": 1,
+      "inboundAt": "2026-5-18 02:06:48",
+      "remark": "ORD202605170002 退回后重新入库，资产恢复可调拨状态。"
+    }
+  ],
+  "transferRecords": [
+    {
+      "id": "transfer-4120863502",
+      "assetId": "bat-41208628",
+      "transferNo": "TR4120863502",
+      "btCode": "BTTEST020648B",
+      "fromWarehouse": "郑州总仓",
+      "toWarehouse": "测试前置仓",
+      "status": "已调拨",
+      "operator": "王库管",
+      "createdAt": "2026-5-18 02:06:48",
+      "remark": "批量调拨到 测试前置仓。"
+    },
+    {
+      "id": "transfer-4120863501",
+      "assetId": "bat-41208621",
+      "transferNo": "TR4120863501",
+      "btCode": "BTTEST020648A",
+      "fromWarehouse": "郑州总仓",
+      "toWarehouse": "测试前置仓",
+      "status": "已调拨",
+      "operator": "王库管",
+      "createdAt": "2026-5-18 02:06:48",
+      "remark": "批量调拨到 测试前置仓。"
+    },
+    {
+      "id": "transfer-bat-003-demo",
+      "assetId": "bat-003",
+      "transferNo": "TR202605170003",
+      "btCode": "BT202605170003",
+      "fromWarehouse": "郑州总仓",
+      "toWarehouse": "高新区前置仓",
+      "status": "待调拨",
+      "operator": "王库管",
+      "createdAt": "2026-05-17 14:20",
+      "remark": "为郑州测试配送订单预留库存。"
+    }
+  ],
+  "disposalRecords": [
+    {
+      "id": "dispose-4120865602",
+      "assetId": "bat-41208628",
+      "btCode": "BTTEST020648B",
+      "disposalNo": "DSP4120865602",
+      "type": "报废",
+      "status": "已登记",
+      "operator": "王库管",
+      "amount": 0,
+      "reason": "烟测批量报废",
+      "createdAt": "2026-5-18 02:06:48",
+      "remark": "批量登记资产终态。"
+    },
+    {
+      "id": "dispose-4120865601",
+      "assetId": "bat-41208621",
+      "btCode": "BTTEST020648A",
+      "disposalNo": "DSP4120865601",
+      "type": "报废",
+      "status": "已登记",
+      "operator": "王库管",
+      "amount": 0,
+      "reason": "烟测批量报废",
+      "createdAt": "2026-5-18 02:06:48",
+      "remark": "批量登记资产终态。"
+    }
+  ],
+  "inventoryRecords": [
+    {
+      "id": "check-bat-003-demo",
+      "assetId": "bat-003",
+      "btCode": "BT202605170003",
+      "checkNo": "CHK202605170003",
+      "expectedWarehouse": "郑州总仓",
+      "actualWarehouse": "郑州总仓",
+      "result": "MATCHED",
+      "resultLabel": "账实相符",
+      "operator": "系统同步",
+      "checkedAt": "2026-05-17 08:42",
+      "powerPercent": 0,
+      "runningStatus": "OFFLINE",
+      "syncLocation": false,
+      "remark": "设备离线，资产仍保持在库状态。"
+    }
+  ],
+  "depreciationRecords": [
+    {
+      "id": "dep-bat-001-2026-05",
+      "assetId": "bat-001",
+      "btCode": "BT202605170001",
+      "depreciationNo": "DEP202605170001",
+      "period": "2026-05",
+      "method": "直线法",
+      "originalValue": 4800,
+      "salvageValue": 480,
+      "usefulLifeMonths": 36,
+      "depreciableAmount": 4320,
+      "monthlyAmount": 120,
+      "accumulatedBefore": 0,
+      "amount": 120,
+      "accumulatedAfter": 120,
+      "netValueAfter": 4680,
+      "operator": "赵财务",
+      "postedAt": "2026-05-18 09:20",
+      "remark": "首月租赁运营资产折旧计提。"
+    },
+    {
+      "id": "dep-bat-002-2026-05",
+      "assetId": "bat-002",
+      "btCode": "BT202605170002",
+      "depreciationNo": "DEP202605170002",
+      "period": "2026-05",
+      "method": "直线法",
+      "originalValue": 4800,
+      "salvageValue": 480,
+      "usefulLifeMonths": 36,
+      "depreciableAmount": 4320,
+      "monthlyAmount": 120,
+      "accumulatedBefore": 0,
+      "amount": 120,
+      "accumulatedAfter": 120,
+      "netValueAfter": 4680,
+      "operator": "赵财务",
+      "postedAt": "2026-05-18 09:22",
+      "remark": "异常运营资产仍按账面规则计提折旧。"
+    }
+  ],
+  "systemOperationLogs": [
+    {
+      "id": "sys-log-1779088826008",
+      "module": "系统管理",
+      "action": "删除角色",
+      "operator": "系统管理员",
+      "target": "烟测角色152025-更新",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-5-18 15:20:26",
+      "detail": "烟测角色152025-更新角色已删除"
+    },
+    {
+      "id": "sys-log-1779088826001",
+      "module": "系统管理",
+      "action": "更新角色权限",
+      "operator": "系统管理员",
+      "target": "烟测角色152025-更新",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-5-18 15:20:26",
+      "detail": "烟测角色152025的数据范围、说明或权限点已更新"
+    },
+    {
+      "id": "sys-log-1779088825984",
+      "module": "系统管理",
+      "action": "创建角色",
+      "operator": "系统管理员",
+      "target": "烟测角色152025",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-5-18 15:20:25",
+      "detail": "烟测角色152025角色已创建，范围为内部后台"
+    },
+    {
+      "id": "sys-log-1779051017048",
+      "module": "系统管理",
+      "action": "删除审批流",
+      "operator": "系统管理员",
+      "target": "测试审批流程-045016-已编辑",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-5-18 04:50:17",
+      "detail": "测试审批流程-045016-已编辑审批流已删除"
+    },
+    {
+      "id": "sys-log-1779051017019",
+      "module": "系统管理",
+      "action": "更新审批流",
+      "operator": "系统管理员",
+      "target": "测试审批流程-045016-已编辑",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-5-18 04:50:17",
+      "detail": "测试审批流程-045016-已编辑审批节点或时限已更新"
+    },
+    {
+      "id": "sys-log-1779051016881",
+      "module": "系统管理",
+      "action": "创建审批流",
+      "operator": "系统管理员",
+      "target": "测试审批流程-045016",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-5-18 04:50:16",
+      "detail": "测试审批流程-045016已创建，业务类型为测试管理，共3个节点"
+    },
+    {
+      "id": "sys-log-1779045363756",
+      "module": "系统管理",
+      "action": "恢复默认配置",
+      "operator": "系统管理员",
+      "target": "系统管理配置",
+      "result": "成功",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-5-18 03:16:03",
+      "detail": "账号、角色权限、字典、接口、审批流、系统参数和审计日志已恢复为系统默认配置"
+    },
+    {
+      "id": "sys-log-001",
+      "module": "财务管理",
+      "action": "登记回款",
+      "operator": "赵财务",
+      "target": "BILL202605001",
+      "result": "成功",
+      "ip": "10.0.0.24",
+      "createdAt": "2026-05-18 09:06",
+      "detail": "银行转账回款 1600 元"
+    },
+    {
+      "id": "sys-log-002",
+      "module": "系统管理",
+      "action": "测试接口",
+      "operator": "系统管理员",
+      "target": "平台B告警数据",
+      "result": "失败",
+      "ip": "10.0.0.11",
+      "createdAt": "2026-05-18 08:55",
+      "detail": "鉴权失败，需更新 token"
+    },
+    {
+      "id": "sys-log-003",
+      "module": "售后报修",
+      "action": "受理报修",
+      "operator": "李售后",
+      "target": "REP202605170001",
+      "result": "成功",
+      "ip": "10.0.0.31",
+      "createdAt": "2026-05-17 10:28",
+      "detail": "分配李工上门检测"
+    },
+    {
+      "id": "sys-log-004",
+      "module": "客户移动端",
+      "action": "确认收货",
+      "operator": "张经理",
+      "target": "OUT202605170001",
+      "result": "成功",
+      "ip": "223.88.12.8",
+      "createdAt": "2026-05-17 09:50",
+      "detail": "客户确认收到首批 2 组电池"
+    }
+  ],
+  "repairLogs": {
+    "repair-001": [
+      {
+        "time": "2026-05-17 10:10",
+        "operator": "客户移动端",
+        "action": "提交报修",
+        "status": "待受理",
+        "result": "已生成报修单",
+        "remark": "客户上传故障描述和现场地址。"
+      },
+      {
+        "time": "2026-05-17 10:28",
+        "operator": "售后一组",
+        "action": "受理报修",
+        "status": "处理中",
+        "result": "已分配李工",
+        "remark": "与客户确认上门检测时间。"
+      },
+      {
+        "time": "2026-05-17 11:10",
+        "operator": "李工",
+        "action": "远程诊断",
+        "status": "处理中",
+        "result": "建议上门检测",
+        "remark": "温度偏高且压差波动，需要现场复核。"
+      }
+    ],
+    "repair-002": [
+      {
+        "time": "2026-05-12 13:45",
+        "operator": "客户移动端",
+        "action": "提交报修",
+        "status": "待受理",
+        "result": "等待售后受理",
+        "remark": "充电口松动，客户要求上门确认。"
+      }
+    ],
+    "repair-003": [
+      {
+        "time": "2026-05-16 09:30",
+        "operator": "王库管",
+        "action": "内部报修",
+        "status": "待受理",
+        "result": "仓库异常转维修",
+        "remark": "定位模块离线，非客户订单场景。"
+      },
+      {
+        "time": "2026-05-16 10:20",
+        "operator": "赵工",
+        "action": "开始维修",
+        "status": "维修中",
+        "result": "返厂维修",
+        "remark": "判断为定位模块硬件异常。"
+      },
+      {
+        "time": "2026-05-17 16:40",
+        "operator": "赵工",
+        "action": "维修完成",
+        "status": "待入库",
+        "result": "等待资产入库",
+        "remark": "维修完成后必须走入库流程，不能直接重新出库。"
+      }
+    ]
+  },
+  "assetMovements": {
+    "bat-001": [
+      {
+        "type": "入库",
+        "title": "采购入库",
+        "time": "2026-04-18 11:20",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "BATCH202605 批次验收入库。"
+      },
+      {
+        "type": "出库",
+        "title": "订单首批出库",
+        "time": "2026-05-10 09:30",
+        "operator": "王库管",
+        "target": "河南示例物流有限公司",
+        "status": "待客户收货",
+        "remark": "OUT202605170001，绑定 ORD202605170001。"
+      },
+      {
+        "type": "入库",
+        "title": "租赁退回入库",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "ORD202605170001 退回后重新入库，资产恢复可调拨状态。"
+      }
+    ],
+    "bat-002": [
+      {
+        "type": "入库",
+        "title": "采购入库",
+        "time": "2026-04-18 11:20",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "BATCH202605 批次验收入库。"
+      },
+      {
+        "type": "出库",
+        "title": "订单首批出库",
+        "time": "2026-05-10 09:30",
+        "operator": "王库管",
+        "target": "河南示例物流有限公司",
+        "status": "待客户收货",
+        "remark": "OUT202605170001，绑定 ORD202605170001。"
+      },
+      {
+        "type": "维修",
+        "title": "客户报修处理中",
+        "time": "2026-05-17 10:10",
+        "operator": "售后一组",
+        "target": "郑州经开区第八大街",
+        "status": "处理中",
+        "remark": "车辆启动时电池异常报警，续航明显下降。"
+      }
+    ],
+    "bat-003": [
+      {
+        "type": "入库",
+        "title": "采购入库",
+        "time": "2026-04-12 16:40",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "BATCH202604 批次备货入库，暂未绑定订单。"
+      },
+      {
+        "type": "盘点",
+        "title": "仓库盘点",
+        "time": "2026-05-17 08:42",
+        "operator": "系统同步",
+        "target": "郑州总仓",
+        "status": "在库",
+        "remark": "设备离线，资产仍保持在库状态。"
+      },
+      {
+        "type": "盘点",
+        "title": "盘点异常登记",
+        "time": "2026-5-18 03:07:20",
+        "operator": "王库管",
+        "target": "盘点测试仓",
+        "status": "库位不一致",
+        "remark": "烟测库位不一致并同步台账"
+      }
+    ],
+    "bat-41208621": [
+      {
+        "type": "入库",
+        "title": "采购入库",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "BATCH202605 批次新增入库。"
+      },
+      {
+        "type": "调拨",
+        "title": "批量仓库调拨",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州总仓 → 测试前置仓",
+        "status": "已完成",
+        "remark": "批量调拨到 测试前置仓。"
+      },
+      {
+        "type": "出库",
+        "title": "批量订单出库",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州测试配送有限公司",
+        "status": "待客户收货",
+        "remark": "OUT41208640，批量绑定 ORD202605170002。"
+      },
+      {
+        "type": "入库",
+        "title": "租赁退回入库",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "ORD202605170002 退回后重新入库，资产恢复可调拨状态。"
+      },
+      {
+        "type": "报废",
+        "title": "批量报废登记",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "报废",
+        "status": "已登记",
+        "remark": "烟测批量报废"
+      }
+    ],
+    "bat-41208628": [
+      {
+        "type": "入库",
+        "title": "采购入库",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "BATCH202605 批次新增入库。"
+      },
+      {
+        "type": "调拨",
+        "title": "批量仓库调拨",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州总仓 → 测试前置仓",
+        "status": "已完成",
+        "remark": "批量调拨到 测试前置仓。"
+      },
+      {
+        "type": "出库",
+        "title": "批量订单出库",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州测试配送有限公司",
+        "status": "待客户收货",
+        "remark": "OUT41208640，批量绑定 ORD202605170002。"
+      },
+      {
+        "type": "入库",
+        "title": "租赁退回入库",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "ORD202605170002 退回后重新入库，资产恢复可调拨状态。"
+      },
+      {
+        "type": "报废",
+        "title": "批量报废登记",
+        "time": "2026-5-18 02:06:48",
+        "operator": "王库管",
+        "target": "报废",
+        "status": "已登记",
+        "remark": "烟测批量报废"
+      }
+    ],
+    "bat-44840288": [
+      {
+        "type": "入库",
+        "title": "采购入库",
+        "time": "2026-5-18 03:07:20",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "BATCH202605 批次新增入库。"
+      }
+    ],
+    "bat-44840294": [
+      {
+        "type": "入库",
+        "title": "采购入库",
+        "time": "2026-5-18 03:07:20",
+        "operator": "王库管",
+        "target": "郑州总仓",
+        "status": "已完成",
+        "remark": "BATCH202605 批次新增入库。"
+      }
+    ]
+  },
+  "systemManagement": {
+    "accounts": [
+      {
+        "id": "acc-admin",
+        "type": "INTERNAL",
+        "username": "admin",
+        "name": "系统管理员",
+        "roleId": "role-admin",
+        "roleName": "系统管理员",
+        "department": "总经办",
+        "customerName": "",
+        "phone": "13800000001",
+        "status": "ENABLED",
+        "lastLoginAt": "2026-05-18 08:45",
+        "createdAt": "2026-05-01 09:00"
+      },
+      {
+        "id": "acc-sales",
+        "type": "INTERNAL",
+        "username": "sales01",
+        "name": "刘销售",
+        "roleId": "role-sales",
+        "roleName": "销售",
+        "department": "销售部",
+        "customerName": "",
+        "phone": "13800000002",
+        "status": "ENABLED",
+        "lastLoginAt": "2026-05-18 08:20",
+        "createdAt": "2026-05-01 09:10"
+      },
+      {
+        "id": "acc-asset",
+        "type": "INTERNAL",
+        "username": "asset01",
+        "name": "王库管",
+        "roleId": "role-asset",
+        "roleName": "资产管理员",
+        "department": "资产部",
+        "customerName": "",
+        "phone": "13800000003",
+        "status": "ENABLED",
+        "lastLoginAt": "2026-05-17 19:28",
+        "createdAt": "2026-05-01 09:20"
+      },
+      {
+        "id": "acc-finance",
+        "type": "INTERNAL",
+        "username": "finance01",
+        "name": "赵财务",
+        "roleId": "role-finance",
+        "roleName": "财务",
+        "department": "财务部",
+        "customerName": "",
+        "phone": "13800000004",
+        "status": "ENABLED",
+        "lastLoginAt": "2026-05-18 09:12",
+        "createdAt": "2026-05-01 09:30"
+      },
+      {
+        "id": "acc-after-sales",
+        "type": "INTERNAL",
+        "username": "service01",
+        "name": "李售后",
+        "roleId": "role-after-sales",
+        "roleName": "售后",
+        "department": "售后部",
+        "customerName": "",
+        "phone": "13800000005",
+        "status": "DISABLED",
+        "lastLoginAt": "2026-05-12 13:18",
+        "createdAt": "2026-05-01 09:40"
+      },
+      {
+        "id": "acc-customer-admin",
+        "type": "CUSTOMER",
+        "username": "hnwl_admin",
+        "name": "张经理",
+        "roleId": "role-customer-admin",
+        "roleName": "客户管理员",
+        "department": "",
+        "customerName": "河南示例物流有限公司",
+        "phone": "13800138001",
+        "status": "ENABLED",
+        "lastLoginAt": "2026-05-18 08:02",
+        "createdAt": "2026-05-02 10:00"
+      },
+      {
+        "id": "acc-customer-staff",
+        "type": "CUSTOMER",
+        "username": "hnwl_staff01",
+        "name": "陈调度",
+        "roleId": "role-customer-staff",
+        "roleName": "客户员工",
+        "department": "",
+        "customerName": "河南示例物流有限公司",
+        "phone": "13800138006",
+        "status": "ENABLED",
+        "lastLoginAt": "2026-05-17 20:16",
+        "createdAt": "2026-05-02 10:10"
+      }
+    ],
+    "roles": [
+      {
+        "id": "role-admin",
+        "name": "系统管理员",
+        "scope": "内部后台",
+        "userCount": 1,
+        "dataScope": "全部业务与系统配置",
+        "description": "维护账号、角色、字典、审批流、接口配置和审计日志。",
+        "permissionSummary": [
+          "系统管理",
+          "账号权限",
+          "接口配置",
+          "操作审计"
+        ],
+        "permissions": [
+          {
+            "code": "system.account.write",
+            "name": "账号维护",
+            "module": "系统管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "system.role.write",
+            "name": "角色权限维护",
+            "module": "系统管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "system.interface.write",
+            "name": "接口配置维护",
+            "module": "系统管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "audit.read",
+            "name": "查看操作日志",
+            "module": "系统管理",
+            "enabled": true,
+            "sensitive": false
+          }
+        ],
+        "riskNotes": [
+          "不直接修改财务金额",
+          "关键配置必须留痕"
+        ]
+      },
+      {
+        "id": "role-sales",
+        "name": "销售",
+        "scope": "内部后台",
+        "userCount": 1,
+        "dataScope": "本人客户和本人订单",
+        "description": "创建租赁订单、查看合同进度和客户履约状态。",
+        "permissionSummary": [
+          "租赁订单",
+          "客户信息",
+          "合同进度"
+        ],
+        "permissions": [
+          {
+            "code": "order.write",
+            "name": "创建/编辑订单",
+            "module": "租赁订单",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "contract.read",
+            "name": "查看合同",
+            "module": "租赁订单",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "bill.adjust",
+            "name": "调整账单",
+            "module": "财务管理",
+            "enabled": false,
+            "sensitive": true
+          },
+          {
+            "code": "asset.outbound",
+            "name": "资产出库",
+            "module": "固定资产",
+            "enabled": false,
+            "sensitive": true
+          }
+        ],
+        "riskNotes": [
+          "不可确认账单",
+          "不可调整库存状态"
+        ]
+      },
+      {
+        "id": "role-asset",
+        "name": "资产管理员",
+        "scope": "内部后台",
+        "userCount": 1,
+        "dataScope": "全部电池资产与出入库记录",
+        "description": "管理电池入库、出库、调拨、维修入库和资产状态。",
+        "permissionSummary": [
+          "设备管理",
+          "固定资产",
+          "出入库"
+        ],
+        "permissions": [
+          {
+            "code": "asset.write",
+            "name": "资产台账维护",
+            "module": "固定资产",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "asset.outbound",
+            "name": "资产出库",
+            "module": "固定资产",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "asset.dispose",
+            "name": "资产处置",
+            "module": "固定资产",
+            "enabled": false,
+            "sensitive": true
+          },
+          {
+            "code": "bill.read",
+            "name": "查看账单金额",
+            "module": "财务管理",
+            "enabled": false,
+            "sensitive": true
+          }
+        ],
+        "riskNotes": [
+          "出库必须绑定订单",
+          "维修完成后必须走入库"
+        ]
+      },
+      {
+        "id": "role-finance",
+        "name": "财务",
+        "scope": "内部后台",
+        "userCount": 1,
+        "dataScope": "账单、回款和订单财务信息",
+        "description": "确认账单、登记回款、查看欠款和逾期客户。",
+        "permissionSummary": [
+          "财务管理",
+          "账单确认",
+          "回款登记"
+        ],
+        "permissions": [
+          {
+            "code": "bill.confirm",
+            "name": "确认账单",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.payment",
+            "name": "登记回款",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.adjust",
+            "name": "调整账单",
+            "module": "财务管理",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "system.interface.write",
+            "name": "接口配置维护",
+            "module": "系统管理",
+            "enabled": false,
+            "sensitive": true
+          }
+        ],
+        "riskNotes": [
+          "调整账单必须填写原因",
+          "所有金额操作保留审计记录"
+        ]
+      },
+      {
+        "id": "role-after-sales",
+        "name": "售后",
+        "scope": "内部后台",
+        "userCount": 1,
+        "dataScope": "报修工单、故障设备和维修记录",
+        "description": "受理客户报修、派工、记录维修过程和发起维修入库。",
+        "permissionSummary": [
+          "售后报修",
+          "设备告警",
+          "维修记录"
+        ],
+        "permissions": [
+          {
+            "code": "repair.write",
+            "name": "报修处理",
+            "module": "售后报修",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "alarm.write",
+            "name": "告警处理",
+            "module": "告警管理",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "asset.repair_inbound",
+            "name": "维修入库",
+            "module": "固定资产",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "bill.adjust",
+            "name": "调整账单",
+            "module": "财务管理",
+            "enabled": false,
+            "sensitive": true
+          }
+        ],
+        "riskNotes": [
+          "客户责任费用需财务确认",
+          "已关闭工单不可再编辑"
+        ]
+      },
+      {
+        "id": "role-customer-admin",
+        "name": "客户管理员",
+        "scope": "客户移动端",
+        "userCount": 1,
+        "dataScope": "本公司订单、电池、账单和报修",
+        "description": "查看本公司订单、确认收货、查看账单并提交报修。",
+        "permissionSummary": [
+          "客户订单",
+          "收货确认",
+          "账单金额",
+          "报修提交"
+        ],
+        "permissions": [
+          {
+            "code": "customer.order.read",
+            "name": "查看本公司订单",
+            "module": "客户移动端",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "customer.receipt.confirm",
+            "name": "确认收货",
+            "module": "客户移动端",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "customer.bill.read",
+            "name": "查看账单金额",
+            "module": "客户移动端",
+            "enabled": true,
+            "sensitive": true
+          },
+          {
+            "code": "customer.repair.write",
+            "name": "提交报修",
+            "module": "客户移动端",
+            "enabled": true,
+            "sensitive": false
+          }
+        ],
+        "riskNotes": [
+          "仅能查看本公司数据",
+          "不能访问内部后台"
+        ]
+      },
+      {
+        "id": "role-customer-staff",
+        "name": "客户员工",
+        "scope": "客户移动端",
+        "userCount": 1,
+        "dataScope": "本公司订单、电池和报修，不显示金额",
+        "description": "查看电池状态、提交报修，不可查看账单金额和欠款。",
+        "permissionSummary": [
+          "客户订单",
+          "电池列表",
+          "报修提交"
+        ],
+        "permissions": [
+          {
+            "code": "customer.order.read",
+            "name": "查看本公司订单",
+            "module": "客户移动端",
+            "enabled": true,
+            "sensitive": false
+          },
+          {
+            "code": "customer.receipt.confirm",
+            "name": "确认收货",
+            "module": "客户移动端",
+            "enabled": false,
+            "sensitive": true
+          },
+          {
+            "code": "customer.bill.read",
+            "name": "查看账单金额",
+            "module": "客户移动端",
+            "enabled": false,
+            "sensitive": true
+          },
+          {
+            "code": "customer.repair.write",
+            "name": "提交报修",
+            "module": "客户移动端",
+            "enabled": true,
+            "sensitive": false
+          }
+        ],
+        "riskNotes": [
+          "金额字段后端过滤",
+          "不能确认账单"
+        ]
+      }
+    ],
+    "dictionaries": [
+      {
+        "code": "ASSET_STATUS",
+        "name": "资产状态",
+        "owner": "资产部",
+        "updatedAt": "2026-05-17 18:20",
+        "items": [
+          {
+            "code": "IN_STOCK",
+            "label": "在库",
+            "businessRule": "可出库、可调拨、可盘点",
+            "usedBy": "固定资产 / 设备管理",
+            "enabled": true
+          },
+          {
+            "code": "LEASING",
+            "label": "租赁中",
+            "businessRule": "必须绑定客户订单和出库单",
+            "usedBy": "订单 / 客户端",
+            "enabled": true
+          },
+          {
+            "code": "REPAIRING",
+            "label": "维修中",
+            "businessRule": "不可出库，维修完成后必须入库",
+            "usedBy": "售后 / 资产",
+            "enabled": true
+          },
+          {
+            "code": "SCRAPPED",
+            "label": "已报废",
+            "businessRule": "不可重新投入租赁",
+            "usedBy": "资产处置",
+            "enabled": true
+          }
+        ]
+      },
+      {
+        "code": "ORDER_STATUS",
+        "name": "租赁订单状态",
+        "owner": "销售部",
+        "updatedAt": "2026-05-17 18:25",
+        "items": [
+          {
+            "code": "DRAFT",
+            "label": "草稿",
+            "businessRule": "销售录入，未提交审批",
+            "usedBy": "租赁订单",
+            "enabled": true
+          },
+          {
+            "code": "PENDING_OUTBOUND",
+            "label": "待出库",
+            "businessRule": "合同会签后进入资产出库",
+            "usedBy": "租赁订单 / 出库",
+            "enabled": true
+          },
+          {
+            "code": "PENDING_RECEIPT",
+            "label": "待客户收货",
+            "businessRule": "客户 7 天未确认则自动收货",
+            "usedBy": "订单 / 客户端",
+            "enabled": true
+          },
+          {
+            "code": "LEASING",
+            "label": "租赁中",
+            "businessRule": "客户已确认或系统自动确认收货",
+            "usedBy": "订单 / 账单",
+            "enabled": true
+          }
+        ]
+      },
+      {
+        "code": "BILL_STATUS",
+        "name": "账单状态",
+        "owner": "财务部",
+        "updatedAt": "2026-05-17 18:30",
+        "items": [
+          {
+            "code": "PENDING_CONFIRM",
+            "label": "待确认",
+            "businessRule": "财务确认前客户不可见",
+            "usedBy": "财务管理",
+            "enabled": true
+          },
+          {
+            "code": "PENDING_PAYMENT",
+            "label": "待付款",
+            "businessRule": "确认后进入客户应付",
+            "usedBy": "财务 / 客户端",
+            "enabled": true
+          },
+          {
+            "code": "OVERDUE",
+            "label": "已逾期",
+            "businessRule": "到期 7 天未结清自动逾期",
+            "usedBy": "财务风控",
+            "enabled": true
+          },
+          {
+            "code": "VOIDED",
+            "label": "已作废",
+            "businessRule": "仅管理员可作废，必须保留原因",
+            "usedBy": "财务审计",
+            "enabled": true
+          }
+        ]
+      },
+      {
+        "code": "REPAIR_STATUS",
+        "name": "报修状态",
+        "owner": "售后部",
+        "updatedAt": "2026-05-17 18:35",
+        "items": [
+          {
+            "code": "PENDING_ACCEPT",
+            "label": "待受理",
+            "businessRule": "客户提交或内部发起后等待派工",
+            "usedBy": "售后报修",
+            "enabled": true
+          },
+          {
+            "code": "PROCESSING",
+            "label": "处理中",
+            "businessRule": "售后已受理，等待检测",
+            "usedBy": "售后报修",
+            "enabled": true
+          },
+          {
+            "code": "PENDING_INBOUND",
+            "label": "待入库",
+            "businessRule": "维修完成后回到资产入库流程",
+            "usedBy": "售后 / 资产",
+            "enabled": true
+          },
+          {
+            "code": "CLOSED",
+            "label": "已关闭",
+            "businessRule": "客户确认或内部关闭后不可再编辑",
+            "usedBy": "售后审计",
+            "enabled": true
+          }
+        ]
+      }
+    ],
+    "interfaces": [
+      {
+        "id": "if-platform-a",
+        "name": "平台A设备数据",
+        "platform": "锂钠安",
+        "endpoint": "https://api.platform-a.example/devices",
+        "syncInterval": "5分钟",
+        "owner": "设备运维组",
+        "authMode": "Bearer Token",
+        "timeoutMs": 8000,
+        "enabled": true,
+        "status": "ONLINE",
+        "lastSyncAt": "2026-05-18 09:05",
+        "lastResult": "同步 426 条设备运行数据"
+      },
+      {
+        "id": "if-platform-b",
+        "name": "平台B告警数据",
+        "platform": "第三方BMS平台",
+        "endpoint": "https://api.platform-b.example/alarms",
+        "syncInterval": "3分钟",
+        "owner": "设备运维组",
+        "authMode": "Bearer Token",
+        "timeoutMs": 8000,
+        "enabled": true,
+        "status": "ERROR",
+        "lastSyncAt": "2026-05-18 08:55",
+        "lastResult": "鉴权失败，等待重新配置 token"
+      },
+      {
+        "id": "if-map",
+        "name": "设备定位服务",
+        "platform": "地图服务",
+        "endpoint": "https://restapi.amap.com/v3/geocode",
+        "syncInterval": "按需",
+        "owner": "技术部",
+        "authMode": "API Key",
+        "timeoutMs": 5000,
+        "enabled": true,
+        "status": "ONLINE",
+        "lastSyncAt": "2026-05-18 08:50",
+        "lastResult": "最近一次查询成功"
+      },
+      {
+        "id": "if-sms",
+        "name": "短信通知接口",
+        "platform": "短信服务商",
+        "endpoint": "https://sms.example/send",
+        "syncInterval": "按需",
+        "owner": "系统管理员",
+        "authMode": "AccessKey",
+        "timeoutMs": 5000,
+        "enabled": false,
+        "status": "DISABLED",
+        "lastSyncAt": "",
+        "lastResult": "暂未启用，当前采用站内通知"
+      }
+    ],
+    "approvalFlows": [
+      {
+        "id": "flow-sample-delivery",
+        "name": "送样审批",
+        "businessType": "样品管理",
+        "enabled": true,
+        "nodeCount": 6,
+        "approvers": [
+          "业务员发起",
+          "刘少鹏审批",
+          "彭总审批",
+          "资产管理员协同",
+          "业务员测试跟进",
+          "固定资产处理去向"
+        ],
+        "slaHours": 24,
+        "updatedAt": "2026-05-18 10:10"
+      },
+      {
+        "id": "flow-purchase-request",
+        "name": "采购需求审批",
+        "businessType": "采购管理",
+        "enabled": true,
+        "nodeCount": 4,
+        "approvers": [
+          "业务员/需求部门发起",
+          "刘少鹏审批",
+          "彭总审批",
+          "采购抄送执行"
+        ],
+        "slaHours": 24,
+        "updatedAt": "2026-05-18 10:12"
+      },
+      {
+        "id": "flow-purchase-contract",
+        "name": "采购合同会签",
+        "businessType": "采购管理",
+        "enabled": true,
+        "nodeCount": 8,
+        "approvers": [
+          "采购发起",
+          "财务审批",
+          "法务审批",
+          "技术审批",
+          "刘少鹏审批",
+          "彭总审批",
+          "行政用印",
+          "财务/资产抄送"
+        ],
+        "slaHours": 48,
+        "updatedAt": "2026-05-18 10:14"
+      },
+      {
+        "id": "flow-payment-request",
+        "name": "付款申请",
+        "businessType": "财务付款",
+        "enabled": true,
+        "nodeCount": 6,
+        "approvers": [
+          "发起人",
+          "部门负责人审核",
+          "财务审核",
+          "刘少鹏审批",
+          "彭总审批",
+          "出纳付款"
+        ],
+        "slaHours": 24,
+        "updatedAt": "2026-05-18 10:16"
+      },
+      {
+        "id": "flow-sales-contract",
+        "name": "销售/租赁合同会签",
+        "businessType": "销售租赁",
+        "enabled": true,
+        "nodeCount": 9,
+        "approvers": [
+          "合同专员发起",
+          "业务负责人审批",
+          "财务审批",
+          "法务审批",
+          "技术审批",
+          "刘少鹏审批",
+          "彭总审批",
+          "行政用印",
+          "财务/资产抄送"
+        ],
+        "slaHours": 48,
+        "updatedAt": "2026-05-18 10:18"
+      },
+      {
+        "id": "flow-purchase-inbound",
+        "name": "采购入库申请",
+        "businessType": "固定资产",
+        "enabled": true,
+        "nodeCount": 4,
+        "approvers": [
+          "采购发起",
+          "技术部审核",
+          "固定资产专员入库",
+          "财务抄送入账"
+        ],
+        "slaHours": 12,
+        "updatedAt": "2026-05-18 10:20"
+      },
+      {
+        "id": "flow-lease-outbound",
+        "name": "租赁出库申请",
+        "businessType": "固定资产",
+        "enabled": true,
+        "nodeCount": 4,
+        "approvers": [
+          "业务员发起",
+          "资产管理员核对",
+          "技术部划拨",
+          "财务依据发货单入账"
+        ],
+        "slaHours": 12,
+        "updatedAt": "2026-05-18 10:22"
+      },
+      {
+        "id": "flow-asset-transfer",
+        "name": "调拨审批",
+        "businessType": "固定资产",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "业务员发起",
+          "技术部审核",
+          "彭总审批",
+          "固定资产管理员协同",
+          "技术/财务抄送"
+        ],
+        "slaHours": 24,
+        "updatedAt": "2026-05-18 10:24"
+      },
+      {
+        "id": "flow-factory-repair",
+        "name": "返厂维修申请",
+        "businessType": "售后维修",
+        "enabled": true,
+        "nodeCount": 7,
+        "approvers": [
+          "售后发起",
+          "技术审核",
+          "售后物流发出",
+          "固定资产审核",
+          "技术协同厂商",
+          "售后物流收回",
+          "固定资产处理"
+        ],
+        "slaHours": 48,
+        "updatedAt": "2026-05-18 10:26"
+      },
+      {
+        "id": "flow-damage-compensation",
+        "name": "人为损坏赔偿",
+        "businessType": "售后索赔",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "技术部发起",
+          "业务员审核赔付条款",
+          "财务审核赔付金额",
+          "彭总审批标准",
+          "资产/财务执行"
+        ],
+        "slaHours": 48,
+        "updatedAt": "2026-05-18 10:28"
+      },
+      {
+        "id": "flow-customer-return",
+        "name": "客户退租审批",
+        "businessType": "租赁退租",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "业务发起",
+          "技术部验收",
+          "彭总审批",
+          "固定资产回收入库",
+          "财务对账记账"
+        ],
+        "slaHours": 24,
+        "updatedAt": "2026-05-18 10:30"
+      },
+      {
+        "id": "flow-customer-buyout",
+        "name": "客户买断审批",
+        "businessType": "租赁买断",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "业务发起",
+          "财务审批",
+          "彭总审批",
+          "固定资产出库",
+          "财务对账记账"
+        ],
+        "slaHours": 24,
+        "updatedAt": "2026-05-18 10:32"
+      },
+      {
+        "id": "flow-warranty-scrap",
+        "name": "质保期内电池报废",
+        "businessType": "质保报废",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "技术部发起",
+          "采购签订赔偿/换新协议",
+          "财务审核协议",
+          "彭总审批",
+          "财务/固定资产执行"
+        ],
+        "slaHours": 48,
+        "updatedAt": "2026-05-18 10:34"
+      },
+      {
+        "id": "flow-used-battery-disposal",
+        "name": "废旧电池处置",
+        "businessType": "资产处置",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "资产管理员发起",
+          "技术部审批",
+          "采购签售卖合同",
+          "资产管理员出库",
+          "财务记账"
+        ],
+        "slaHours": 48,
+        "updatedAt": "2026-05-18 10:36"
+      },
+      {
+        "id": "flow-seal-use",
+        "name": "用印申请",
+        "businessType": "行政用印",
+        "enabled": true,
+        "nodeCount": 6,
+        "approvers": [
+          "发起人",
+          "行政风控审批并加签",
+          "所涉部门负责人审批",
+          "刘少鹏审批",
+          "彭总审批",
+          "行政协同用印"
+        ],
+        "slaHours": 12,
+        "updatedAt": "2026-05-18 10:38"
+      },
+      {
+        "id": "flow-business-trip",
+        "name": "公出申请",
+        "businessType": "行政人事",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "申请人",
+          "部门负责人审批",
+          "刘少鹏审批",
+          "彭总审批",
+          "人事考勤计算"
+        ],
+        "slaHours": 12,
+        "updatedAt": "2026-05-18 10:40"
+      },
+      {
+        "id": "flow-reimbursement",
+        "name": "报销流程",
+        "businessType": "财务报销",
+        "enabled": true,
+        "nodeCount": 6,
+        "approvers": [
+          "申请人",
+          "财务专员审核",
+          "财务负责人复核",
+          "刘少鹏审批",
+          "彭总审批",
+          "出纳付款"
+        ],
+        "slaHours": 24,
+        "updatedAt": "2026-05-18 10:42"
+      },
+      {
+        "id": "flow-loan",
+        "name": "借款申请",
+        "businessType": "财务借款",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "发起人",
+          "财务审批",
+          "刘少鹏审批",
+          "彭总审批",
+          "出纳付款"
+        ],
+        "slaHours": 24,
+        "updatedAt": "2026-05-18 10:44"
+      },
+      {
+        "id": "flow-leave-request",
+        "name": "请假申请",
+        "businessType": "行政人事",
+        "enabled": true,
+        "nodeCount": 5,
+        "approvers": [
+          "发起人",
+          "部门负责人审批",
+          "刘少鹏审批",
+          "彭总审批",
+          "行政人事"
+        ],
+        "slaHours": 12,
+        "updatedAt": "2026-05-18 10:46"
+      }
+    ],
+    "parameters": [
+      {
+        "code": "AUTO_RECEIPT_DAYS",
+        "name": "自动收货天数",
+        "module": "租赁订单",
+        "value": 7,
+        "unit": "天",
+        "description": "出库后客户未确认收货时，系统自动确认的等待天数。",
+        "riskLevel": "高",
+        "updatedAt": "2026-05-17 18:40"
+      },
+      {
+        "code": "BILL_OVERDUE_DAYS",
+        "name": "账单逾期天数",
+        "module": "财务管理",
+        "value": 7,
+        "unit": "天",
+        "description": "账单到期后超过该天数未结清即标记为逾期。",
+        "riskLevel": "高",
+        "updatedAt": "2026-05-17 18:42"
+      },
+      {
+        "code": "DEVICE_SYNC_RETRY",
+        "name": "接口同步重试次数",
+        "module": "设备管理",
+        "value": 3,
+        "unit": "次",
+        "description": "第三方平台同步失败后的自动重试次数。",
+        "riskLevel": "中",
+        "updatedAt": "2026-05-17 18:44"
+      },
+      {
+        "code": "PASSWORD_EXPIRE_DAYS",
+        "name": "密码有效期",
+        "module": "账号权限",
+        "value": 90,
+        "unit": "天",
+        "description": "内部账号密码到期后需要重新设置。",
+        "riskLevel": "中",
+        "updatedAt": "2026-05-17 18:46"
+      },
+      {
+        "code": "CUSTOMER_AMOUNT_VISIBLE",
+        "name": "客户员工金额可见",
+        "module": "客户移动端",
+        "value": false,
+        "unit": "",
+        "description": "关闭时客户员工不可查看账单金额和欠款金额。",
+        "riskLevel": "高",
+        "updatedAt": "2026-05-17 18:48"
+      }
+    ],
+    "operationLogs": [
+      {
+        "id": "sys-log-1779088826008",
+        "module": "系统管理",
+        "action": "删除角色",
+        "operator": "系统管理员",
+        "target": "烟测角色152025-更新",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-5-18 15:20:26",
+        "detail": "烟测角色152025-更新角色已删除"
+      },
+      {
+        "id": "sys-log-1779088826001",
+        "module": "系统管理",
+        "action": "更新角色权限",
+        "operator": "系统管理员",
+        "target": "烟测角色152025-更新",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-5-18 15:20:26",
+        "detail": "烟测角色152025的数据范围、说明或权限点已更新"
+      },
+      {
+        "id": "sys-log-1779088825984",
+        "module": "系统管理",
+        "action": "创建角色",
+        "operator": "系统管理员",
+        "target": "烟测角色152025",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-5-18 15:20:25",
+        "detail": "烟测角色152025角色已创建，范围为内部后台"
+      },
+      {
+        "id": "sys-log-1779051017048",
+        "module": "系统管理",
+        "action": "删除审批流",
+        "operator": "系统管理员",
+        "target": "测试审批流程-045016-已编辑",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-5-18 04:50:17",
+        "detail": "测试审批流程-045016-已编辑审批流已删除"
+      },
+      {
+        "id": "sys-log-1779051017019",
+        "module": "系统管理",
+        "action": "更新审批流",
+        "operator": "系统管理员",
+        "target": "测试审批流程-045016-已编辑",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-5-18 04:50:17",
+        "detail": "测试审批流程-045016-已编辑审批节点或时限已更新"
+      },
+      {
+        "id": "sys-log-1779051016881",
+        "module": "系统管理",
+        "action": "创建审批流",
+        "operator": "系统管理员",
+        "target": "测试审批流程-045016",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-5-18 04:50:16",
+        "detail": "测试审批流程-045016已创建，业务类型为测试管理，共3个节点"
+      },
+      {
+        "id": "sys-log-1779045363756",
+        "module": "系统管理",
+        "action": "恢复默认配置",
+        "operator": "系统管理员",
+        "target": "系统管理配置",
+        "result": "成功",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-5-18 03:16:03",
+        "detail": "账号、角色权限、字典、接口、审批流、系统参数和审计日志已恢复为系统默认配置"
+      },
+      {
+        "id": "sys-log-001",
+        "module": "财务管理",
+        "action": "登记回款",
+        "operator": "赵财务",
+        "target": "BILL202605001",
+        "result": "成功",
+        "ip": "10.0.0.24",
+        "createdAt": "2026-05-18 09:06",
+        "detail": "银行转账回款 1600 元"
+      },
+      {
+        "id": "sys-log-002",
+        "module": "系统管理",
+        "action": "测试接口",
+        "operator": "系统管理员",
+        "target": "平台B告警数据",
+        "result": "失败",
+        "ip": "10.0.0.11",
+        "createdAt": "2026-05-18 08:55",
+        "detail": "鉴权失败，需更新 token"
+      },
+      {
+        "id": "sys-log-003",
+        "module": "售后报修",
+        "action": "受理报修",
+        "operator": "李售后",
+        "target": "REP202605170001",
+        "result": "成功",
+        "ip": "10.0.0.31",
+        "createdAt": "2026-05-17 10:28",
+        "detail": "分配李工上门检测"
+      },
+      {
+        "id": "sys-log-004",
+        "module": "客户移动端",
+        "action": "确认收货",
+        "operator": "张经理",
+        "target": "OUT202605170001",
+        "result": "成功",
+        "ip": "223.88.12.8",
+        "createdAt": "2026-05-17 09:50",
+        "detail": "客户确认收到首批 2 组电池"
+      }
+    ]
+  }
+}

@@ -1,0 +1,906 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from "@nestjs/common";
+import { MockService } from "./mock.service";
+
+@Controller("mock")
+export class MockController {
+  constructor(private readonly mockService: MockService) {}
+
+  @Get("dashboard")
+  getDashboard() {
+    return this.mockService.getDashboard();
+  }
+
+  @Get("batteries")
+  getBatteries() {
+    return this.mockService.getBatteries();
+  }
+
+  @Get("assets")
+  getAssets() {
+    return this.mockService.getAssets();
+  }
+
+  @Get("assets/:id")
+  getAsset(@Param("id") id: string) {
+    return this.mockService.getAsset(id);
+  }
+
+  @Post("assets/inbound")
+  createAssetInbound(@Body() body: Record<string, any>) {
+    return this.mockService.createAssetInbound(body);
+  }
+
+  @Post("assets/batch/outbound")
+  createAssetBatchOutbound(@Body() body: Record<string, any>) {
+    return this.mockService.createAssetBatchOutbound(body);
+  }
+
+  @Post("assets/:id/outbound")
+  createAssetOutbound(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.createAssetOutbound(id, body);
+  }
+
+  @Post("assets/batch/return-inbound")
+  batchReturnAssetInbound(@Body() body: Record<string, any>) {
+    return this.mockService.batchReturnAssetInbound(body);
+  }
+
+  @Post("assets/:id/return-inbound")
+  returnAssetInbound(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.returnAssetInbound(id, body);
+  }
+
+  @Post("assets/batch/transfer")
+  batchTransferAssets(@Body() body: Record<string, any>) {
+    return this.mockService.batchTransferAssets(body);
+  }
+
+  @Post("assets/:id/transfer")
+  transferAsset(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.transferAsset(id, body);
+  }
+
+  @Post("assets/batch/check")
+  batchCheckAssetInventory(@Body() body: Record<string, any>) {
+    return this.mockService.batchCheckAssetInventory(body);
+  }
+
+  @Post("assets/:id/check")
+  checkAssetInventory(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.checkAssetInventory(id, body);
+  }
+
+  @Post("assets/batch/depreciation")
+  batchDepreciateAssets(@Body() body: Record<string, any>) {
+    return this.mockService.batchDepreciateAssets(body);
+  }
+
+  @Post("assets/:id/depreciation")
+  depreciateAsset(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.depreciateAsset(id, body);
+  }
+
+  @Post("assets/:id/valuation")
+  updateAssetValuation(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.updateAssetValuation(id, body);
+  }
+
+  @Post("assets/:id/repair-inbound")
+  repairInboundAsset(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.repairInboundAsset(id, body);
+  }
+
+  @Post("assets/batch/dispose")
+  batchDisposeAssets(@Body() body: Record<string, any>) {
+    return this.mockService.batchDisposeAssets(body);
+  }
+
+  @Post("assets/:id/dispose")
+  disposeAsset(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.disposeAsset(id, body);
+  }
+
+  @Get("orders")
+  getOrders() {
+    return this.mockService.getOrders();
+  }
+
+  @Get("orders/:id")
+  getOrder(@Param("id") id: string) {
+    return this.mockService.getOrder(id);
+  }
+
+  @Post("orders")
+  createOrder(@Body() body: Record<string, any>) {
+    return this.mockService.createOrder(body);
+  }
+
+  @Patch("orders/:id/submit-approval")
+  submitOrderApproval(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.submitOrderApproval(id, body);
+  }
+
+  @Patch("orders/:id/approve-contract")
+  approveOrderContract(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.approveOrderContract(id, body);
+  }
+
+  @Patch("orders/:id/archive-contract")
+  archiveOrderContract(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.archiveOrderContract(id, body);
+  }
+
+  @Patch("orders/:id/cancel")
+  cancelOrder(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.cancelOrder(id, body);
+  }
+
+  @Patch("orders/:id/renew")
+  renewOrder(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.renewOrder(id, body);
+  }
+
+  @Patch("orders/:id/return-lease")
+  returnOrderLease(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.returnOrderLease(id, body);
+  }
+
+  @Patch("orders/:id/settle-return")
+  settleReturnOrder(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.settleReturnOrder(id, body);
+  }
+
+  @Patch("orders/:id/complete")
+  completeOrder(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.completeOrder(id, body);
+  }
+
+  @Post("orders/:id/outbounds")
+  createOrderOutbound(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.createOrderOutbound(id, body);
+  }
+
+  @Post("orders/:id/bills")
+  generateOrderBill(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.generateOrderBill(id, body);
+  }
+
+  @Patch("outbounds/:id/receipt")
+  confirmOutboundReceipt(@Param("id") id: string) {
+    return this.mockService.confirmReceipt(id);
+  }
+
+  @Get("alarms")
+  getAlarms(@Query() query: Record<string, string>) {
+    return this.mockService.getAlarms(query);
+  }
+
+  @Get("alarms/stats")
+  getAlarmStats(@Query() query: Record<string, string>) {
+    return this.mockService.getAlarmStats(query);
+  }
+
+  @Get("alarms/rules")
+  getAlarmRules() {
+    return this.mockService.getAlarmRules();
+  }
+
+  @Patch("alarms/rules/:id")
+  updateAlarmRule(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      name?: string;
+      level?: string;
+      enabled?: boolean;
+      responseMinutes?: number;
+      autoRepair?: boolean;
+      defaultHandler?: string;
+      escalationReceivers?: string[];
+      channels?: string[];
+      remark?: string;
+    },
+  ) {
+    return this.mockService.updateAlarmRule(id, body);
+  }
+
+  @Get("alarms/:id")
+  getAlarm(@Param("id") id: string) {
+    return this.mockService.getAlarm(id);
+  }
+
+  @Patch("alarms/:id/status")
+  updateAlarmStatus(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      status?: string;
+      remark?: string;
+      operator?: string;
+      handler?: string;
+    },
+  ) {
+    return this.mockService.updateAlarmStatus(id, body);
+  }
+
+  @Post("alarms/batch/status")
+  batchUpdateAlarmStatus(
+    @Body()
+    body: {
+      ids?: string[];
+      status?: string;
+      remark?: string;
+      operator?: string;
+      handler?: string;
+    },
+  ) {
+    return this.mockService.batchUpdateAlarmStatus(body);
+  }
+
+  @Post("alarms/batch/pushes")
+  batchPushAlarms(
+    @Body()
+    body: {
+      ids?: string[];
+      pushType?: string;
+      userName?: string;
+      userPhone?: string;
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.batchPushAlarms(body);
+  }
+
+  @Post("alarms/batch/silence")
+  batchSilenceAlarms(
+    @Body()
+    body: {
+      ids?: string[];
+      minutes?: number;
+      silenceMinutes?: number;
+      until?: string;
+      reason?: string;
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.batchSilenceAlarms(body);
+  }
+
+  @Post("alarms/batch/unsilence")
+  batchUnsilenceAlarms(
+    @Body()
+    body: {
+      ids?: string[];
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.batchUnsilenceAlarms(body);
+  }
+
+  @Post("alarms/batch/escalations")
+  batchEscalateAlarms(
+    @Body()
+    body: {
+      ids?: string[];
+      operator?: string;
+      remark?: string;
+      receiverName?: string;
+      receiverPhone?: string;
+      pushType?: string;
+    },
+  ) {
+    return this.mockService.batchEscalateAlarms(body);
+  }
+
+  @Post("alarms/:id/silence")
+  silenceAlarm(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      minutes?: number;
+      silenceMinutes?: number;
+      until?: string;
+      reason?: string;
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.silenceAlarm(id, body);
+  }
+
+  @Post("alarms/:id/unsilence")
+  unsilenceAlarm(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.unsilenceAlarm(id, body);
+  }
+
+  @Post("alarms/:id/pushes")
+  pushAlarm(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      pushType?: string;
+      userName?: string;
+      userPhone?: string;
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.pushAlarm(id, body);
+  }
+
+  @Patch("alarms/:id/pushes/:pushId/ack")
+  acknowledgeAlarmPush(
+    @Param("id") id: string,
+    @Param("pushId") pushId: string,
+    @Body()
+    body: {
+      operator?: string;
+      remark?: string;
+    },
+  ) {
+    return this.mockService.acknowledgeAlarmPush(id, pushId, body);
+  }
+
+  @Post("alarms/:id/escalations")
+  escalateAlarm(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      operator?: string;
+      remark?: string;
+      receiverName?: string;
+      receiverPhone?: string;
+      pushType?: string;
+    },
+  ) {
+    return this.mockService.escalateAlarm(id, body);
+  }
+
+  @Post("alarms/:id/repair")
+  createRepairFromAlarm(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      description?: string;
+      address?: string;
+      handler?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.createRepairFromAlarm(id, body);
+  }
+
+  @Get("repairs")
+  getRepairs() {
+    return this.mockService.getRepairs();
+  }
+
+  @Post("repairs/import")
+  importCustomerRepairs(
+    @Body()
+    body: {
+      records?: Array<{
+        btCode?: string;
+        description?: string;
+        address?: string;
+        images?: string[];
+      }>;
+    },
+  ) {
+    return this.mockService.importCustomerRepairs(body);
+  }
+
+  @Post("repairs/batch/status")
+  batchUpdateRepairStatus(
+    @Body()
+    body: {
+      ids?: string[];
+      status?: string;
+      operator?: string;
+      handler?: string;
+      technician?: string;
+      result?: string;
+      remark?: string;
+    },
+  ) {
+    return this.mockService.batchUpdateRepairStatus(body);
+  }
+
+  @Get("repairs/:id")
+  getRepair(@Param("id") id: string) {
+    return this.mockService.getRepair(id);
+  }
+
+  @Patch("repairs/:id/assignment")
+  updateRepairAssignment(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      handler?: string;
+      technician?: string;
+      priority?: string;
+      expectedFinishAt?: string;
+      slaHours?: number;
+      acceptNow?: boolean;
+      operator?: string;
+      remark?: string;
+    },
+  ) {
+    return this.mockService.updateRepairAssignment(id, body);
+  }
+
+  @Patch("repairs/:id/status")
+  updateRepairStatus(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      status: string;
+      operator?: string;
+      handler?: string;
+      technician?: string;
+      result?: string;
+      remark?: string;
+    },
+  ) {
+    return this.mockService.updateRepairStatus(id, body);
+  }
+
+  @Post("repairs/:id/logs")
+  addRepairLog(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      action: string;
+      result: string;
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.addRepairLog(id, body);
+  }
+
+  @Post("repairs/:id/materials")
+  addRepairMaterial(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      name: string;
+      quantity: number;
+      amount?: number;
+      remark?: string;
+    },
+  ) {
+    return this.mockService.addRepairMaterial(id, body);
+  }
+
+  @Post("repairs/:id/images")
+  addRepairImage(@Param("id") id: string, @Body() body: { name: string }) {
+    return this.mockService.addRepairImage(id, body);
+  }
+
+  @Patch("repairs/:id/costs")
+  updateRepairCost(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      item: string;
+      amount: number;
+      payer?: string;
+      responsibility?: string;
+      customerConfirmed?: boolean;
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.updateRepairCost(id, body);
+  }
+
+  @Get("approvals")
+  getApprovals() {
+    return this.mockService.getApprovals();
+  }
+
+  @Get("approvals/:id")
+  getApproval(@Param("id") id: string) {
+    return this.mockService.getApproval(id);
+  }
+
+  @Post("approvals")
+  createApproval(@Body() body: Record<string, any>) {
+    return this.mockService.createApproval(body);
+  }
+
+  @Patch("approvals/:id")
+  updateApproval(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.updateApproval(id, body);
+  }
+
+  @Patch("approvals/:id/action")
+  actionApproval(@Param("id") id: string, @Body() body: Record<string, any>) {
+    return this.mockService.actionApproval(id, body);
+  }
+
+  @Patch("approvals/:id/attachments")
+  appendApprovalAttachments(
+    @Param("id") id: string,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.mockService.appendApprovalAttachments(id, body);
+  }
+
+  @Delete("approvals/:id")
+  deleteApproval(@Param("id") id: string) {
+    return this.mockService.deleteApproval(id);
+  }
+
+  @Post("repairs/internal")
+  createInternalRepair(
+    @Body()
+    body: {
+      btCode: string;
+      description: string;
+      address: string;
+      handler?: string;
+    },
+  ) {
+    return this.mockService.createInternalRepair(body);
+  }
+
+  @Get("bills")
+  getBills() {
+    return this.mockService.getBills();
+  }
+
+  @Get("bills/:id")
+  getBill(@Param("id") id: string) {
+    return this.mockService.getBill(id);
+  }
+
+  @Get("finance/overview")
+  getFinanceOverview() {
+    return this.mockService.getFinanceOverview();
+  }
+
+  @Get("finance/customers")
+  getFinanceCustomers() {
+    return this.mockService.getFinanceCustomers();
+  }
+
+  @Get("finance/customers/:id")
+  getFinanceCustomer(@Param("id") id: string) {
+    return this.mockService.getFinanceCustomer(id);
+  }
+
+  @Post("finance/generate-due-bills")
+  generateDueBills(@Body() body: { asOfDate?: string; operator?: string }) {
+    return this.mockService.generateDueBills(body);
+  }
+
+  @Patch("bills/:id/confirm")
+  confirmBill(@Param("id") id: string, @Body() body: { operator?: string }) {
+    return this.mockService.confirmBill(id, body);
+  }
+
+  @Patch("bills/:id/adjust")
+  adjustBill(
+    @Param("id") id: string,
+    @Body()
+    body: { receivableAmount: number; reason: string; operator?: string },
+  ) {
+    return this.mockService.adjustBill(id, body);
+  }
+
+  @Post("bills/:id/payments")
+  registerPayment(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      amount: number;
+      paidAt?: string;
+      method?: string;
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.registerPayment(id, body);
+  }
+
+  @Post("bills/:id/follow-ups")
+  followUpBill(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      method?: string;
+      result?: string;
+      promisedPayAt?: string;
+      nextFollowUpAt?: string;
+      remark?: string;
+      operator?: string;
+    },
+  ) {
+    return this.mockService.followUpBill(id, body);
+  }
+
+  @Get("system")
+  getSystemManagement() {
+    return this.mockService.getSystemManagement();
+  }
+
+  @Get("system/snapshot")
+  getSystemConfigSnapshot() {
+    return this.mockService.getSystemConfigSnapshot();
+  }
+
+  @Post("system/snapshot/restore")
+  restoreSystemConfigSnapshot(@Body() body: unknown) {
+    return this.mockService.restoreSystemConfigSnapshot(body);
+  }
+
+  @Post("system/snapshot/reset")
+  resetSystemConfigDefaults() {
+    return this.mockService.resetSystemConfigDefaults();
+  }
+
+  @Post("system/accounts")
+  createSystemAccount(
+    @Body()
+    body: {
+      type: "INTERNAL" | "CUSTOMER";
+      username: string;
+      name: string;
+      roleId: string;
+      department?: string;
+      customerName?: string;
+      phone?: string;
+    },
+  ) {
+    return this.mockService.createSystemAccount(body);
+  }
+
+  @Patch("system/accounts/:id")
+  updateSystemAccount(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      type?: "INTERNAL" | "CUSTOMER";
+      name?: string;
+      roleId?: string;
+      department?: string;
+      customerName?: string;
+      phone?: string;
+    },
+  ) {
+    return this.mockService.updateSystemAccount(id, body);
+  }
+
+  @Delete("system/accounts/:id")
+  deleteSystemAccount(@Param("id") id: string) {
+    return this.mockService.deleteSystemAccount(id);
+  }
+
+  @Patch("system/accounts/:id/status")
+  updateSystemAccountStatus(
+    @Param("id") id: string,
+    @Body() body: { enabled?: boolean },
+  ) {
+    return this.mockService.updateSystemAccountStatus(id, body);
+  }
+
+  @Post("system/accounts/:id/reset-password")
+  resetSystemAccountPassword(@Param("id") id: string) {
+    return this.mockService.resetSystemAccountPassword(id);
+  }
+
+  @Post("system/roles")
+  createSystemRole(
+    @Body()
+    body: {
+      name: string;
+      scope?: "内部后台" | "客户移动端";
+      dataScope?: string;
+      description?: string;
+      permissionCodes?: string[];
+      copyFromRoleId?: string;
+      riskNotes?: string[];
+    },
+  ) {
+    return this.mockService.createSystemRole(body);
+  }
+
+  @Patch("system/roles/:id")
+  updateSystemRole(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      name?: string;
+      dataScope?: string;
+      description?: string;
+      permissionCodes?: string[];
+      riskNotes?: string[];
+    },
+  ) {
+    return this.mockService.updateSystemRole(id, body);
+  }
+
+  @Delete("system/roles/:id")
+  deleteSystemRole(@Param("id") id: string) {
+    return this.mockService.deleteSystemRole(id);
+  }
+
+  @Patch("system/dictionaries/:groupCode/items/:itemCode")
+  updateDictionaryItem(
+    @Param("groupCode") groupCode: string,
+    @Param("itemCode") itemCode: string,
+    @Body()
+    body: {
+      label?: string;
+      enabled?: boolean;
+      businessRule?: string;
+    },
+  ) {
+    return this.mockService.updateDictionaryItem(groupCode, itemCode, body);
+  }
+
+  @Post("system/interfaces/:id/test")
+  testSystemInterface(@Param("id") id: string) {
+    return this.mockService.testSystemInterface(id);
+  }
+
+  @Patch("system/interfaces/:id")
+  updateSystemInterface(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      endpoint?: string;
+      syncInterval?: string;
+      owner?: string;
+      authMode?: string;
+      timeoutMs?: number;
+      enabled?: boolean;
+    },
+  ) {
+    return this.mockService.updateSystemInterface(id, body);
+  }
+
+  @Post("system/approval-flows")
+  createApprovalFlow(
+    @Body()
+    body: {
+      name?: string;
+      businessType?: string;
+      enabled?: boolean;
+      slaHours?: number;
+      approvers?: string[];
+    },
+  ) {
+    return this.mockService.createApprovalFlow(body);
+  }
+
+  @Patch("system/approval-flows/:id")
+  updateApprovalFlow(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      name?: string;
+      businessType?: string;
+      enabled?: boolean;
+      slaHours?: number;
+      approvers?: string[];
+    },
+  ) {
+    return this.mockService.updateApprovalFlow(id, body);
+  }
+
+  @Delete("system/approval-flows/:id")
+  deleteApprovalFlow(@Param("id") id: string) {
+    return this.mockService.deleteApprovalFlow(id);
+  }
+
+  @Patch("system/parameters/:code")
+  updateSystemParameter(
+    @Param("code") code: string,
+    @Body() body: { value?: number | string | boolean },
+  ) {
+    return this.mockService.updateSystemParameter(code, body);
+  }
+
+  @Get("customer/home")
+  getCustomerHome(@Query() query: { role?: string }) {
+    return this.mockService.getCustomerHome(query);
+  }
+
+  @Get("customer/repairs/:id")
+  getCustomerRepair(@Param("id") id: string) {
+    return this.mockService.getCustomerRepair(id);
+  }
+
+  @Post("customer/repairs/:id/supplements")
+  addCustomerRepairSupplement(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      message?: string;
+      images?: string[];
+    },
+  ) {
+    return this.mockService.addCustomerRepairSupplement(id, body);
+  }
+
+  @Patch("customer/repairs/:id/confirm")
+  confirmCustomerRepair(
+    @Param("id") id: string,
+    @Body() body: { remark?: string },
+  ) {
+    return this.mockService.confirmCustomerRepair(id, body);
+  }
+
+  @Post("customer/repair")
+  createCustomerRepair(
+    @Body()
+    body: {
+      btCode: string;
+      description: string;
+      address: string;
+      images?: string[];
+    },
+  ) {
+    return this.mockService.createCustomerRepair(body);
+  }
+
+  @Patch("customer/outbounds/:id/receipt")
+  confirmReceipt(@Param("id") id: string) {
+    return this.mockService.confirmReceipt(id);
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "yckx-management-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "延成科讯管理系统 monorepo",
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @yckx/admin-web --filter @yckx/customer-web --filter @yckx/api dev",
+    "dev:admin": "pnpm --filter @yckx/admin-web dev",
+    "dev:customer": "pnpm --filter @yckx/customer-web dev",
+    "dev:api": "pnpm --filter @yckx/api dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.vite/
+.env
+.env.local
+coverage/
+*.log
+*.tsbuildinfo
+~$*
+.codex/
+tmp-screenshots/
+device-smoke.png
+apps/api/prisma/dev.db
+apps/api/prisma/dev.db-journal
+apps/api/data/*.json

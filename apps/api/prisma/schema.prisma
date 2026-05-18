@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BatteryAssetStatus {
+  IN_STOCK
+  REPAIRING
+  LEASING
+  SCRAPPED
+  BOUGHT_OUT
+}
+
+enum DeviceRunningStatus {
+  ONLINE
+  OFFLINE
+  ABNORMAL
+  UNKNOWN
+}
+
+enum OrderStatus {
+  DRAFT
+  APPROVING
+  PENDING_OUTBOUND
+  PARTIALLY_OUTBOUND
+  PENDING_RECEIPT
+  LEASING
+  COMPLETED
+  CANCELLED
+}
+
+enum OutboundStatus {
+  PENDING_RECEIPT
+  RECEIVED
+  AUTO_RECEIVED
+}
+
+enum BillStatus {
+  PENDING_CONFIRM
+  PENDING_PAYMENT
+  PARTIALLY_PAID
+  SETTLED
+  OVERDUE
+  ADJUSTED
+  VOIDED
+}
+
+enum RepairStatus {
+  PENDING_ACCEPT
+  PROCESSING
+  REPAIRING
+  PENDING_INBOUND
+  COMPLETED
+  CLOSED
+}
+
+enum RepairSource {
+  CUSTOMER
+  INTERNAL
+}
+
+enum AlarmLevel {
+  SEVERE
+  WARNING
+  INFO
+}
+
+enum AlarmStatus {
+  PENDING
+  PROCESSING
+  RESOLVED
+  FALSE_ALARM
+}
+
+enum InternalRole {
+  ADMIN
+  SALES
+  ASSET_MANAGER
+  TECHNICIAN
+  AFTER_SALES
+  FINANCE
+  MANAGER
+}
+
+enum CustomerAccountRole {
+  CUSTOMER_ADMIN
+  CUSTOMER_STAFF
+}
+
+enum ApprovalStatus {
+  DRAFT
+  PROCESSING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id           String       @id @default(cuid())
+  username     String       @unique
+  passwordHash String
+  name         String
+  role         InternalRole
+  enabled      Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Customer {
+  id        String            @id @default(cuid())
+  name      String
+  contact   String?
+  phone     String?
+  address   String?
+  accounts  CustomerAccount[]
+  orders    RentalOrder[]
+  batteries Battery[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model CustomerAccount {
+  id           String              @id @default(cuid())
+  customerId   String
+  customer     Customer            @relation(fields: [customerId], references: [id])
+  username     String              @unique
+  passwordHash String
+  name         String
+  role         CustomerAccountRole
+  enabled      Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model Battery {
+  id            String              @id @default(cuid())
+  btCode        String              @unique
+  model         String?
+  sourcePlatform String?
+  runningStatus DeviceRunningStatus @default(UNKNOWN)
+  assetStatus   BatteryAssetStatus  @default(IN_STOCK)
+  powerPercent  Int?
+  location      String?
+  customerId    String?
+  customer      Customer?           @relation(fields: [customerId], references: [id])
+  orderId       String?
+  order         RentalOrder?        @relation(fields: [orderId], references: [id])
+  outboundItems OutboundOrderItem[]
+  alarms        Alarm[]
+  repairs       RepairTicket[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+}
+
+model RentalOrder {
+  id           String            @id @default(cuid())
+  orderNo      String            @unique
+  customerId   String
+  customer     Customer          @relation(fields: [customerId], references: [id])
+  status       OrderStatus       @default(DRAFT)
+  leaseStart   DateTime?
+  leaseEnd     DateTime?
+  billingDay   Int
+  monthlyRent  Decimal           @db.Decimal(12, 2)
+  contract     Contract?
+  batteries    Battery[]
+  outbounds    OutboundOrder[]
+  bills        Bill[]
+  repairs      RepairTicket[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model Contract {
+  id        String      @id @default(cuid())
+  orderId   String      @unique
+  order     RentalOrder @relation(fields: [orderId], references: [id])
+  name      String
+  fileUrl   String?
+  status    String      @default("PENDING")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model OutboundOrder {
+  id            String              @id @default(cuid())
+  outboundNo    String              @unique
+  orderId       String
+  order         RentalOrder         @relation(fields: [orderId], references: [id])
+  status        OutboundStatus      @default(PENDING_RECEIPT)
+  outboundAt    DateTime            @default(now())
+  autoReceiveAt DateTime
+  receivedAt    DateTime?
+  items         OutboundOrderItem[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+}
+
+model OutboundOrderItem {
+  id              String        @id @default(cuid())
+  outboundOrderId String
+  outboundOrder   OutboundOrder @relation(fields: [outboundOrderId], references: [id])
+  batteryId       String
+  battery         Battery       @relation(fields: [batteryId], references: [id])
+  createdAt       DateTime      @default(now())
+}
+
+model Bill {
+  id               String      @id @default(cuid())
+  billNo           String      @unique
+  orderId          String
+  order            RentalOrder @relation(fields: [orderId], references: [id])
+  period           String
+  receivableAmount Decimal     @db.Decimal(12, 2)
+  paidAmount       Decimal     @default(0) @db.Decimal(12, 2)
+  debtAmount       Decimal     @db.Decimal(12, 2)
+  status           BillStatus  @default(PENDING_CONFIRM)
+  generatedAt      DateTime    @default(now())
+  confirmedAt      DateTime?
+  payments         Payment[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  billId    String
+  bill      Bill     @relation(fields: [billId], references: [id])
+  amount    Decimal  @db.Decimal(12, 2)
+  paidAt    DateTime
+  remark    String?
+  createdAt DateTime @default(now())
+}
+
+model RepairTicket {
+  id          String            @id @default(cuid())
+  repairNo    String            @unique
+  source      RepairSource
+  status      RepairStatus      @default(PENDING_ACCEPT)
+  customerId  String?
+  orderId     String?
+  order       RentalOrder?      @relation(fields: [orderId], references: [id])
+  batteryId   String
+  battery     Battery           @relation(fields: [batteryId], references: [id])
+  description String
+  address     String
+  imageUrls   String[]
+  logs        RepairTicketLog[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model RepairTicketLog {
+  id             String       @id @default(cuid())
+  repairTicketId String
+  repairTicket   RepairTicket @relation(fields: [repairTicketId], references: [id])
+  action         String
+  operator       String
+  remark         String?
+  createdAt      DateTime     @default(now())
+}
+
+model Alarm {
+  id             String      @id @default(cuid())
+  batteryId      String
+  battery        Battery     @relation(fields: [batteryId], references: [id])
+  level          AlarmLevel
+  status         AlarmStatus @default(PENDING)
+  type           String
+  sourcePlatform String?
+  description    String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model ApprovalInstance {
+  id          String        @id @default(cuid())
+  type        String
+  title       String
+  status      ApprovalStatus @default(PROCESSING)
+  applicant   String
+  businessId  String?
+  logs        ApprovalLog[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ApprovalLog {
+  id                 String           @id @default(cuid())
+  approvalInstanceId String
+  approvalInstance   ApprovalInstance @relation(fields: [approvalInstanceId], references: [id])
+  nodeName           String
+  operator           String
+  action             String
+  comment            String?
+  createdAt          DateTime         @default(now())
+}
+
+model OperationLog {
+  id        String   @id @default(cuid())
+  module    String
+  action    String
+  operator  String
+  targetId  String?
+  detail    Json?
+  createdAt DateTime @default(now())
+}
