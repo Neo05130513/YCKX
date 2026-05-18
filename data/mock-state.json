@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "savedAt": "2026-05-18 18:51",
+  "savedAt": "2026-05-18 19:06",
   "batteries": [
     {
       "id": "bat-44840294",
@@ -5223,8 +5223,8 @@
   "automationState": {
     "enabled": true,
     "intervalMs": 300000,
-    "lastRunAt": "2026-05-18 18:51",
-    "nextRunAt": "2026-05-18 18:56",
+    "lastRunAt": "2026-05-18 19:06",
+    "nextRunAt": "2026-05-18 19:11",
     "lastResult": {
       "ok": true,
       "trigger": "SCHEDULED",
@@ -5256,7 +5256,7 @@
           }
         ],
         "markedOverdueBills": [],
-        "ranAt": "2026-05-18 18:51"
+        "ranAt": "2026-05-18 19:06"
       }
     },
     "runCount": 1
