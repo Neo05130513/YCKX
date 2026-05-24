@@ -7,6 +7,7 @@ export interface CustomerProfile {
   name: string;
   roleId: string;
   roleName: string;
+  customerId: string;
   customerName: string;
   permissions: string[];
   isSystemAdmin: boolean;

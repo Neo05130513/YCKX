@@ -61,7 +61,7 @@
               合同归档
             </span>
           </button>
-          <button class="side-item" @click="openReserved('分组管理')">
+          <button class="side-item" @click="handleOrderQuickAction('分组管理')">
             <span class="side-left">
               <el-icon><Operation /></el-icon>
               分组管理
@@ -96,8 +96,8 @@
                 <el-button :icon="Search" @click="noopSearch" />
               </template>
             </el-input>
-            <el-button type="primary" @click="openReserved('分组查询')">分组查询</el-button>
-            <el-button type="primary" @click="openReserved('更多筛选')">更多</el-button>
+            <el-button type="primary" @click="handleOrderQuickAction('分组查询')">分组查询</el-button>
+            <el-button type="primary" @click="handleOrderQuickAction('更多筛选')">更多</el-button>
             <el-button type="primary" @click="resetQuery">重置</el-button>
           </div>
           <div class="toolbar-right">
@@ -108,7 +108,7 @@
             <el-button @click="openOutbound()">创建出库</el-button>
             <el-button :loading="submitting" @click="runAutoReceive">执行自动收货</el-button>
             <el-button @click="exportCsv">导出</el-button>
-            <el-dropdown trigger="click" @command="openReserved">
+            <el-dropdown trigger="click" @command="handleBatchCommand">
               <el-button>
                 批量操作
                 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
@@ -116,7 +116,9 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="批量生成账单">批量生成账单</el-dropdown-item>
+                  <el-dropdown-item command="批量自动收货">批量自动收货</el-dropdown-item>
                   <el-dropdown-item command="批量催收">批量催收</el-dropdown-item>
+                  <el-dropdown-item command="打开出库队列">打开出库队列</el-dropdown-item>
                   <el-dropdown-item command="批量合同归档">批量合同归档</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -143,10 +145,25 @@
           </div>
         </div>
 
+        <section class="order-delivery-board">
+          <button
+            v-for="queue in deliveryQueues"
+            :key="queue.key"
+            class="order-queue-card"
+            :class="queue.tone"
+            type="button"
+            @click="applyOrderQueue(queue)"
+          >
+            <span>{{ queue.label }}</span>
+            <strong>{{ queue.value }}</strong>
+            <em>{{ queue.hint }}</em>
+          </button>
+        </section>
+
         <el-table
           :data="filteredRows"
           border
-          height="calc(100% - 130px)"
+          height="calc(100% - 266px)"
           class="target-table"
           :row-class-name="tableRowClassName"
           @row-dblclick="openDetail"
@@ -202,7 +219,7 @@
             <template #default="{ row }">
               <div class="table-actions">
                 <el-button text type="primary" @click.stop="openDetail(row)">详情</el-button>
-                <el-button text type="primary" @click.stop="openReserved('订单操作')">更多</el-button>
+                <el-button text type="primary" @click.stop="openOrderMore(row)">更多</el-button>
               </div>
             </template>
           </el-table-column>
@@ -364,6 +381,17 @@
                     <em style="left: 12%"></em>
                     <em style="left: 42%"></em>
                     <em style="left: 72%"></em>
+                  </div>
+                </div>
+              </div>
+
+              <div class="delivery-check-panel">
+                <div class="panel-title">履约交付检查</div>
+                <div class="delivery-check-list">
+                  <div v-for="item in orderDeliveryChecklist" :key="item.label" :class="{ done: item.done }">
+                    <el-icon><CircleCheck /></el-icon>
+                    <span>{{ item.label }}</span>
+                    <strong>{{ item.value }}</strong>
                   </div>
                 </div>
               </div>
@@ -558,7 +586,7 @@
           <section v-else class="record-page">
             <div class="record-head">
               <strong>报修记录</strong>
-              <el-button class="right-action" @click="openReserved('新增报修')">新增报修</el-button>
+              <el-button class="right-action" @click="createRepairFromOrder">新增报修</el-button>
             </div>
             <el-table :data="detail.repairs || []" border stripe height="calc(100% - 58px)" class="record-table">
               <el-table-column prop="repairNo" label="报修单号" width="160" />
@@ -1009,15 +1037,30 @@ type OrderDetail = OrderRow & {
   repairs?: Array<Record<string, any>>;
 };
 
+type ListTab = "orders" | "outbound" | "finance";
+type OrderQueueMode = "" | "archive" | "settlement";
+
+type OrderDeliveryQueue = {
+  key: string;
+  label: string;
+  value: number | string;
+  hint: string;
+  tone: string;
+  tab: ListTab;
+  filter: string;
+  mode?: OrderQueueMode;
+};
+
 const rows = ref<OrderRow[]>([]);
 const detail = ref<OrderDetail | null>(null);
 const viewMode = ref<"list" | "detail">("list");
-const activeListTab = ref<"orders" | "outbound" | "finance">("orders");
+const activeListTab = ref<ListTab>("orders");
 const activeDetailTab = ref("summary");
 const selectedCustomer = ref("all");
 const customerKeyword = ref("");
 const ownerScope = ref<"all" | "mine">("all");
 const leftFilter = ref("all");
+const orderQueueMode = ref<OrderQueueMode>("");
 const queryField = ref<keyof OrderRow>("orderNo");
 const keyword = ref("");
 const createVisible = ref(false);
@@ -1139,6 +1182,8 @@ const visibleRows = computed(() => {
 const filteredRows = computed(() => {
   const text = keyword.value.trim().toLowerCase();
   return visibleRows.value.filter((row) => {
+    if (orderQueueMode.value === "archive" && !canArchiveContract(row)) return false;
+    if (orderQueueMode.value === "settlement" && !canSettleReturn(row)) return false;
     if (leftFilter.value === "overdue" && row.overdueAmount <= 0) return false;
     if (leftFilter.value !== "all" && leftFilter.value !== "overdue" && row.status !== leftFilter.value) return false;
     if (activeListTab.value === "outbound" && row.outboundCount >= row.orderedBatteryCount && row.pendingReceiptCount === 0) {
@@ -1156,6 +1201,66 @@ const summary = computed(() => ({
   pendingOutbound: filteredRows.value.filter((row) => ["PENDING_OUTBOUND", "PARTIALLY_OUTBOUND"].includes(row.status)).length,
   overdueAmount: filteredRows.value.reduce((sum, row) => sum + (row.overdueAmount || 0), 0),
 }));
+
+const deliveryQueues = computed<OrderDeliveryQueue[]>(() => {
+  const outboundRows = visibleRows.value.filter(
+    (row) => remainingOutboundCount(row) > 0 && !["DRAFT", "APPROVING", "RETURNING", "COMPLETED", "CANCELLED"].includes(row.status),
+  );
+  const pendingReceiptRows = visibleRows.value.filter((row) => row.pendingReceiptCount > 0);
+  const archiveRows = visibleRows.value.filter((row) => canArchiveContract(row));
+  const overdueRows = visibleRows.value.filter((row) => row.overdueAmount > 0 || row.debtAmount > 0);
+  const returningRows = visibleRows.value.filter((row) => canSettleReturn(row));
+
+  return [
+    {
+      key: "archive",
+      label: "合同待归档",
+      value: archiveRows.length,
+      hint: "会签后补签署件",
+      tone: archiveRows.length ? "orange" : "green",
+      tab: "orders",
+      filter: "all",
+      mode: "archive",
+    },
+    {
+      key: "outbound",
+      label: "待出库",
+      value: outboundRows.length,
+      hint: "创建出库并绑定 BT 码",
+      tone: outboundRows.length ? "blue" : "green",
+      tab: "outbound",
+      filter: "all",
+    },
+    {
+      key: "receipt",
+      label: "待收货",
+      value: pendingReceiptRows.length,
+      hint: "客户确认或自动收货",
+      tone: pendingReceiptRows.length ? "orange" : "green",
+      tab: "outbound",
+      filter: "PENDING_RECEIPT",
+    },
+    {
+      key: "finance",
+      label: "催收/回款",
+      value: money(overdueRows.reduce((sum, row) => sum + Number(row.debtAmount || row.overdueAmount || 0), 0)),
+      hint: `${overdueRows.length} 张订单需财务跟进`,
+      tone: overdueRows.length ? "red" : "green",
+      tab: "finance",
+      filter: "overdue",
+    },
+    {
+      key: "settlement",
+      label: "退租结清",
+      value: returningRows.length,
+      hint: "核对资产入库和尾款",
+      tone: returningRows.length ? "orange" : "green",
+      tab: "orders",
+      filter: "RETURNING",
+      mode: "settlement",
+    },
+  ];
+});
 
 const outboundCandidateRows = computed(() =>
   rows.value.filter((row) => canCreateOutbound(row)),
@@ -1190,6 +1295,43 @@ const financeCards = computed(() => {
     { label: "累计应收", value: money(detail.value.receivableAmount), tone: "blue" },
     { label: "累计已收", value: money(detail.value.paidAmount), tone: "green" },
     { label: "当前欠款", value: money(detail.value.debtAmount), tone: detail.value.debtAmount > 0 ? "red" : "green" },
+  ];
+});
+
+const orderDeliveryChecklist = computed(() => {
+  const row = detail.value;
+  if (!row) return [];
+  return [
+    {
+      label: "合同会签",
+      value: row.contractStatus || statusLabel(row.status),
+      done: !["DRAFT", "APPROVING"].includes(row.status),
+    },
+    {
+      label: "合同归档",
+      value: row.contract?.fileName || row.contractStatus || "待归档",
+      done: row.contractStatus === "已归档" || Boolean(row.contract?.fileName),
+    },
+    {
+      label: "出库绑定",
+      value: `${row.outboundCount}/${row.orderedBatteryCount}`,
+      done: row.outboundCount >= row.orderedBatteryCount,
+    },
+    {
+      label: "客户收货",
+      value: `${row.receivedCount} 已收 / ${row.pendingReceiptCount} 待收`,
+      done: row.pendingReceiptCount === 0 && row.outboundCount > 0,
+    },
+    {
+      label: "账单回款",
+      value: row.debtAmount > 0 ? money(row.debtAmount) : "无欠款",
+      done: row.debtAmount <= 0,
+    },
+    {
+      label: "续租/退租",
+      value: row.status === "RETURNING" ? "待结清" : row.renewalDesc || statusLabel(row.status),
+      done: row.status !== "RETURNING",
+    },
   ];
 });
 
@@ -1436,14 +1578,141 @@ function resetQuery() {
   queryField.value = "orderNo";
   leftFilter.value = "all";
   activeListTab.value = "orders";
+  orderQueueMode.value = "";
 }
 
 function noopSearch() {
   ElMessage.success("已按当前条件筛选");
 }
 
-function openReserved(title: string) {
-  ElMessage.info(`${title}入口已放到页面，后续可接真实业务接口`);
+function handleOrderQuickAction(title: string) {
+  if (title === "分组管理") {
+    selectedCustomer.value = "all";
+    customerKeyword.value = "";
+    ElMessage.success(`已按客户分组展示 ${customers.value.length} 个客户`);
+    return;
+  }
+  if (title === "分组查询") {
+    ElMessage.success(`当前客户分组下共有 ${filteredRows.value.length} 张订单`);
+    return;
+  }
+  if (title === "更多筛选") {
+    activeListTab.value = "finance";
+    leftFilter.value = "overdue";
+    ElMessage.success("已切换到逾期与财务筛选");
+    return;
+  }
+  ElMessage.success(`${title}已在当前页面完成处理`);
+}
+
+function applyOrderQueue(queue: OrderDeliveryQueue) {
+  activeListTab.value = queue.tab;
+  leftFilter.value = queue.filter;
+  orderQueueMode.value = queue.mode || "";
+  keyword.value = "";
+  ElMessage.success(`已切换到${queue.label}队列`);
+}
+
+async function handleBatchCommand(command: string) {
+  if (command === "批量生成账单") {
+    submitting.value = true;
+    try {
+      const result = await postMock<{ generatedCount: number; markedOverdueCount: number }>("/finance/scheduler/run", {
+        operator: "赵财务",
+        trigger: "ORDER_BATCH",
+      });
+      await loadRows();
+      activeListTab.value = "finance";
+      ElMessage.success(`已生成 ${result.generatedCount} 张到期账单，标记 ${result.markedOverdueCount} 张逾期账单`);
+    } catch (error) {
+      ElMessage.error(errorText(error));
+    } finally {
+      submitting.value = false;
+    }
+    return;
+  }
+
+  if (command === "批量自动收货") {
+    await runAutoReceive();
+    return;
+  }
+
+  if (command === "批量催收") {
+    activeListTab.value = "finance";
+    leftFilter.value = "overdue";
+    orderQueueMode.value = "";
+    const count = filteredRows.value.filter((row) => row.debtAmount > 0).length;
+    ElMessage.success(`已筛出 ${count} 张待催收订单，可进入详情登记回款或在财务中心跟进`);
+    return;
+  }
+
+  if (command === "打开出库队列") {
+    activeListTab.value = "outbound";
+    leftFilter.value = "all";
+    orderQueueMode.value = "";
+    const count = filteredRows.value.length;
+    ElMessage.success(`已打开 ${count} 张待出库/待收货订单`);
+    return;
+  }
+
+  if (command === "批量合同归档") {
+    const targets = filteredRows.value.filter((row) => canArchiveContract(row));
+    if (!targets.length) {
+      ElMessage.info("暂无可归档合同");
+      return;
+    }
+    submitting.value = true;
+    try {
+      await Promise.all(
+        targets.map((row) =>
+          patchMock(`/orders/${row.id}/archive-contract`, {
+            operator: row.salesOwner || "合同专员",
+            archiveNo: `ARCH-${row.orderNo}`,
+            remark: "批量合同归档",
+          }),
+        ),
+      );
+      await loadRows();
+      ElMessage.success(`已归档 ${targets.length} 份合同`);
+    } catch (error) {
+      ElMessage.error(errorText(error));
+    } finally {
+      submitting.value = false;
+    }
+  }
+}
+
+async function openOrderMore(row: OrderRow) {
+  await openDetail(row);
+  ElMessage.success("已打开订单详情，可直接办理会签、出库、账单、续租或退租");
+}
+
+async function createRepairFromOrder() {
+  if (!detail.value) return;
+  const battery = detail.value.batteries?.[0];
+  if (!battery?.btCode) {
+    ElMessage.warning("当前订单还没有绑定电池，不能发起报修");
+    return;
+  }
+  try {
+    const { value } = await ElMessageBox.prompt("填写故障描述", "新增订单报修", {
+      inputValue: "客户现场反馈电池异常，需要技术复核。",
+      inputPlaceholder: "请输入故障描述",
+      confirmButtonText: "提交报修",
+      cancelButtonText: "取消",
+    });
+    await postMock("/repairs/internal", {
+      btCode: battery.btCode,
+      description: value,
+      address: detail.value.region || "客户现场",
+      handler: "技术二组",
+    });
+    await reloadDetailSilently();
+    activeDetailTab.value = "repairs";
+    ElMessage.success("报修单已创建并关联当前订单");
+  } catch (error) {
+    if (error !== "cancel") ElMessage.error(errorText(error));
+  }
 }
 
 async function openContractArchiveQueue() {
@@ -2172,6 +2441,69 @@ onMounted(async () => {
   color: #f14949;
 }
 
+.order-delivery-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(128px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.order-queue-card {
+  min-width: 0;
+  min-height: 92px;
+  display: grid;
+  gap: 6px;
+  border: 1px solid #e5e8f1;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: left;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.order-queue-card:hover {
+  border-color: #4e5afe;
+  box-shadow: 0 8px 20px rgba(78, 90, 254, 0.12);
+}
+
+.order-queue-card span {
+  color: #69718b;
+  font-size: 12px;
+}
+
+.order-queue-card strong {
+  overflow: hidden;
+  color: #23253c;
+  font-size: 21px;
+  line-height: 26px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-queue-card em {
+  color: #8b91a6;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.order-queue-card.blue strong {
+  color: #4e5afe;
+}
+
+.order-queue-card.orange strong {
+  color: #d48806;
+}
+
+.order-queue-card.red strong {
+  color: #cf1322;
+}
+
+.order-queue-card.green strong {
+  color: #389e0d;
+}
+
 .target-table {
   font-size: 13px;
 }
@@ -2807,6 +3139,51 @@ onMounted(async () => {
   background: #b7b4ca;
 }
 
+.delivery-check-panel {
+  flex-shrink: 0;
+  margin-top: 15px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.delivery-check-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.delivery-check-list div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #eceff6;
+  border-radius: 10px;
+  color: #7a8197;
+  background: #fbfcff;
+}
+
+.delivery-check-list div.done {
+  color: #1f7a4d;
+  background: #f0fdf4;
+}
+
+.delivery-check-list span,
+.delivery-check-list strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delivery-check-list strong {
+  color: #23253c;
+  font-size: 12px;
+}
+
 .right-b {
   min-height: 0;
   flex: 1;
@@ -2996,6 +3373,10 @@ onMounted(async () => {
     flex-basis: 240px;
   }
 
+  .order-delivery-board {
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
+  }
+
   .content-l {
     min-width: 390px;
   }
@@ -3016,6 +3397,10 @@ onMounted(async () => {
 
   .order-main {
     min-height: 720px;
+  }
+
+  .order-delivery-board {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
   }
 
   .order-detail-page {

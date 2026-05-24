@@ -115,8 +115,8 @@
                 <el-button :icon="Search" @click="noopSearch" />
               </template>
             </el-input>
-            <el-button type="primary" @click="openReserved('分组查询')">分组查询</el-button>
-            <el-button type="primary" @click="openReserved('更多筛选')">更多</el-button>
+            <el-button type="primary" @click="handleAssetQuickAction('分组查询')">分组查询</el-button>
+            <el-button type="primary" @click="handleAssetQuickAction('更多筛选')">更多</el-button>
             <el-button type="primary" @click="resetQuery">重置</el-button>
           </div>
           <div class="toolbar-right">
@@ -619,7 +619,7 @@
           <section v-else-if="activeDetailTab === 'history'" class="record-page">
             <div class="record-head">
               <strong>完整资产履历</strong>
-              <el-button class="right-action" @click="openReserved('导出资产履历')">导出履历</el-button>
+              <el-button class="right-action" @click="exportAssetHistory">导出履历</el-button>
             </div>
             <el-table :data="detail.movements || []" border class="record-table">
               <el-table-column prop="type" label="动作类型" width="110" />
@@ -788,7 +788,7 @@
           <section v-else-if="activeDetailTab === 'repair'" class="record-page">
             <div class="record-head">
               <strong>维修记录</strong>
-              <el-button class="right-action" @click="openReserved('内部报修')">内部报修</el-button>
+              <el-button class="right-action" @click="createInternalRepairFromAsset">内部报修</el-button>
             </div>
             <el-table :data="detail.repairs || []" border class="record-table">
               <el-table-column prop="repairNo" label="报修单号" width="150" />
@@ -1213,7 +1213,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
   ArrowDown,
   ArrowUp,
@@ -1865,8 +1865,66 @@ function noopSearch() {
   ElMessage.success("已按当前条件筛选");
 }
 
-function openReserved(title: string) {
-  ElMessage.info(`${title}入口已放到页面，下一步可接真实业务接口`);
+function handleAssetQuickAction(title: string) {
+  if (title === "分组查询") {
+    ElMessage.success(`当前分组下共有 ${filteredRows.value.length} 组资产`);
+    return;
+  }
+  if (title === "更多筛选") {
+    leftFilter.value = "canOutbound";
+    activeListTab.value = "ledger";
+    ElMessage.success("已筛出可出库资产");
+    return;
+  }
+  ElMessage.success(`${title}已按当前资产台账完成处理`);
+}
+
+function exportAssetHistory() {
+  if (!detail.value) return;
+  const header = ["BT码", "动作类型", "动作名称", "发生时间", "操作人", "对象/位置", "结果", "备注"];
+  const lines = (detail.value.movements || []).map((row) =>
+    [
+      detail.value?.btCode || "",
+      row.type,
+      row.title,
+      row.time,
+      row.operator,
+      row.target,
+      row.status,
+      row.remark,
+    ].join(","),
+  );
+  const csv = [header.join(","), ...lines].join("\n");
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `资产履历_${detail.value.btCode}_${Date.now()}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+async function createInternalRepairFromAsset() {
+  if (!detail.value) return;
+  try {
+    const { value } = await ElMessageBox.prompt("填写内部检测异常说明", "内部报修", {
+      inputValue: `${detail.value.btCode} 内部检测异常，需要技术复核。`,
+      inputPlaceholder: "请输入故障描述",
+      confirmButtonText: "提交报修",
+      cancelButtonText: "取消",
+    });
+    await postMock("/repairs/internal", {
+      btCode: detail.value.btCode,
+      description: value,
+      address: detail.value.warehouse || detail.value.location || "郑州总仓",
+      handler: "技术二组",
+    });
+    activeDetailTab.value = "repair";
+    await refreshAssetState(detail.value.id);
+    ElMessage.success("内部报修单已创建并写入资产维修记录");
+  } catch (error) {
+    if (error !== "cancel") ElMessage.error(requestErrorMessage(error, "内部报修失败"));
+  }
 }
 
 function currentMonth() {

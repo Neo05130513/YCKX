@@ -90,7 +90,7 @@
             新建审批
           </el-button>
           <el-button @click="exportCsv">导出</el-button>
-          <el-dropdown trigger="click" @command="openReserved">
+          <el-dropdown trigger="click" @command="handleBatchCommand">
             <el-button>
               批量操作
               <el-icon class="el-icon--right"><ArrowDown /></el-icon>
@@ -98,6 +98,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="批量催办">批量催办</el-dropdown-item>
+                <el-dropdown-item command="批量通过">批量通过</el-dropdown-item>
                 <el-dropdown-item command="批量转办">批量转办</el-dropdown-item>
                 <el-dropdown-item command="流程模板配置">流程模板配置</el-dropdown-item>
               </el-dropdown-menu>
@@ -133,11 +134,41 @@
         </div>
       </div>
 
+      <section class="approval-delivery-board">
+        <button
+          v-for="queue in approvalQueues"
+          :key="queue.key"
+          class="delivery-queue-card"
+          :class="queue.tone"
+          type="button"
+          @click="applyApprovalQueue(queue)"
+        >
+          <span>{{ queue.label }}</span>
+          <strong>{{ queue.value }}</strong>
+          <em>{{ queue.hint }}</em>
+        </button>
+
+        <div class="template-coverage-card">
+          <div class="coverage-head">
+            <div>
+              <span>流程模板覆盖</span>
+              <strong>{{ approvalTemplates.length }} 套</strong>
+            </div>
+            <el-button size="small" @click="templateVisible = true">查看模板库</el-button>
+          </div>
+          <div class="coverage-list">
+            <span v-for="item in templateCoverage" :key="item.key" :class="{ empty: !item.count }">
+              {{ item.label }} · {{ item.count }} 单
+            </span>
+          </div>
+        </div>
+      </section>
+
       <el-table
         v-loading="loading"
         :data="filteredRows"
         border
-        height="calc(100% - 136px)"
+        height="calc(100% - 276px)"
         class="target-table"
         :row-class-name="tableRowClassName"
         @row-dblclick="openDetail"
@@ -246,6 +277,19 @@
           <div class="headline-metric">
             <span>涉及金额</span>
             <strong>{{ money(detail.amount) }}</strong>
+          </div>
+        </section>
+
+        <section class="detail-panel">
+          <div class="section-title">
+            <strong>交付检查清单</strong>
+          </div>
+          <div class="approval-checklist">
+            <div v-for="item in approvalChecklist" :key="item.label" :class="{ done: item.done }">
+              <el-icon><CircleCheck /></el-icon>
+              <span>{{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
           </div>
         </section>
 
@@ -655,6 +699,17 @@ interface ApprovalRow {
   formValues?: Record<string, any>;
 }
 
+interface ApprovalQueue {
+  key: string;
+  label: string;
+  value: number;
+  hint: string;
+  tone: string;
+  filter: LeftStatus;
+  tab: ListTab;
+  type?: string;
+}
+
 const currentUser = "赵财务";
 const rows = ref<ApprovalRow[]>([]);
 const detail = ref<ApprovalRow | null>(null);
@@ -672,6 +727,7 @@ const leftStatus = ref<LeftStatus>("all");
 const typeScope = ref("all");
 const queryField = ref<keyof ApprovalRow>("approvalNo");
 const keyword = ref("");
+const deliveryQueueMode = ref<"" | "attachment">("");
 const createUploadFileList = ref<UploadUserFile[]>([]);
 const appendUploadFileList = ref<UploadUserFile[]>([]);
 
@@ -735,6 +791,7 @@ const filteredRows = computed(() => {
     if (selectedCustomer.value !== "all" && row.customerName !== selectedCustomer.value && row.applicant !== selectedCustomer.value) return false;
     if (ownerScope.value === "mine" && row.currentOperator !== currentUser && row.applicant !== currentUser) return false;
     if (typeScope.value !== "all" && row.type !== typeScope.value) return false;
+    if (deliveryQueueMode.value === "attachment" && row.attachmentCount > 0) return false;
     if (!matchesStatus(row, leftStatus.value)) return false;
     if (!matchesListTab(row, activeListTab.value)) return false;
     if (!key) return true;
@@ -750,6 +807,107 @@ const summary = computed(() => ({
   approved: filteredRows.value.filter((row) => row.status === "APPROVED").length,
   rejected: filteredRows.value.filter((row) => row.status === "REJECTED").length,
 }));
+
+const approvalQueues = computed<ApprovalQueue[]>(() => {
+  const processing = rows.value.filter((row) => row.status === "PROCESSING");
+  const myTodo = processing.filter((row) => row.currentOperator === currentUser);
+  const missingAttachment = rows.value.filter(
+    (row) => row.status === "PROCESSING" && !row.attachmentCount,
+  );
+  const highRisk = rows.value.filter(
+    (row) => row.overdue || (row.priority === "紧急" && row.status === "PROCESSING"),
+  );
+
+  return [
+    {
+      key: "todo",
+      label: "待我审批",
+      value: myTodo.length,
+      hint: "直接进入本人待办",
+      tone: "blue",
+      filter: "PROCESSING",
+      tab: "todo",
+    },
+    {
+      key: "risk",
+      label: "超时/紧急",
+      value: highRisk.length,
+      hint: "优先催办或转办",
+      tone: highRisk.length ? "red" : "green",
+      filter: "overdue",
+      tab: "all",
+    },
+    {
+      key: "draft",
+      label: "草稿待提交",
+      value: rows.value.filter((row) => row.status === "DRAFT").length,
+      hint: "检查表单后提交",
+      tone: "orange",
+      filter: "DRAFT",
+      tab: "draft",
+    },
+    {
+      key: "attachment",
+      label: "附件待补",
+      value: missingAttachment.length,
+      hint: "避免财务/资产审批缺依据",
+      tone: missingAttachment.length ? "orange" : "green",
+      filter: "PROCESSING",
+      tab: "all",
+    },
+  ];
+});
+
+const templateCoverage = computed(() =>
+  approvalTemplates.map((template) => {
+    const related = rows.value.filter((row) => row.type === template.key);
+    return {
+      key: template.key,
+      label: template.label,
+      count: related.length,
+      nodeCount: template.nodes.length,
+      requiredFieldCount: requiredFieldCount(template),
+    };
+  }),
+);
+
+const approvalChecklist = computed(() => {
+  const row = detail.value;
+  if (!row) return [];
+  const template = approvalTemplates.find((item) => item.key === row.type);
+  return [
+    {
+      label: "业务单据关联",
+      value: row.businessNo || row.businessId || "待补充",
+      done: Boolean(row.businessNo || row.businessId),
+    },
+    {
+      label: "审批节点配置",
+      value: `${row.nodeCount || template?.nodes.length || 0} 个节点`,
+      done: Boolean(row.nodeCount || template?.nodes.length),
+    },
+    {
+      label: "表单字段",
+      value: `${row.formItems?.length || template?.fields.length || 0} 项`,
+      done: Boolean(row.formItems?.length || template?.fields.length),
+    },
+    {
+      label: "附件归档",
+      value: row.attachmentCount ? `${row.attachmentCount} 个附件` : "待补充",
+      done: row.attachmentCount > 0,
+    },
+    {
+      label: "流转记录",
+      value: `${row.logs?.length || 0} 条`,
+      done: Boolean(row.logs?.length),
+    },
+    {
+      label: "处理时限",
+      value: row.overdue ? "即将超时" : "正常",
+      done: !row.overdue,
+    },
+  ];
+});
 
 const actionTitle = computed(() => {
   return (
@@ -848,18 +1006,131 @@ function resetQuery() {
   leftStatus.value = "all";
   activeListTab.value = "all";
   selectedCustomer.value = "all";
+  deliveryQueueMode.value = "";
 }
 
 function noopSearch() {
   ElMessage.success("已按当前条件查询");
 }
 
-function openReserved(name: string) {
-  if (name === "流程模板配置") {
+function applyApprovalQueue(queue: ApprovalQueue) {
+  leftStatus.value = queue.filter;
+  activeListTab.value = queue.tab;
+  deliveryQueueMode.value = queue.key === "attachment" ? "attachment" : "";
+  if (queue.type) typeScope.value = queue.type;
+  if (queue.key === "attachment") {
+    keyword.value = "";
+    ElMessage.success(`已筛出 ${queue.value} 张需要补充附件的审批单`);
+    return;
+  }
+  ElMessage.success(`已切换到${queue.label}`);
+}
+
+async function handleBatchCommand(command: string) {
+  if (command === "流程模板配置") {
     templateVisible.value = true;
     return;
   }
-  ElMessage.info(`${name}已预留入口，后续可接真实流程引擎`);
+
+  const targets = filteredRows.value.filter((row) => row.status === "PROCESSING");
+  if (!targets.length) {
+    ElMessage.info("当前筛选范围内没有可批量处理的审批单");
+    return;
+  }
+
+  if (command === "批量催办") {
+    loading.value = true;
+    try {
+      const updatedRows = await Promise.all(
+        targets.map((row) =>
+          patchMock<ApprovalRow>(`/approvals/${row.id}/action`, {
+            action: "COMMENT",
+            operator: row.currentOperator || currentUser,
+            comment: "批量催办：请审批人尽快处理该流程。",
+          }),
+        ),
+      );
+      updatedRows.forEach(replaceRow);
+      ElMessage.success(`已催办 ${updatedRows.length} 张审批单`);
+    } finally {
+      loading.value = false;
+    }
+    return;
+  }
+
+  if (command === "批量通过") {
+    const approvableTargets = filteredRows.value.filter((row) => row.canApprove);
+    if (!approvableTargets.length) {
+      ElMessage.info("当前筛选范围内没有可批量通过的审批单");
+      return;
+    }
+    try {
+      await ElMessageBox.confirm(
+        `确认批量通过 ${approvableTargets.length} 张审批单？系统会记录当前节点处理意见。`,
+        "批量通过",
+        {
+          type: "warning",
+          confirmButtonText: "确认通过",
+          cancelButtonText: "取消",
+        },
+      );
+    } catch {
+      return;
+    }
+    loading.value = true;
+    try {
+      const updatedRows = await Promise.all(
+        approvableTargets.map((row) =>
+          patchMock<ApprovalRow>(`/approvals/${row.id}/action`, {
+            action: "APPROVE",
+            operator: row.currentOperator || currentUser,
+            comment: "批量审批通过。",
+          }),
+        ),
+      );
+      updatedRows.forEach(replaceRow);
+      ElMessage.success(`已批量通过 ${updatedRows.length} 张审批单`);
+    } finally {
+      loading.value = false;
+    }
+    return;
+  }
+
+  if (command === "批量转办") {
+    let nextOperator = "";
+    try {
+      const result = await ElMessageBox.prompt("请输入批量转办处理人", "批量转办", {
+        inputValue: currentUser,
+        inputPlaceholder: "处理人姓名",
+        confirmButtonText: "确认转办",
+        cancelButtonText: "取消",
+      });
+      nextOperator = String(result.value || "").trim();
+    } catch {
+      return;
+    }
+    if (!nextOperator) {
+      ElMessage.warning("请填写转办处理人");
+      return;
+    }
+    loading.value = true;
+    try {
+      const updatedRows = await Promise.all(
+        targets.map((row) =>
+          patchMock<ApprovalRow>(`/approvals/${row.id}/action`, {
+            action: "TRANSFER",
+            operator: row.currentOperator || currentUser,
+            nextOperator,
+            comment: `批量转办给${nextOperator}处理。`,
+          }),
+        ),
+      );
+      updatedRows.forEach(replaceRow);
+      ElMessage.success(`已转办 ${updatedRows.length} 张审批单给 ${nextOperator}`);
+    } finally {
+      loading.value = false;
+    }
+  }
 }
 
 function templateNodeText(template: ApprovalTemplate) {
@@ -1456,6 +1727,99 @@ onMounted(loadApprovals);
   color: #ff4d6d;
 }
 
+.approval-delivery-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr)) minmax(260px, 1.45fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.delivery-queue-card,
+.template-coverage-card {
+  min-width: 0;
+  border: 1px solid #e5e8f1;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.delivery-queue-card {
+  display: grid;
+  gap: 5px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.delivery-queue-card:hover {
+  border-color: #4e5afe;
+  box-shadow: 0 8px 20px rgba(78, 90, 254, 0.12);
+}
+
+.delivery-queue-card span,
+.template-coverage-card span {
+  color: #69718b;
+  font-size: 12px;
+}
+
+.delivery-queue-card strong,
+.template-coverage-card strong {
+  color: #23253c;
+  font-size: 22px;
+  line-height: 26px;
+}
+
+.delivery-queue-card em {
+  color: #8b91a6;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.delivery-queue-card.red strong {
+  color: #cf1322;
+}
+
+.delivery-queue-card.orange strong {
+  color: #d48806;
+}
+
+.delivery-queue-card.green strong {
+  color: #389e0d;
+}
+
+.coverage-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.coverage-head > div {
+  display: grid;
+  gap: 3px;
+}
+
+.coverage-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 54px;
+  overflow-y: auto;
+}
+
+.coverage-list span {
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #2f54eb;
+  background: #eef2ff;
+}
+
+.coverage-list span.empty {
+  color: #8b91a6;
+  background: #f4f5f7;
+}
+
 .target-table {
   width: 100%;
 }
@@ -1643,6 +2007,41 @@ onMounted(loadApprovals);
 
 .section-title strong {
   font-size: 16px;
+}
+
+.approval-checklist {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.approval-checklist div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #eef0f5;
+  border-radius: 8px;
+  color: #7a8197;
+  background: #fbfcff;
+}
+
+.approval-checklist div.done {
+  color: #1f7a4d;
+  background: #f0fdf4;
+}
+
+.approval-checklist span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.approval-checklist strong {
+  color: #23253c;
+  font-size: 12px;
 }
 
 .info-grid,
@@ -1958,6 +2357,14 @@ onMounted(loadApprovals);
 
   .approval-summary-line {
     grid-template-columns: repeat(3, minmax(118px, 1fr));
+  }
+
+  .approval-delivery-board {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+
+  .template-coverage-card {
+    grid-column: 1 / -1;
   }
 }
 </style>

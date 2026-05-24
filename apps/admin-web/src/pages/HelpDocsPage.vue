@@ -9,7 +9,9 @@
         </p>
       </div>
       <div class="hero-actions">
-        <el-button type="primary" @click="scrollTo('devices')">查看设备管理</el-button>
+        <el-button type="primary" @click="scrollTo('acceptance')">查看交付验收</el-button>
+        <el-button @click="scrollTo('orders')">查看租赁订单</el-button>
+        <el-button @click="scrollTo('customer')">查看客户移动端</el-button>
         <el-button @click="scrollTo('workflows')">查看常用流程</el-button>
       </div>
     </section>
@@ -30,6 +32,44 @@
       </aside>
 
       <main class="help-content">
+        <section id="acceptance" class="acceptance-section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">交付验收</p>
+              <h2>上线前模块检查</h2>
+            </div>
+            <el-tag type="success" effect="plain">95% 交付线</el-tag>
+          </div>
+          <div class="acceptance-grid">
+            <article v-for="item in acceptanceDocs" :key="item.module" class="acceptance-card">
+              <div>
+                <strong>{{ item.module }}</strong>
+                <span>{{ item.owner }}</span>
+              </div>
+              <ul>
+                <li v-for="check in item.checks" :key="check">{{ check }}</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="roles" class="role-guide-section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">岗位路径</p>
+              <h2>不同角色日常怎么操作</h2>
+            </div>
+            <el-tag effect="plain">按岗位交接</el-tag>
+          </div>
+          <div class="role-guide-grid">
+            <article v-for="role in roleGuides" :key="role.role" class="role-guide-card">
+              <strong>{{ role.role }}</strong>
+              <p>{{ role.path }}</p>
+              <span>{{ role.result }}</span>
+            </article>
+          </div>
+        </section>
+
         <section id="workflows" class="workflow-section">
           <div class="section-head">
             <div>
@@ -103,6 +143,7 @@ import {
   Setting,
   Tickets,
   Tools,
+  UserFilled,
 } from "@element-plus/icons-vue";
 
 type HelpDoc = {
@@ -144,7 +185,7 @@ const helpDocs: HelpDoc[] = [
     notes: [
       "首页用于快速判断问题，不替代各模块中的明细查询。",
       "首页统计异常时，优先进入对应明细模块核对设备、订单或审批记录。",
-      "后续接入真实数据库后，首页统计需要和各模块状态保持一致。",
+      "生产部署时需要校验首页统计口径和订单、资产、审批、财务明细保持一致。",
     ],
   },
   {
@@ -299,7 +340,7 @@ const helpDocs: HelpDoc[] = [
     notes: [
       "报修动作需要和设备状态、告警状态、固定资产状态联动。",
       "内部报修适用于仓库盘点、归还检测和运营巡检发现的问题。",
-      "客户侧图片上传和后台状态流转后续需要接入真实存储和数据库。",
+      "生产部署时需校验图片/附件存储、数据库持久化和客户侧状态刷新策略。",
     ],
   },
   {
@@ -394,6 +435,123 @@ const helpDocs: HelpDoc[] = [
       "角色权限应按岗位最小权限配置。",
       "重置默认配置前需要确认不会覆盖正在使用的业务配置。",
     ],
+  },
+  {
+    key: "customer",
+    title: "客户移动端",
+    path: "/customer",
+    icon: UserFilled,
+    summary: "用于客户管理员和客户员工在手机端查看订单、电池、收货、报修和账单，承担客户自助闭环。",
+    scenarios: [
+      "客户管理员查看租赁订单、欠款账单并提交付款凭证。",
+      "客户员工核对出库单和 BT 码后确认收货。",
+      "现场人员扫码或选择电池提交报修，并持续查看处理进度。",
+    ],
+    steps: [
+      "客户登录后先进入首页查看待收货、报修中和待付款事项。",
+      "在订单页按全部、待收货、租赁中、退租中、已完成筛选订单。",
+      "收到出库设备后进入收货页核对出库单、BT 码、地址和收货人，确认整单收货。",
+      "设备异常时进入报修页提交故障描述和联系方式，后台受理后同步状态。",
+      "客户管理员在账单页查看欠款、付款状态并提交付款凭证。",
+    ],
+    fields: [
+      "客户名称、登录账号、权限：决定客户管理员和员工可见范围。",
+      "订单号、合同状态、租期、待收货数：客户侧履约判断字段。",
+      "出库单号、BT 码、自动收货日：确认收货依据。",
+      "报修设备、故障描述、处理状态：售后闭环字段。",
+      "账单金额、欠款、凭证状态：财务对账字段。",
+    ],
+    notes: [
+      "客户员工默认不展示金额，只开放订单、电池、收货和报修。",
+      "收货确认后会同步订单待收货数和后台出库状态。",
+      "生产部署时需配置 HTTPS、移动端登录有效期、文件上传和短信/通知策略。",
+    ],
+  },
+];
+
+const acceptanceDocs = [
+  {
+    module: "OA 审批",
+    owner: "运营 / 管理层",
+    checks: [
+      "审批台账、待我处理、草稿、已办、超时队列可筛选。",
+      "新建审批可按模板带出字段、节点、风险项和附件要求。",
+      "通过、驳回、转办、撤销、删除、催办、批量通过都有操作记录。",
+      "详情中能查看表单、节点、流转、附件和交付检查清单。",
+    ],
+  },
+  {
+    module: "租赁订单",
+    owner: "销售 / 资产 / 财务",
+    checks: [
+      "订单创建、会签、合同归档、出库、收货、账单、回款、续租、退租可闭环。",
+      "合同待归档、待出库、待收货、催收回款、退租结清队列可直接进入。",
+      "订单详情可查看合同、电池、出库、账单、报修和履约检查。",
+      "客户移动端收货和账单动作能回写后台状态。",
+    ],
+  },
+  {
+    module: "系统管理",
+    owner: "系统管理员",
+    checks: [
+      "账号、角色、字典、接口、审批流、参数、审计日志可维护。",
+      "支持导出配置快照、恢复配置、恢复默认和导出审计。",
+      "交付健康度覆盖账号、权限、接口、审批、审计、备份和参数风险。",
+      "接口测试和验收清单导出可作为上线附件。",
+    ],
+  },
+  {
+    module: "客户移动端",
+    owner: "客户管理员 / 客户员工",
+    checks: [
+      "首页有待收货、报修、账单/订单待办和最近订单。",
+      "订单页支持状态筛选和确认收货、查看电池、发起报修、付款凭证入口。",
+      "收货页展示出库时间、自动收货日、收货人、地址和 BT 码。",
+      "账单金额按权限展示，客户员工不暴露金额。",
+    ],
+  },
+  {
+    module: "帮助 / 操作文档",
+    owner: "项目交付",
+    checks: [
+      "内置帮助页覆盖各后台模块、客户移动端、岗位路径和常用流程。",
+      "仓库 docs 中保留正式交付验收清单和核心流程操作手册。",
+      "上线前检查明确环境、数据库、对象存储、接口、账号、备份和审计。",
+      "验收材料能够直接交给实施、培训和客户试运行人员使用。",
+    ],
+  },
+];
+
+const roleGuides = [
+  {
+    role: "销售 / 客户经理",
+    path: "租赁订单 → 新建订单 → 发起会签 → 跟进合同归档 → 客户移动端收货确认",
+    result: "形成可履约订单和客户侧可见进度。",
+  },
+  {
+    role: "仓库 / 资产",
+    path: "固定资产 → 可用库存 → 订单详情出库 → BT 码绑定 → 退租/维修入库",
+    result: "保证资产状态和实际库存一致。",
+  },
+  {
+    role: "财务",
+    path: "订单详情账单 → 财务管理 → 账单确认 → 登记回款 → OA 审批退款/调整",
+    result: "完成应收、实收、欠款和凭证闭环。",
+  },
+  {
+    role: "售后",
+    path: "客户移动端报修 → 售后报修受理 → 维修跟进 → 待入库 → 客户确认",
+    result: "保留故障、维修、费用和状态记录。",
+  },
+  {
+    role: "系统管理员",
+    path: "系统管理 → 角色权限 → 接口配置 → 审批流 → 参数 → 交付健康度检查",
+    result: "交付前完成账号、权限、接口和审计准备。",
+  },
+  {
+    role: "客户管理员 / 员工",
+    path: "移动端首页 → 订单 → 收货 → 报修 → 账单/付款凭证",
+    result: "客户可自助查看履约状态并提交必要反馈。",
   },
 ];
 
@@ -542,6 +700,8 @@ function scrollTo(key: string) {
   gap: 14px;
 }
 
+.acceptance-section,
+.role-guide-section,
 .workflow-section,
 .help-section {
   scroll-margin-top: 12px;
@@ -549,6 +709,8 @@ function scrollTo(key: string) {
   background: #fff;
 }
 
+.acceptance-section,
+.role-guide-section,
 .workflow-section {
   padding: 20px;
 }
@@ -590,6 +752,55 @@ function scrollTo(key: string) {
   gap: 12px;
 }
 
+.acceptance-grid,
+.role-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.acceptance-card,
+.role-guide-card {
+  padding: 16px;
+  border: 1px solid #eef0f5;
+  border-radius: 8px;
+  background: #fbfcff;
+}
+
+.acceptance-card > div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.acceptance-card strong,
+.role-guide-card strong {
+  color: #23253c;
+  font-size: 15px;
+}
+
+.acceptance-card span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #4e5afe;
+  background: #eef2ff;
+  font-size: 12px;
+}
+
+.role-guide-card p {
+  margin: 10px 0;
+  color: #3f4558;
+  line-height: 1.6;
+}
+
+.role-guide-card span {
+  color: #69718b;
+  font-size: 13px;
+}
+
 .workflow-card {
   padding: 16px;
   border: 1px solid #eef0f5;
@@ -626,6 +837,7 @@ function scrollTo(key: string) {
 
 .doc-block ul,
 .doc-block ol,
+.acceptance-card ul,
 .workflow-card ol {
   margin: 10px 0 0;
   padding-left: 18px;
@@ -634,6 +846,7 @@ function scrollTo(key: string) {
 }
 
 .doc-block li,
+.acceptance-card li,
 .workflow-card li {
   margin-bottom: 4px;
 }
@@ -663,6 +876,8 @@ function scrollTo(key: string) {
     justify-content: flex-start;
   }
 
+  .acceptance-grid,
+  .role-guide-grid,
   .workflow-grid,
   .doc-grid,
   .help-directory {

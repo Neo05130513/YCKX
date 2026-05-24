@@ -5,9 +5,36 @@
       <p>查看订单进度、确认收货和账单状态</p>
     </div>
 
-    <div v-if="!orders.length" class="card empty-card">暂无租赁订单</div>
+    <div class="card order-summary">
+      <div>
+        <span>订单数</span>
+        <strong>{{ orderSummary.total }}</strong>
+      </div>
+      <div>
+        <span>待收货</span>
+        <strong>{{ orderSummary.pendingReceipt }}</strong>
+      </div>
+      <div>
+        <span>{{ canViewAmount ? "欠款订单" : "租赁中" }}</span>
+        <strong>{{ canViewAmount ? orderSummary.debtOrders : orderSummary.leasing }}</strong>
+      </div>
+    </div>
 
-    <article v-for="item in orders" :key="item.id" class="card order-card">
+    <div class="filter-tabs">
+      <button
+        v-for="tab in filterTabs"
+        :key="tab.key"
+        :class="{ active: activeFilter === tab.key }"
+        type="button"
+        @click="activeFilter = tab.key"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <div v-if="!filteredOrders.length" class="card empty-card">当前筛选下暂无租赁订单</div>
+
+    <article v-for="item in filteredOrders" :key="item.id" class="card order-card">
       <header class="order-title">
         <div>
           <strong>{{ item.orderNo }}</strong>
@@ -29,17 +56,25 @@
           <span>租期</span>
           <strong>{{ item.leaseStart }} 至 {{ item.leaseEnd }}</strong>
         </div>
-        <div>
+        <div v-if="canViewAmount">
           <span>月租</span>
           <strong>{{ money(item.monthlyRent) }}</strong>
+        </div>
+        <div v-else>
+          <span>合同</span>
+          <strong>{{ item.contractStatus || "履约中" }}</strong>
         </div>
         <div>
           <span>待收货</span>
           <strong>{{ item.pendingReceiptCount }}</strong>
         </div>
-        <div>
+        <div v-if="canViewAmount">
           <span>欠款</span>
-          <strong :class="{ danger: item.debtAmount > 0 }">{{ money(item.debtAmount) }}</strong>
+          <strong :class="{ danger: Number(item.debtAmount || 0) > 0 }">{{ money(item.debtAmount) }}</strong>
+        </div>
+        <div v-else>
+          <span>已收货</span>
+          <strong>{{ item.receivedCount ?? 0 }}</strong>
         </div>
       </div>
 
@@ -59,7 +94,7 @@
         </div>
       </div>
 
-      <div v-if="billsByOrder(item.orderNo).length" class="section-block">
+      <div v-if="canViewAmount && billsByOrder(item.orderNo).length" class="section-block">
         <h3>账单</h3>
         <div v-for="bill in billsByOrder(item.orderNo)" :key="bill.id" class="sub-row">
           <div>
@@ -68,6 +103,13 @@
           </div>
           <em :class="{ danger: bill.debtAmount > 0 }">{{ money(bill.debtAmount) }}</em>
         </div>
+      </div>
+
+      <div class="order-actions">
+        <RouterLink v-if="item.pendingReceiptCount > 0" to="/receipts">确认收货</RouterLink>
+        <RouterLink to="/batteries">查看电池</RouterLink>
+        <RouterLink :to="{ path: '/repair', query: { orderNo: item.orderNo } }">发起报修</RouterLink>
+        <RouterLink v-if="canViewAmount && Number(item.debtAmount || 0) > 0" to="/bills">付款凭证</RouterLink>
       </div>
     </article>
   </div>
@@ -87,11 +129,12 @@ type OrderRow = {
   status: string;
   leaseStart: string;
   leaseEnd: string;
-  monthlyRent: number;
+  monthlyRent?: number;
   orderedBatteryCount: number;
   outboundCount: number;
   pendingReceiptCount: number;
-  debtAmount: number;
+  debtAmount?: number;
+  receivedCount?: number;
   contractStatus?: string;
   renewalCount?: number;
   renewalDesc?: string;
@@ -120,6 +163,7 @@ type BillRow = {
 };
 
 type CustomerHome = {
+  canViewAmount: boolean;
   orders: OrderRow[];
   outbounds: OutboundRow[];
   bills: BillRow[];
@@ -127,6 +171,32 @@ type CustomerHome = {
 
 const home = ref<CustomerHome>();
 const orders = computed(() => home.value?.orders ?? []);
+const canViewAmount = computed(() => home.value?.canViewAmount !== false);
+const activeFilter = ref("all");
+const filterTabs = [
+  { key: "all", label: "全部" },
+  { key: "receipt", label: "待收货" },
+  { key: "leasing", label: "租赁中" },
+  { key: "returning", label: "退租中" },
+  { key: "completed", label: "已完成" },
+];
+
+const filteredOrders = computed(() =>
+  orders.value.filter((item) => {
+    if (activeFilter.value === "receipt") return item.pendingReceiptCount > 0 || item.status === "PENDING_RECEIPT";
+    if (activeFilter.value === "leasing") return ["LEASING", "PARTIALLY_OUTBOUND", "PENDING_OUTBOUND"].includes(item.status);
+    if (activeFilter.value === "returning") return item.status === "RETURNING";
+    if (activeFilter.value === "completed") return item.status === "COMPLETED";
+    return true;
+  }),
+);
+
+const orderSummary = computed(() => ({
+  total: orders.value.length,
+  pendingReceipt: orders.value.reduce((sum, item) => sum + Number(item.pendingReceiptCount || 0), 0),
+  leasing: orders.value.filter((item) => ["LEASING", "PARTIALLY_OUTBOUND", "PENDING_OUTBOUND"].includes(item.status)).length,
+  debtOrders: orders.value.filter((item) => Number(item.debtAmount || 0) > 0).length,
+}));
 
 function outboundsByOrder(orderId: string) {
   return (home.value?.outbounds ?? []).filter((item) => item.orderId === orderId);
@@ -162,7 +232,7 @@ function statusLabel(status: string) {
 }
 
 function statusClass(row: OrderRow) {
-  if (row.debtAmount > 0) return "danger";
+  if (canViewAmount.value && Number(row.debtAmount || 0) > 0) return "danger";
   if (row.status === "CANCELLED") return "danger";
   if (row.status === "RETURNING") return "warning";
   if (["LEASING", "COMPLETED"].includes(row.status)) return "success";
@@ -171,7 +241,9 @@ function statusClass(row: OrderRow) {
 
 function lifecycleNotice(row: OrderRow) {
   if (row.status === "RETURNING") {
-    return `资产已退回${row.returnWarehouse ? `至${row.returnWarehouse}` : ""}，当前待结清欠款 ${money(row.debtAmount)}。`;
+    return canViewAmount.value
+      ? `资产已退回${row.returnWarehouse ? `至${row.returnWarehouse}` : ""}，当前待结清欠款 ${money(row.debtAmount)}。`
+      : `资产已退回${row.returnWarehouse ? `至${row.returnWarehouse}` : ""}，当前由财务结算中。`;
   }
   if (row.renewalDesc) return row.renewalDesc;
   if (row.contractStatus === "续租待归档") return "续租已生效，签署版补充合同待归档。";
@@ -219,6 +291,46 @@ onMounted(load);
 <style scoped>
 .order-card {
   padding-bottom: 10px;
+}
+
+.order-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.order-summary span {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.order-summary strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+  overflow-x: auto;
+}
+
+.filter-tabs button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #4b5563;
+  background: #fff;
+  font: inherit;
+}
+
+.filter-tabs button.active {
+  color: #fff;
+  background: var(--primary);
 }
 
 .order-title {
@@ -346,6 +458,24 @@ onMounted(load);
 .empty-card {
   color: #6b7280;
   text-align: center;
+}
+
+.order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eef2f7;
+}
+
+.order-actions a {
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--primary);
+  background: #eff6ff;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .danger {

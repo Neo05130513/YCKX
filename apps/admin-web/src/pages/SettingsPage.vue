@@ -9,6 +9,8 @@
         <el-button :icon="Refresh" :loading="loading" @click="loadSystem()">刷新</el-button>
         <el-button :icon="Download" @click="exportSystemSnapshot">导出配置</el-button>
         <el-button :icon="Refresh" :loading="snapshotImporting" @click="importSystemSnapshot">恢复配置</el-button>
+        <el-button :icon="Document" @click="runDeliveryCheck">一键交付检查</el-button>
+        <el-button :icon="Download" @click="exportAcceptanceChecklist">导出验收清单</el-button>
         <el-button :icon="Download" @click="exportAudit">导出审计</el-button>
         <el-button type="primary" :icon="Plus" @click="openCreateAccount()">新增账号</el-button>
       </div>
@@ -25,6 +27,31 @@
     <el-tabs v-model="activeTab" class="system-tabs">
       <el-tab-pane label="总览" name="overview">
         <div class="overview-grid">
+          <section class="system-panel panel-wide delivery-panel">
+            <div class="panel-head">
+              <div>
+                <h3>交付健康度</h3>
+                <p>上线前对账号、权限、接口、审批、审计、备份和参数风险做集中检查</p>
+              </div>
+              <div class="delivery-score" :class="{ pass: deliveryScore >= 95 }">
+                <strong>{{ deliveryScore }}%</strong>
+                <span>{{ deliveryScore >= 95 ? "达到交付线" : "需补齐" }}</span>
+              </div>
+            </div>
+            <div class="delivery-check-grid">
+              <div v-for="item in deliveryChecks" :key="item.label" :class="{ done: item.done }">
+                <el-icon><CircleCheck /></el-icon>
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.value }}</span>
+                <em>{{ item.suggestion }}</em>
+              </div>
+            </div>
+            <div class="delivery-actions">
+              <el-button type="primary" :icon="Document" @click="runDeliveryCheck">重新检查</el-button>
+              <el-button :icon="Download" @click="exportAcceptanceChecklist">导出系统验收清单</el-button>
+            </div>
+          </section>
+
           <section class="system-panel panel-wide">
             <div class="panel-head">
               <div>
@@ -649,6 +676,7 @@
 import { computed, onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
+  CircleCheck,
   Connection,
   Delete as DeleteIcon,
   Document,
@@ -969,6 +997,69 @@ const metrics = computed(() => [
     tone: "purple",
   },
 ]);
+
+const deliveryChecks = computed(() => {
+  const enabledAccounts = systemData.value.accounts.filter((account) => account.status === "ENABLED").length;
+  const sensitiveRoles = systemData.value.roles.filter((role) =>
+    role.permissions.some((permission) => permission.enabled && permission.sensitive),
+  ).length;
+  const configuredInterfaces = systemData.value.interfaces.filter(
+    (item) => item.enabled && item.credentialConfigured !== false && item.status !== "ERROR",
+  ).length;
+  const enabledFlows = systemData.value.approvalFlows.filter((flow) => flow.enabled).length;
+  const highRiskParameters = systemData.value.parameters.filter((item) => item.riskLevel === "高").length;
+
+  return [
+    {
+      label: "账号启用",
+      value: `${enabledAccounts}/${systemData.value.accounts.length} 个账号可用`,
+      done: enabledAccounts > 0 && systemData.value.stats.disabledAccountCount <= enabledAccounts,
+      suggestion: "交付前停用离职/测试账号，保留管理员和业务岗位账号。",
+    },
+    {
+      label: "角色权限",
+      value: `${systemData.value.roles.length} 个角色 / ${sensitiveRoles} 个含敏感权限`,
+      done: systemData.value.roles.length >= 4 && sensitiveRoles > 0,
+      suggestion: "按最小权限保留销售、资产、财务、售后、客户管理员等岗位。",
+    },
+    {
+      label: "接口凭据",
+      value: `${configuredInterfaces}/${systemData.value.interfaces.filter((item) => item.enabled).length} 个启用接口正常`,
+      done: systemData.value.stats.enabledInterfaceCount > 0 && systemData.value.stats.interfaceErrorCount === 0,
+      suggestion: "设备平台、通知、定位等接口需完成鉴权、超时和负责人配置。",
+    },
+    {
+      label: "审批流程",
+      value: `${enabledFlows} 条流程启用`,
+      done: enabledFlows >= 4,
+      suggestion: "至少覆盖合同、出库、退款、报废、维修费用等关键流程。",
+    },
+    {
+      label: "审计日志",
+      value: `${systemData.value.operationLogs.length} 条记录`,
+      done: systemData.value.operationLogs.length > 0,
+      suggestion: "账号、权限、账单、接口和审批变更必须可追溯。",
+    },
+    {
+      label: "配置快照",
+      value: `${systemData.value.stats.accountTotal} 账号 / ${systemData.value.stats.parameterCount} 参数可导出`,
+      done: systemData.value.stats.accountTotal > 0 && systemData.value.stats.parameterCount > 0,
+      suggestion: "上线前导出 JSON 快照，作为回滚和验收附件。",
+    },
+    {
+      label: "参数风险",
+      value: `${highRiskParameters} 个高风险参数`,
+      done: highRiskParameters <= 2,
+      suggestion: "自动收货天数、逾期策略、金额阈值等需由业务负责人确认。",
+    },
+  ];
+});
+
+const deliveryScore = computed(() => {
+  if (!deliveryChecks.value.length) return 0;
+  const passed = deliveryChecks.value.filter((item) => item.done).length;
+  return Math.round((passed / deliveryChecks.value.length) * 100);
+});
 
 const filteredAccounts = computed(() => {
   const keyword = accountKeyword.value.trim().toLowerCase();
@@ -1614,6 +1705,40 @@ async function resetSystemDefaults() {
   ElMessage.success("系统默认配置已恢复");
 }
 
+function runDeliveryCheck() {
+  const failed = deliveryChecks.value.filter((item) => !item.done);
+  if (!failed.length) {
+    ElMessage.success(`系统设置交付健康度 ${deliveryScore.value}%，已达到验收线`);
+    return;
+  }
+  ElMessage.warning(
+    `系统设置交付健康度 ${deliveryScore.value}%，仍需处理：${failed.map((item) => item.label).join("、")}`,
+  );
+}
+
+function exportAcceptanceChecklist() {
+  const header = ["检查项", "结果", "当前值", "整改建议"];
+  const rows = deliveryChecks.value.map((item) => [
+    item.label,
+    item.done ? "通过" : "需处理",
+    item.value,
+    item.suggestion,
+  ]);
+  const csv = [header, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `yckx-system-acceptance-${Date.now()}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  ElMessage.success("系统设置验收清单已导出");
+}
+
 function exportAudit() {
   const header = ["时间", "模块", "动作", "操作人", "对象", "结果", "IP", "详情"];
   const rows = filteredLogs.value.map((log) => [
@@ -1728,6 +1853,87 @@ onMounted(loadSystem);
 
 .panel-wide {
   grid-row: span 2;
+}
+
+.delivery-panel {
+  border-color: #dfe5ff;
+  background: #fbfcff;
+}
+
+.delivery-score {
+  min-width: 104px;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #cf1322;
+  background: #fff1f0;
+}
+
+.delivery-score.pass {
+  color: #237804;
+  background: #f6ffed;
+}
+
+.delivery-score strong {
+  font-size: 26px;
+  line-height: 30px;
+}
+
+.delivery-score span {
+  font-size: 12px;
+}
+
+.delivery-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.delivery-check-grid div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 4px 8px;
+  padding: 12px;
+  border: 1px solid #eef0f5;
+  border-radius: 8px;
+  color: #8c6d1f;
+  background: #fffbe6;
+}
+
+.delivery-check-grid div.done {
+  color: #237804;
+  background: #f6ffed;
+}
+
+.delivery-check-grid strong,
+.delivery-check-grid span,
+.delivery-check-grid em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delivery-check-grid strong {
+  color: #1f2329;
+}
+
+.delivery-check-grid span,
+.delivery-check-grid em {
+  grid-column: 2;
+  color: var(--ant-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+  font-style: normal;
+}
+
+.delivery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .panel-head {
@@ -2141,6 +2347,10 @@ onMounted(loadSystem);
   }
 
   .table-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .delivery-check-grid {
     grid-template-columns: 1fr;
   }
 }

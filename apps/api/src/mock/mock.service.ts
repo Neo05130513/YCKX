@@ -99,6 +99,7 @@ export type MockAuthContext = {
   name: string;
   roleId: string;
   roleName: string;
+  customerId: string;
   customerName: string;
   permissions: string[];
   issuedAt: number;
@@ -419,6 +420,16 @@ export class MockService {
       {
         code: "customer.bill.voucher",
         name: "提交付款凭证",
+        module: "客户移动端",
+        sensitive: true,
+      },
+      true,
+    );
+    ensureRolePermission(
+      "role-customer-staff",
+      {
+        code: "customer.receipt.confirm",
+        name: "确认收货",
         module: "客户移动端",
         sensitive: true,
       },
@@ -2663,7 +2674,7 @@ export class MockService {
           code: "customer.receipt.confirm",
           name: "确认收货",
           module: "客户移动端",
-          enabled: false,
+          enabled: true,
           sensitive: true,
         },
         {
@@ -3477,11 +3488,14 @@ export class MockService {
     return repair;
   }
 
-  private findCustomerRepairTicket(id: string): Record<string, any> {
+  private findCustomerRepairTicket(
+    id: string,
+    auth?: MockAuthContext,
+  ): Record<string, any> {
     const repair = this.findRepairTicket(id);
     const customerOrders = new Set(
       this.orders
-        .filter((order) => order.customerId === customerId)
+        .filter((order) => this.customerOrderVisible(order, auth))
         .map((order) => order.id),
     );
     if (
@@ -12137,6 +12151,53 @@ export class MockService {
     return role;
   }
 
+  private resolveCustomerIdForName(customerName?: string) {
+    const name = String(customerName ?? "").trim();
+    if (!name) return "";
+    const order = this.orders.find(
+      (item) =>
+        item.customerName === name ||
+        item.customerShortName === name ||
+        item.customerId === name,
+    );
+    if (order?.customerId) return order.customerId;
+    const battery = this.batteries.find(
+      (item) =>
+        item.customerName === name ||
+        item.customerShortName === name ||
+        item.userName === name ||
+        item.customerId === name,
+    );
+    return battery?.customerId || "";
+  }
+
+  private customerOrderVisible(
+    order: Record<string, any>,
+    auth?: MockAuthContext,
+  ) {
+    if (!auth) return order.customerId === customerId;
+    if (auth.customerId && order.customerId === auth.customerId) return true;
+    return Boolean(
+      auth.customerName &&
+        (order.customerName === auth.customerName ||
+          order.customerShortName === auth.customerName),
+    );
+  }
+
+  private customerBatteryVisible(
+    battery: Record<string, any>,
+    auth?: MockAuthContext,
+  ) {
+    if (!auth) return battery.customerId === customerId;
+    if (auth.customerId && battery.customerId === auth.customerId) return true;
+    return Boolean(
+      auth.customerName &&
+        (battery.customerName === auth.customerName ||
+          battery.customerShortName === auth.customerName ||
+          battery.userName === auth.customerName),
+    );
+  }
+
   private buildAuthContext(account: SystemAccount, tokenPayload?: any) {
     const role = this.findSystemRole(account.roleId);
     const permissions = role.permissions
@@ -12150,6 +12211,10 @@ export class MockService {
       name: account.name,
       roleId: account.roleId,
       roleName: role.name,
+      customerId:
+        account.type === "CUSTOMER"
+          ? this.resolveCustomerIdForName(account.customerName)
+          : "",
       customerName: account.customerName,
       permissions,
       issuedAt: Number(tokenPayload?.iat ?? now),
@@ -12165,6 +12230,7 @@ export class MockService {
       name: auth.name,
       roleId: auth.roleId,
       roleName: auth.roleName,
+      customerId: auth.customerId,
       customerName: auth.customerName,
       permissions: auth.permissions,
       isSystemAdmin: auth.accountType === "INTERNAL" && auth.roleId === "role-admin",
@@ -13371,7 +13437,7 @@ export class MockService {
       auth?.permissions.includes("customer.bill.read"),
     );
     const customerOrders = this.orders.filter(
-      (order) => order.customerId === customerId,
+      (order) => this.customerOrderVisible(order, auth),
     );
     const customerOrderIds = new Set(customerOrders.map((order) => order.id));
     const customerOrderNos = new Set(
@@ -13407,11 +13473,12 @@ export class MockService {
 
     return {
       customerName: auth?.customerName || "河南示例物流有限公司",
+      customerId: auth?.customerId || customerId,
       role: auth?.roleName || "客户移动端",
       canViewAmount,
       orderCount: customerOrders.length,
       batteryCount: this.batteries.filter(
-        (battery) => battery.customerId === customerId,
+        (battery) => this.customerBatteryVisible(battery, auth),
       ).length,
       pendingReceiptCount: customerOutbounds.filter(
         (outbound) => outbound.status === OutboundStatus.PendingReceipt,
@@ -13438,7 +13505,7 @@ export class MockService {
         : 0,
       orders: visibleOrders,
       batteries: this.batteries.filter(
-        (battery) => battery.customerId === customerId,
+        (battery) => this.customerBatteryVisible(battery, auth),
       ),
       bills: visibleBills,
       outbounds: customerOutbounds,
@@ -13446,8 +13513,8 @@ export class MockService {
     };
   }
 
-  getCustomerRepair(id: string) {
-    const repair = this.findCustomerRepairTicket(id);
+  getCustomerRepair(id: string, auth?: MockAuthContext) {
+    const repair = this.findCustomerRepairTicket(id, auth);
     return this.getRepair(repair.id);
   }
 
@@ -13457,8 +13524,9 @@ export class MockService {
       message?: string;
       images?: unknown[];
     },
+    auth?: MockAuthContext,
   ) {
-    const repair = this.findCustomerRepairTicket(id);
+    const repair = this.findCustomerRepairTicket(id, auth);
     if (repair.status === RepairStatus.Closed) {
       throw new BadRequestException("已关闭报修单不能继续补充资料。");
     }
@@ -13483,11 +13551,15 @@ export class MockService {
     });
     repair.updatedAt = this.nowText();
     this.persistMockState();
-    return this.getCustomerRepair(repair.id);
+    return this.getCustomerRepair(repair.id, auth);
   }
 
-  confirmCustomerRepair(id: string, body: { remark?: string } = {}) {
-    const repair = this.findCustomerRepairTicket(id);
+  confirmCustomerRepair(
+    id: string,
+    body: { remark?: string } = {},
+    auth?: MockAuthContext,
+  ) {
+    const repair = this.findCustomerRepairTicket(id, auth);
     if (repair.status !== RepairStatus.Completed) {
       throw new BadRequestException("报修单完成后才能由客户确认。");
     }
@@ -13505,7 +13577,7 @@ export class MockService {
       this.persistMockState();
     }
 
-    return this.getCustomerRepair(repair.id);
+    return this.getCustomerRepair(repair.id, auth);
   }
 
   createCustomerRepair(body: {
@@ -13513,9 +13585,9 @@ export class MockService {
     description: string;
     address: string;
     images?: unknown[];
-  }) {
+  }, auth?: MockAuthContext) {
     const battery = this.batteries.find((item) => item.btCode === body.btCode);
-    if (!battery || battery.customerId !== customerId) {
+    if (!battery || !this.customerBatteryVisible(battery, auth)) {
       throw new BadRequestException("该电池不属于您的订单，无法提交报修。");
     }
     if (!body.description?.trim() || !body.address?.trim()) {
@@ -13539,8 +13611,8 @@ export class MockService {
     const repair = {
       ...identity,
       source: RepairSource.Customer,
-      customerName: "河南示例物流有限公司",
-      customerShortName: "河南物流",
+      customerName: order?.customerName || auth?.customerName || battery.userName || "客户",
+      customerShortName: order?.customerShortName || auth?.customerName || battery.userName || "客户",
       orderId: battery.orderId,
       btCode: body.btCode,
       status: RepairStatus.PendingAccept,
@@ -13592,17 +13664,20 @@ export class MockService {
     return this.getRepair(repair.id);
   }
 
-  confirmReceipt(id: string) {
+  confirmReceipt(id: string, auth?: MockAuthContext) {
     const outbound = this.outbounds.find((item) => item.id === id) as
       | Record<string, any>
       | undefined;
     if (!outbound) throw new NotFoundException("出库单不存在");
+    const order = this.orders.find((item) => item.id === outbound.orderId) as
+      | Record<string, any>
+      | undefined;
+    if (auth?.accountType === "CUSTOMER" && (!order || !this.customerOrderVisible(order, auth))) {
+      throw new NotFoundException("出库单不存在或无权确认。");
+    }
     if (outbound.status !== OutboundStatus.Received) {
       outbound.status = OutboundStatus.Received;
       outbound.receivedAt = this.nowText();
-      const order = this.orders.find((item) => item.id === outbound.orderId) as
-        | Record<string, any>
-        | undefined;
       if (order) {
         order.updatedAt = outbound.receivedAt;
         this.appendOrderEvent(

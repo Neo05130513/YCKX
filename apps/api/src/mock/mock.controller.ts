@@ -1051,8 +1051,11 @@ export class MockController {
   }
 
   @Get("customer/repairs/:id")
-  getCustomerRepair(@Param("id") id: string) {
-    return this.mockService.getCustomerRepair(id);
+  getCustomerRepair(
+    @Param("id") id: string,
+    @Req() request: { mockAuth: MockAuthContext },
+  ) {
+    return this.mockService.getCustomerRepair(id, request.mockAuth);
   }
 
   @Post("customer/repairs/:id/supplements")
@@ -1063,16 +1066,18 @@ export class MockController {
       message?: string;
       images?: string[];
     },
+    @Req() request: { mockAuth: MockAuthContext },
   ) {
-    return this.mockService.addCustomerRepairSupplement(id, body);
+    return this.mockService.addCustomerRepairSupplement(id, body, request.mockAuth);
   }
 
   @Patch("customer/repairs/:id/confirm")
   confirmCustomerRepair(
     @Param("id") id: string,
     @Body() body: { remark?: string },
+    @Req() request: { mockAuth: MockAuthContext },
   ) {
-    return this.mockService.confirmCustomerRepair(id, body);
+    return this.mockService.confirmCustomerRepair(id, body, request.mockAuth);
   }
 
   @Post("customer/repair")
@@ -1084,12 +1089,16 @@ export class MockController {
       address: string;
       images?: string[];
     },
+    @Req() request: { mockAuth: MockAuthContext },
   ) {
-    return this.mockService.createCustomerRepair(body);
+    return this.mockService.createCustomerRepair(body, request.mockAuth);
   }
 
   @Patch("customer/outbounds/:id/receipt")
-  confirmReceipt(@Param("id") id: string) {
-    return this.mockService.confirmReceipt(id);
+  confirmReceipt(
+    @Param("id") id: string,
+    @Req() request: { mockAuth: MockAuthContext },
+  ) {
+    return this.mockService.confirmReceipt(id, request.mockAuth);
   }
 }

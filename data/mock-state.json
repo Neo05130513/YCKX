@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "savedAt": "2026-05-18 19:06",
+  "savedAt": "2026-05-24 17:13",
   "batteries": [
     {
       "id": "bat-44840294",
@@ -25,7 +25,7 @@
       "iccid": "",
       "signal": 0,
       "lifecycle": "运营",
-      "customStatus": "待客户收货",
+      "customStatus": "正常运营",
       "inboundState": "已出库",
       "cardState": "未激活",
       "batchNum": "BATCH202605",
@@ -98,7 +98,7 @@
       "keeper": "王库管",
       "customerId": "customer-demo-2",
       "orderId": "order-002",
-      "updatedAt": "2026-05-18 18:13"
+      "updatedAt": "2026-05-24 15:23"
     },
     {
       "id": "bat-44840288",
@@ -123,7 +123,7 @@
       "iccid": "",
       "signal": 0,
       "lifecycle": "运营",
-      "customStatus": "待客户收货",
+      "customStatus": "正常运营",
       "inboundState": "已出库",
       "cardState": "未激活",
       "batchNum": "BATCH202605",
@@ -196,7 +196,7 @@
       "keeper": "王库管",
       "customerId": "customer-demo-2",
       "orderId": "order-002",
-      "updatedAt": "2026-05-18 18:13"
+      "updatedAt": "2026-05-24 15:23"
     },
     {
       "id": "bat-41208628",
@@ -221,7 +221,7 @@
       "iccid": "",
       "signal": 0,
       "lifecycle": "报废",
-      "customStatus": "租赁退回",
+      "customStatus": "正常运营",
       "inboundState": "退回入库",
       "cardState": "未激活",
       "batchNum": "BATCH202605",
@@ -294,7 +294,7 @@
       "keeper": "王库管",
       "customerId": null,
       "orderId": null,
-      "updatedAt": "2026-5-18 02:06:48"
+      "updatedAt": "2026-05-24 15:23"
     },
     {
       "id": "bat-41208621",
@@ -319,7 +319,7 @@
       "iccid": "",
       "signal": 0,
       "lifecycle": "报废",
-      "customStatus": "租赁退回",
+      "customStatus": "正常运营",
       "inboundState": "退回入库",
       "cardState": "未激活",
       "batchNum": "BATCH202605",
@@ -392,7 +392,7 @@
       "keeper": "王库管",
       "customerId": null,
       "orderId": null,
-      "updatedAt": "2026-5-18 02:06:48"
+      "updatedAt": "2026-05-24 15:23"
     },
     {
       "id": "bat-001",
@@ -798,7 +798,7 @@
       "customerContact": "李主管",
       "contactPhone": "13800138002",
       "region": "郑州经开区",
-      "status": "PENDING_RECEIPT",
+      "status": "PARTIALLY_OUTBOUND",
       "leaseStart": "2026-06-01",
       "leaseEnd": "2027-05-31",
       "billingDay": 10,
@@ -808,8 +808,8 @@
       "batteryCount": 2,
       "outboundProgress": "2/10",
       "outboundCount": 2,
-      "receivedCount": 0,
-      "pendingReceiptCount": 2,
+      "receivedCount": 2,
+      "pendingReceiptCount": 0,
       "receivableAmount": 0,
       "paidAmount": 0,
       "debtAmount": 0,
@@ -823,7 +823,7 @@
       "contractNo": "HT20260517002",
       "contractStatus": "已会签",
       "createdAt": "2026-05-17 14:40",
-      "updatedAt": "2026-05-18 18:13",
+      "updatedAt": "2026-05-24 15:23",
       "remark": "合同通过，等待资产部创建首批出库单。",
       "contract": {
         "name": "锂电池租赁合同-郑州测试配送",
@@ -881,6 +881,16 @@
           "time": "2026-05-18 18:13",
           "title": "审批自动出库",
           "content": "SP99197868 审批通过后已自动生成出库单。"
+        },
+        {
+          "time": "2026-05-24 15:23",
+          "title": "系统自动收货",
+          "content": "OUT99197901 已超过自动收货日，系统按规则确认 2 组电池收货。"
+        },
+        {
+          "time": "2026-05-24 15:23",
+          "title": "系统自动收货",
+          "content": "OUT41208640 已超过自动收货日，系统按规则确认 2 组电池收货。"
         }
       ]
     },
@@ -971,10 +981,10 @@
       "outboundNo": "OUT99197901",
       "orderId": "order-002",
       "customerName": "郑州测试配送有限公司",
-      "status": "PENDING_RECEIPT",
+      "status": "AUTO_RECEIVED",
       "outboundAt": "2026-05-18",
       "autoReceiveAt": "2026-05-24",
-      "receivedAt": "",
+      "receivedAt": "2026-05-24 15:23",
       "warehouse": "郑州总仓",
       "operator": "系统自动任务",
       "receiver": "李主管",
@@ -983,17 +993,19 @@
         "BTCHK030720A",
         "BTCHK030720B"
       ],
-      "remark": "SP99197868 审批通过后自动生成出库单，审批处理人：admin。"
+      "remark": "SP99197868 审批通过后自动生成出库单，审批处理人：admin。",
+      "autoReceivedBy": "系统自动任务",
+      "autoReceivedAt": "2026-05-24 15:23"
     },
     {
       "id": "out-41208640",
       "outboundNo": "OUT41208640",
       "orderId": "order-002",
       "customerName": "郑州测试配送有限公司",
-      "status": "PENDING_RECEIPT",
+      "status": "AUTO_RECEIVED",
       "outboundAt": "2026-05-17",
       "autoReceiveAt": "2026-05-23",
-      "receivedAt": "",
+      "receivedAt": "2026-05-24 15:23",
       "warehouse": "测试前置仓",
       "operator": "王库管",
       "receiver": "李主管",
@@ -1007,7 +1019,9 @@
         "BTTEST020648A",
         "BTTEST020648B"
       ],
-      "returnedAt": "2026-5-18 02:06:48"
+      "returnedAt": "2026-5-18 02:06:48",
+      "autoReceivedBy": "系统自动任务",
+      "autoReceivedAt": "2026-05-24 15:23"
     },
     {
       "id": "out-001",
@@ -5223,12 +5237,12 @@
   "automationState": {
     "enabled": true,
     "intervalMs": 300000,
-    "lastRunAt": "2026-05-18 19:06",
-    "nextRunAt": "2026-05-18 19:11",
+    "lastRunAt": "2026-05-24 17:13",
+    "nextRunAt": "2026-05-24 17:18",
     "lastResult": {
       "ok": true,
       "trigger": "SCHEDULED",
-      "asOfDate": "2026-05-18",
+      "asOfDate": "2026-05-24",
       "receipt": {
         "autoReceivedCount": 0,
         "receivedOutbounds": []
@@ -5236,7 +5250,7 @@
       "finance": {
         "ok": true,
         "trigger": "SCHEDULED",
-        "asOfDate": "2026-05-18",
+        "asOfDate": "2026-05-24",
         "generatedCount": 0,
         "skippedCount": 3,
         "markedOverdueCount": 0,
@@ -5256,7 +5270,7 @@
           }
         ],
         "markedOverdueBills": [],
-        "ranAt": "2026-05-18 19:06"
+        "ranAt": "2026-05-24 17:13"
       }
     },
     "runCount": 1
@@ -5865,6 +5879,15 @@
         "target": "报废",
         "status": "已登记",
         "remark": "烟测批量报废"
+      },
+      {
+        "type": "收货",
+        "title": "系统自动收货",
+        "time": "2026-05-24 15:23",
+        "operator": "系统自动任务",
+        "target": "郑州测试配送有限公司",
+        "status": "自动收货",
+        "remark": "OUT41208640 到期自动确认收货。"
       }
     ],
     "bat-41208628": [
@@ -5912,6 +5935,15 @@
         "target": "报废",
         "status": "已登记",
         "remark": "烟测批量报废"
+      },
+      {
+        "type": "收货",
+        "title": "系统自动收货",
+        "time": "2026-05-24 15:23",
+        "operator": "系统自动任务",
+        "target": "郑州测试配送有限公司",
+        "status": "自动收货",
+        "remark": "OUT41208640 到期自动确认收货。"
       }
     ],
     "bat-44840288": [
@@ -5932,6 +5964,15 @@
         "target": "郑州测试配送有限公司",
         "status": "待客户收货",
         "remark": "OUT99197901，批量绑定 ORD202605170002。"
+      },
+      {
+        "type": "收货",
+        "title": "系统自动收货",
+        "time": "2026-05-24 15:23",
+        "operator": "系统自动任务",
+        "target": "郑州测试配送有限公司",
+        "status": "自动收货",
+        "remark": "OUT99197901 到期自动确认收货。"
       }
     ],
     "bat-44840294": [
@@ -5952,6 +5993,15 @@
         "target": "郑州测试配送有限公司",
         "status": "待客户收货",
         "remark": "OUT99197901，批量绑定 ORD202605170002。"
+      },
+      {
+        "type": "收货",
+        "title": "系统自动收货",
+        "time": "2026-05-24 15:23",
+        "operator": "系统自动任务",
+        "target": "郑州测试配送有限公司",
+        "status": "自动收货",
+        "remark": "OUT99197901 到期自动确认收货。"
       }
     ]
   },
@@ -6476,6 +6526,7 @@
         "description": "查看电池状态、提交报修，不可查看账单金额和欠款。",
         "permissionSummary": [
           "查看本公司订单",
+          "确认收货",
           "提交报修"
         ],
         "permissions": [
@@ -6490,7 +6541,7 @@
             "code": "customer.receipt.confirm",
             "name": "确认收货",
             "module": "客户移动端",
-            "enabled": false,
+            "enabled": true,
             "sensitive": true
           },
           {

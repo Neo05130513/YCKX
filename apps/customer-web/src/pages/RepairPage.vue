@@ -182,6 +182,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRoute } from "vue-router";
 import { showConfirmDialog, showFailToast, showSuccessToast } from "vant";
 import {
   getMock,
@@ -240,6 +241,7 @@ interface RepairRow {
 }
 
 const home = ref<{ repairs?: RepairRow[]; batteries?: Array<{ btCode: string }> }>();
+const route = useRoute();
 const files = ref<any[]>([]);
 const supplementFiles = ref<any[]>([]);
 const selectedRepair = ref<RepairRow | null>(null);
@@ -252,6 +254,8 @@ const repairs = computed(() => home.value?.repairs ?? []);
 
 async function loadHome() {
   home.value = await getMock(getCustomerHomePath());
+  const btCode = String(route.query.btCode || "").trim();
+  if (btCode && !form.btCode) form.btCode = btCode;
 }
 
 function scanMock() {
